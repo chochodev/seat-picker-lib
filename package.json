@@ -1,0 +1,53 @@
+{
+  "name": "@chocho/seat-picker",
+  "version": "0.0.1",
+  "description": "A flexible and customizable seating arrangement GUI component for React applications",
+  "type": "module",
+  "main": "dist/seat-picker.umd.js",
+  "module": "dist/seat-picker.es.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "bundle": "npm run build && npm publish --access=public"
+  },
+  "peerDependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  },
+  "dependencies": {
+    "fabric": "^5.3.0",
+    "uuid": "^9.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/react": "^18.2.0",
+    "@types/react-dom": "^18.2.0",
+    "@vitejs/plugin-react-swc": "^3.0.0",
+    "typescript": "^5.0.0",
+    "vite": "^4.0.0"
+  },
+  "keywords": [
+    "react",
+    "seating",
+    "arrangement",
+    "seat-picker",
+    "event",
+    "venue",
+    "layout"
+  ],
+  "author": "Emmanuel Michael",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/chocho/seat-picker-lib"
+  },
+  "bugs": {
+    "url": "https://github.com/chocho/seat-picker-lib/issues"
+  },
+  "homepage": "https://github.com/chocho/seat-picker-lib#readme"
+}
