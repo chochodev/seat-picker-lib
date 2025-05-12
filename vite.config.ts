@@ -26,5 +26,14 @@ export default defineConfig({
     alias: {
       '@': path.resolve(__dirname, './src'),
     },
+    dedupe: ['react', 'react-dom'],
+  },
+  optimizeDeps: {
+    include: ['zustand', 'fabric', 'uuid', 'react-icons'],
+  },
+  server: {
+    fs: {
+      allow: ['.yalc']
+    }
   },
 }) 

@@ -1,0 +1,9 @@
+{
+  "version": "v1",
+  "packages": {
+    "seat-picker": {
+      "signature": "ff2cdb0aabaf80f28edeebd95085fb1e",
+      "file": true
+    }
+  }
+}
