@@ -1,0 +1,12 @@
+src/
+example/
+*.config.js
+*.config.ts
+tsconfig.json
+postcss.config.js
+tailwind.config.js
+.vitepress/
+.vscode/
+*.test.*
+*.spec.*
+__tests__/ 

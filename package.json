@@ -1,35 +1,25 @@
 {
   "name": "@chocho/seat-picker",
+  "private": false,
   "version": "0.0.1",
-  "description": "A flexible and customizable seating arrangement GUI component for React applications",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "type": "module",
-  "main": "dist/seat-picker.umd.js",
-  "module": "dist/seat-picker.es.js",
-  "types": "dist/index.d.ts",
   "files": [
-    "dist"
+    "dist",
+    "README.md",
+    "LICENSE"
   ],
-  "scripts": {
-    "dev": "vite",
-    "build": "tsc && vite build",
-    "preview": "vite preview",
-    "bundle": "npm run build && npm publish --access=public"
-  },
-  "peerDependencies": {
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0"
-  },
-  "dependencies": {
-    "fabric": "^5.3.0",
-    "uuid": "^9.0.0"
-  },
-  "devDependencies": {
-    "@types/node": "^20.0.0",
-    "@types/react": "^18.2.0",
-    "@types/react-dom": "^18.2.0",
-    "@vitejs/plugin-react-swc": "^3.0.0",
-    "typescript": "^5.0.0",
-    "vite": "^4.0.0"
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.js",
+      "default": "./dist/index.js"
+    },
+    "./dist/index.css": "./dist/index.css"
   },
   "keywords": [
     "react",
@@ -42,12 +32,45 @@
   ],
   "author": "Emmanuel Michael",
   "license": "MIT",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/chocho/seat-picker-lib"
+  "github": {
+    "owner": "chochodev",
+    "repo": "seat-picker-lib",
+    "url": "https://github.com/chochodev/seat-picker-lib"
   },
   "bugs": {
     "url": "https://github.com/chocho/seat-picker-lib/issues"
   },
-  "homepage": "https://github.com/chocho/seat-picker-lib#readme"
+  "homepage": "https://github.com/chocho/seat-picker-lib#readme",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsup src/index.ts --format esm,cjs --dts --external react",
+    "lint": "eslint .",
+    "preview": "vite preview",
+    "bundle": "npm run build && npm publish --access=public",
+    "localbundle": "npm run build && yalc push",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage"
+  },
+  "peerDependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  },
+  "dependencies": {
+    "fabric": "^5.3.0",
+    "uuid": "^9.0.0"
+  },
+  "devDependencies": {
+    "@types/fabric": "^5.3.10",
+    "@types/node": "^20.0.0",
+    "@types/react": "^18.2.0",
+    "@types/react-dom": "^18.2.0",
+    "@types/uuid": "^10.0.0",
+    "@vitejs/plugin-react-swc": "^3.0.0",
+    "autoprefixer": "^10.4.21",
+    "postcss": "^8.5.3",
+    "tailwindcss": "^3.4.17",
+    "typescript": "^5.0.0",
+    "vite": "^4.0.0"
+  }
 }

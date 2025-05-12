@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { fabric } from 'fabric';
 import { v4 as uuidv4 } from 'uuid';
 import { Seat, Zone, Mode, Action, SeatPickerProps } from '../types';
+import './SeatPicker.css';
 
 export const SeatPicker: React.FC<SeatPickerProps> = ({
   initialSeats = [],
@@ -23,6 +24,7 @@ export const SeatPicker: React.FC<SeatPickerProps> = ({
   const [isMultipleSeatMode, setIsMultipleSeatMode] = useState(false);
   const [zoomLevel, setZoomLevel] = useState(100);
 
+  // Initialize canvas
   useEffect(() => {
     if (canvasRef.current && !canvas) {
       const newCanvas = new fabric.Canvas(canvasRef.current, {
@@ -38,51 +40,124 @@ export const SeatPicker: React.FC<SeatPickerProps> = ({
     };
   }, []);
 
+  // Initialize seats and setup event listeners
   useEffect(() => {
     if (canvas) {
-      // Initialize canvas with seats
+      // Clear existing objects
+      canvas.clear();
+
+      // Add seats to canvas
       seats.forEach((seat) => {
-        // Add seat to canvas
+        const circle = new fabric.Circle({
+          left: seat.left,
+          top: seat.top,
+          radius: seat.radius,
+          fill: seat.fill,
+          stroke: seat.stroke,
+          data: { id: seat.id },
+        });
+
+        const text = new fabric.Text(seat.text, {
+          left: seat.left - seat.radius,
+          top: seat.top - seat.radius,
+          fontSize: seat.textSize,
+          fill: seat.textColor,
+        });
+
+        const group = new fabric.Group([circle, text], {
+          left: seat.left,
+          top: seat.top,
+          data: { id: seat.id },
+        });
+
+        canvas.add(group);
       });
 
       // Setup event listeners
-      canvas.on('object:added', () => {
-        // Handle object addition
+      canvas.on('object:added', (e) => {
+        if (e.target && 'data' in e.target) {
+          const id = (e.target as any).data.id;
+          if (id) {
+            setSelectedSeatIds([id]);
+          }
+        }
       });
 
-      canvas.on('object:modified', () => {
-        // Handle object modification
+      canvas.on('object:modified', (e) => {
+        if (e.target && 'data' in e.target) {
+          const id = (e.target as any).data.id;
+          if (id) {
+            const obj = e.target as fabric.Object;
+            updateSeat(id, {
+              left: obj.left || 0,
+              top: obj.top || 0,
+            });
+          }
+        }
       });
 
-      canvas.on('selection:created', () => {
-        // Handle selection
+      canvas.on('selection:created', (e) => {
+        const selected = e.selected || [];
+        const ids = selected
+          .map((obj) => (obj as any).data?.id)
+          .filter(Boolean) as string[];
+        setSelectedSeatIds(ids);
       });
+
+      canvas.renderAll();
     }
-  }, [canvas]);
+  }, [canvas, seats]);
 
   const addSeat = (seat: Seat) => {
-    setSeats((prev) => [...prev, seat]);
-    onChange?.([...seats, seat]);
+    const newSeats = [...seats, seat];
+    setSeats(newSeats);
+    onChange?.(newSeats);
   };
 
   const updateSeat = (id: string, updates: Partial<Seat>) => {
-    setSeats((prev) =>
-      prev.map((seat) => (seat.id === id ? { ...seat, ...updates } : seat))
+    const newSeats = seats.map((seat) =>
+      seat.id === id ? { ...seat, ...updates } : seat
     );
-    onChange?.(
-      seats.map((seat) => (seat.id === id ? { ...seat, ...updates } : seat))
-    );
+    setSeats(newSeats);
+    onChange?.(newSeats);
   };
 
   const deleteSeat = (id: string) => {
-    setSeats((prev) => prev.filter((seat) => seat.id !== id));
-    onChange?.(seats.filter((seat) => seat.id !== id));
+    const newSeats = seats.filter((seat) => seat.id !== id);
+    setSeats(newSeats);
+    onChange?.(newSeats);
+  };
+
+  const handleToolModeChange = (mode: Mode) => {
+    setToolMode(mode);
+    if (mode === 'multiple-seat') {
+      setIsMultipleSeatMode(true);
+    } else {
+      setIsMultipleSeatMode(false);
+    }
+  };
+
+  const handleZoom = (delta: number) => {
+    const newZoom = Math.max(50, Math.min(200, zoomLevel + delta));
+    setZoomLevel(newZoom);
+    if (canvas) {
+      canvas.setZoom(newZoom / 100);
+      canvas.renderAll();
+    }
   };
 
   return (
     <div className={className} style={style}>
+      <div className="toolbar">
+        <button onClick={() => handleToolModeChange('select')}>Select</button>
+        <button onClick={() => handleToolModeChange('one-seat')}>Add Seat</button>
+        <button onClick={() => handleToolModeChange('multiple-seat')}>
+          Multiple Seats
+        </button>
+        <button onClick={() => handleZoom(10)}>Zoom In</button>
+        <button onClick={() => handleZoom(-10)}>Zoom Out</button>
+      </div>
       <canvas ref={canvasRef} />
-      {/* Add toolbar and controls here */}
     </div>
   );
 };
