@@ -2,7 +2,11 @@ import { useEffect } from 'react';
 import { fabric } from 'fabric';
 import { createSeat } from '../components/createObject';
 
-const useCanvasSetup = (canvasRef: React.RefObject<HTMLCanvasElement>, canvasParent: React.RefObject<HTMLDivElement>, setCanvas: (canvas: fabric.Canvas) => void) => {
+const useCanvasSetup = (
+  canvasRef: React.RefObject<HTMLCanvasElement>,
+  canvasParent: React.RefObject<HTMLDivElement>,
+  setCanvas: (canvas: fabric.Canvas) => void
+) => {
   useEffect(() => {
     if (!canvasRef.current || !canvasParent.current) return;
 
@@ -33,7 +37,8 @@ const useCanvasSetup = (canvasRef: React.RefObject<HTMLCanvasElement>, canvasPar
       if (obj) {
         obj.setCoords(); // Ensure bounding box is up to date
         const rect = obj.getBoundingRect();
-        let dx = 0, dy = 0;
+        let dx = 0,
+          dy = 0;
         // Clamp left/right
         if (rect.left < 0) {
           dx = -rect.left;
@@ -57,7 +62,7 @@ const useCanvasSetup = (canvasRef: React.RefObject<HTMLCanvasElement>, canvasPar
     // Enforce strokeUniform: true for all supported objects on selection
     newCanvas.on('selection:created', (event) => {
       const objs = event.selected || (event.target ? [event.target] : []);
-      objs.forEach(obj => {
+      objs.forEach((obj) => {
         if (['rect', 'circle', 'i-text'].includes(obj.type)) {
           obj.strokeUniform = true;
         }
@@ -65,7 +70,7 @@ const useCanvasSetup = (canvasRef: React.RefObject<HTMLCanvasElement>, canvasPar
     });
     // Also enforce after loading from JSON (if needed)
     newCanvas.on('after:render', () => {
-      newCanvas.getObjects().forEach(obj => {
+      newCanvas.getObjects().forEach((obj) => {
         if (['rect', 'circle', 'i-text'].includes(obj.type)) {
           obj.strokeUniform = true;
         }

@@ -58,16 +58,16 @@ const TextProperties: React.FC<TextPropertiesProps> = ({
         type="text"
         value={properties.text}
         onChange={(e) => updateObject({ text: e.target.value })}
-        className="mt-1 px-2 py-1 w-full border rounded-md"
+        className="mt-1 w-full rounded-md border px-2 py-1"
       />
     </div>
     <div>
       <label className="block text-sm font-medium text-gray-700">
         Font Size
       </label>
-      <div className="flex items-center mt-1">
+      <div className="mt-1 flex items-center">
         <button
-          className="px-2 py-1 bg-gray-200 rounded-l-md"
+          className="rounded-l-md bg-gray-200 px-2 py-1"
           onClick={() =>
             updateObject({ fontSize: toFloat(properties.fontSize) - 1 })
           }
@@ -78,10 +78,10 @@ const TextProperties: React.FC<TextPropertiesProps> = ({
           type="number"
           value={toFloat(properties.fontSize)}
           onChange={(e) => updateObject({ fontSize: Number(e.target.value) })}
-          className="w-full px-2 py-1 text-center border-t border-b shadow-sm"
+          className="w-full border-b border-t px-2 py-1 text-center shadow-sm"
         />
         <button
-          className="px-2 py-1 bg-gray-200 rounded-r-md"
+          className="rounded-r-md bg-gray-200 px-2 py-1"
           onClick={() =>
             updateObject({ fontSize: toFloat(properties.fontSize) + 1 })
           }

@@ -241,8 +241,13 @@ var Toolbar = () => {
     },
     { icon: LuGrid2X2, tooltip: "Grid View", onClick: () => {
     }, state: false },
-    { icon: LuLayoutDashboard, tooltip: "Layout View", onClick: () => {
-    }, state: false },
+    {
+      icon: LuLayoutDashboard,
+      tooltip: "Layout View",
+      onClick: () => {
+      },
+      state: false
+    },
     {
       icon: RiText,
       tooltip: "Add Text",
@@ -344,13 +349,13 @@ var Toolbar = () => {
   ] });
 };
 var toolbar_default = Toolbar;
-var Button = ({ icon, tooltip, ...props }) => {
+var Button = ({ icon, tooltip, state, ...props }) => {
   const [showTooltip, setShowTooltip] = useState(false);
   return /* @__PURE__ */ jsxs("div", { className: "relative", children: [
     /* @__PURE__ */ jsx(
       "button",
       {
-        className: `p-2 rounded-md hover:bg-gray-200/60 ${props.state ? "ring-1 ring-gray-400 shadow-sm shadow-gray-400" : ""} active:bg-gray-200 ease-250 `,
+        className: `p-2 rounded-md hover:bg-gray-200/60 ${state ? "ring-1 ring-gray-400 shadow-sm shadow-gray-400" : ""} active:bg-gray-200 ease-250 `,
         onMouseEnter: () => setShowTooltip(true),
         onMouseLeave: () => setShowTooltip(false),
         ...props,
@@ -447,12 +452,13 @@ var useObjectProperties = (canvas, selectedObject) => {
     top: 0
   });
   useEffect(() => {
+    var _a, _b, _c, _d, _e, _f;
     if (!selectedObject) return;
     setProperties({
       angle: selectedObject.angle || 0,
       radius: selectedObject.radius * selectedObject.scaleX || 10,
-      width: selectedObject.width || 100,
-      height: selectedObject.height || 100,
+      width: ((_a = selectedObject.width) != null ? _a : 100) * ((_b = selectedObject.scaleX) != null ? _b : 1),
+      height: ((_c = selectedObject.height) != null ? _c : 100) * ((_d = selectedObject.scaleY) != null ? _d : 1),
       // ::::::::::: fill
       fill: selectedObject.fill ? String(selectedObject.fill).toUpperCase() === "BLACK" ? "#000000" : String(selectedObject.fill) : "transparent",
       // ::::::::::: stroke
@@ -462,7 +468,13 @@ var useObjectProperties = (canvas, selectedObject) => {
       fontWeight: selectedObject.fontWeight || "normal",
       fontFamily: selectedObject.fontFamily || "sans-serif",
       left: selectedObject.left || 0,
-      top: selectedObject.top || 0
+      top: selectedObject.top || 0,
+      rx: (_e = selectedObject.rx) != null ? _e : 0,
+      ry: (_f = selectedObject.ry) != null ? _f : 0,
+      seatNumber: selectedObject.seatNumber || "",
+      category: selectedObject.category || "",
+      price: selectedObject.price || void 0,
+      status: selectedObject.status || "available"
     });
   }, [selectedObject]);
   return { properties, setProperties };
@@ -475,6 +487,7 @@ var useObjectUpdater = (canvas, setProperties) => {
     const activeObjects = canvas.getActiveObjects();
     if (activeObjects.length === 0) return;
     activeObjects.forEach((selectedObject) => {
+      var _a, _b;
       const updatedProperties = {};
       for (const [key, value] of Object.entries(updates)) {
         if (selectedObject[key] !== value) {
@@ -484,12 +497,47 @@ var useObjectUpdater = (canvas, setProperties) => {
       if ("stroke" in updatedProperties && updatedProperties.stroke !== void 0) {
         updatedProperties.stroke = String(updatedProperties.stroke);
       }
+      if ("width" in updates && updates.width !== void 0) {
+        selectedObject.set({ width: updates.width, scaleX: 1 });
+        delete updatedProperties.width;
+      }
+      if ("height" in updates && updates.height !== void 0) {
+        selectedObject.set({ height: updates.height, scaleY: 1 });
+        delete updatedProperties.height;
+      }
       selectedObject.set(updatedProperties);
       if (selectedObject.type === "i-text") {
         selectedObject.set({
           scaleX: 1,
           scaleY: 1
         });
+      }
+      if (Object.prototype.hasOwnProperty.call(updates, "angle")) {
+        selectedObject.setCoords();
+        const rect = selectedObject.getBoundingRect();
+        const canvasWidth = canvas.getWidth();
+        const canvasHeight = canvas.getHeight();
+        let dx = 0, dy = 0;
+        if (rect.left < 0) {
+          dx = -rect.left;
+        } else if (rect.left + rect.width > canvasWidth) {
+          dx = canvasWidth - (rect.left + rect.width);
+        }
+        if (rect.top < 0) {
+          dy = -rect.top;
+        } else if (rect.top + rect.height > canvasHeight) {
+          dy = canvasHeight - (rect.top + rect.height);
+        }
+        if (dx !== 0 || dy !== 0) {
+          const originX = selectedObject.originX || "center";
+          const originY = selectedObject.originY || "center";
+          const newCenter = {
+            x: ((_a = selectedObject.left) != null ? _a : 0) + dx,
+            y: ((_b = selectedObject.top) != null ? _b : 0) + dy
+          };
+          selectedObject.setPositionByOrigin(newCenter, originX, originY);
+          selectedObject.setCoords();
+        }
       }
       canvas.renderAll();
       setProperties((prev) => ({
@@ -505,115 +553,555 @@ var useObjectUpdater = (canvas, setProperties) => {
 var toFloat = (num) => {
   return num % 1 !== 0 ? Number(num.toFixed(2)) : num;
 };
-var CommonProperties = ({ properties, updateObject }) => /* @__PURE__ */ jsxs(Fragment, { children: [
-  /* @__PURE__ */ jsxs("div", { children: [
-    /* @__PURE__ */ jsx("label", { className: "block text-sm font-medium text-gray-700", children: "Angle (\xB0)" }),
-    /* @__PURE__ */ jsxs("div", { className: "flex items-center mt-1", children: [
-      /* @__PURE__ */ jsx("button", { className: "px-2 py-1 bg-gray-200 rounded-l-md", onClick: () => updateObject({ angle: toFloat(properties.angle) - 1 }), children: "-" }),
-      /* @__PURE__ */ jsx(
-        "input",
-        {
-          type: "number",
-          value: toFloat(properties.angle),
-          onChange: (e) => updateObject({ angle: Number(e.target.value) }),
-          className: "w-full px-2 py-1 text-center border-t border-b shadow-sm"
-        }
-      ),
-      /* @__PURE__ */ jsx("button", { className: "px-2 py-1 bg-gray-200 rounded-r-md", onClick: () => updateObject({ angle: toFloat(properties.angle) + 1 }), children: "+" })
+var angleOptions = [
+  { value: 45, label: "45\xB0" },
+  { value: 90, label: "90\xB0" },
+  { value: 180, label: "180\xB0" },
+  { value: 270, label: "270\xB0" }
+];
+var CommonProperties = ({
+  properties,
+  updateObject
+}) => {
+  var _a, _b;
+  return /* @__PURE__ */ jsxs("div", { className: "space-y-2", children: [
+    /* @__PURE__ */ jsxs("div", { className: "grid grid-cols-2 gap-2", children: [
+      /* @__PURE__ */ jsxs("div", { children: [
+        /* @__PURE__ */ jsx("label", { className: "block text-xs font-medium text-gray-600 mb-1", children: "Position X" }),
+        /* @__PURE__ */ jsxs("div", { className: "flex items-center gap-1", children: [
+          /* @__PURE__ */ jsx(
+            "button",
+            {
+              className: "w-6 h-6 flex items-center justify-center hover:bg-gray-100 rounded text-xs transition-colors border border-gray-200 border-solid",
+              onClick: () => updateObject({ left: toFloat(properties.left) - 1 }),
+              children: "-"
+            }
+          ),
+          /* @__PURE__ */ jsx(
+            "input",
+            {
+              type: "number",
+              value: toFloat(properties.left),
+              onChange: (e) => updateObject({ left: Number(e.target.value) }),
+              className: "border-solid w-16 px-1 py-0.5 text-center border border-gray-200 rounded text-xs focus:outline-none focus:ring-1 focus:ring-gray-500 bg-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+            }
+          ),
+          /* @__PURE__ */ jsx(
+            "button",
+            {
+              className: "w-6 h-6 flex items-center justify-center hover:bg-gray-100 rounded text-xs transition-colors border border-gray-200 border-solid",
+              onClick: () => updateObject({ left: toFloat(properties.left) + 1 }),
+              children: "+"
+            }
+          )
+        ] })
+      ] }),
+      /* @__PURE__ */ jsxs("div", { children: [
+        /* @__PURE__ */ jsx("label", { className: "block text-xs font-medium text-gray-600 mb-1", children: "Position Y" }),
+        /* @__PURE__ */ jsxs("div", { className: "flex items-center gap-1", children: [
+          /* @__PURE__ */ jsx(
+            "button",
+            {
+              className: "w-6 h-6 flex items-center justify-center hover:bg-gray-100 rounded text-xs transition-colors border border-gray-200 border-solid",
+              onClick: () => updateObject({ top: toFloat(properties.top) - 1 }),
+              children: "-"
+            }
+          ),
+          /* @__PURE__ */ jsx(
+            "input",
+            {
+              type: "number",
+              value: toFloat(properties.top),
+              onChange: (e) => updateObject({ top: Number(e.target.value) }),
+              className: "border-solid w-16 px-1 py-0.5 text-center border border-gray-200 rounded text-xs focus:outline-none focus:ring-1 focus:ring-gray-500 bg-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+            }
+          ),
+          /* @__PURE__ */ jsx(
+            "button",
+            {
+              className: "w-6 h-6 flex items-center justify-center hover:bg-gray-100 rounded text-xs transition-colors border border-gray-200 border-solid",
+              onClick: () => updateObject({ top: toFloat(properties.top) + 1 }),
+              children: "+"
+            }
+          )
+        ] })
+      ] }),
+      /* @__PURE__ */ jsxs("div", { children: [
+        /* @__PURE__ */ jsx("label", { className: "block text-xs font-medium text-gray-600 mb-1", children: "Width" }),
+        /* @__PURE__ */ jsxs("div", { className: "flex items-center gap-1", children: [
+          /* @__PURE__ */ jsx(
+            "button",
+            {
+              className: "w-6 h-6 flex items-center justify-center hover:bg-gray-100 rounded text-xs transition-colors border border-gray-200 border-solid",
+              onClick: () => {
+                var _a2;
+                return updateObject({ width: toFloat((_a2 = properties.width) != null ? _a2 : 0) - 1 });
+              },
+              children: "-"
+            }
+          ),
+          /* @__PURE__ */ jsx(
+            "input",
+            {
+              type: "number",
+              value: toFloat((_a = properties.width) != null ? _a : 0),
+              onChange: (e) => updateObject({ width: Number(e.target.value) }),
+              className: "border-solid w-16 px-1 py-0.5 text-center border border-gray-200 rounded text-xs focus:outline-none focus:ring-1 focus:ring-gray-500 bg-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+            }
+          ),
+          /* @__PURE__ */ jsx(
+            "button",
+            {
+              className: "w-6 h-6 flex items-center justify-center hover:bg-gray-100 rounded text-xs transition-colors border border-gray-200 border-solid",
+              onClick: () => {
+                var _a2;
+                return updateObject({ width: toFloat((_a2 = properties.width) != null ? _a2 : 0) + 1 });
+              },
+              children: "+"
+            }
+          )
+        ] })
+      ] }),
+      /* @__PURE__ */ jsxs("div", { children: [
+        /* @__PURE__ */ jsx("label", { className: "block text-xs font-medium text-gray-600 mb-1", children: "Height" }),
+        /* @__PURE__ */ jsxs("div", { className: "flex items-center gap-1", children: [
+          /* @__PURE__ */ jsx(
+            "button",
+            {
+              className: "w-6 h-6 flex items-center justify-center hover:bg-gray-100 rounded text-xs transition-colors border border-gray-200 border-solid",
+              onClick: () => {
+                var _a2;
+                return updateObject({ height: toFloat((_a2 = properties.height) != null ? _a2 : 0) - 1 });
+              },
+              children: "-"
+            }
+          ),
+          /* @__PURE__ */ jsx(
+            "input",
+            {
+              type: "number",
+              value: toFloat((_b = properties.height) != null ? _b : 0),
+              onChange: (e) => updateObject({ height: Number(e.target.value) }),
+              className: "border-solid w-16 px-1 py-0.5 text-center border border-gray-200 rounded text-xs focus:outline-none focus:ring-1 focus:ring-gray-500 bg-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+            }
+          ),
+          /* @__PURE__ */ jsx(
+            "button",
+            {
+              className: "w-6 h-6 flex items-center justify-center hover:bg-gray-100 rounded text-xs transition-colors border border-gray-200 border-solid",
+              onClick: () => {
+                var _a2;
+                return updateObject({ height: toFloat((_a2 = properties.height) != null ? _a2 : 0) + 1 });
+              },
+              children: "+"
+            }
+          )
+        ] })
+      ] })
+    ] }),
+    /* @__PURE__ */ jsxs("div", { children: [
+      /* @__PURE__ */ jsx("label", { className: "block text-xs font-medium text-gray-600 mb-1", children: "Angle" }),
+      /* @__PURE__ */ jsxs("div", { className: "flex items-center gap-1", children: [
+        /* @__PURE__ */ jsx(
+          "button",
+          {
+            className: "w-6 h-6 flex items-center justify-center hover:bg-gray-100 rounded text-xs transition-colors border border-gray-200 border-solid",
+            onClick: () => updateObject({ angle: toFloat(properties.angle) - 1 }),
+            children: "-"
+          }
+        ),
+        /* @__PURE__ */ jsx(
+          "input",
+          {
+            type: "number",
+            value: toFloat(properties.angle),
+            onChange: (e) => updateObject({ angle: Number(e.target.value) }),
+            className: "border-solid w-16 px-1 py-0.5 text-center border border-gray-200 rounded text-xs focus:outline-none focus:ring-1 focus:ring-gray-500 bg-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+          }
+        ),
+        /* @__PURE__ */ jsx(
+          "button",
+          {
+            className: "w-6 h-6 flex items-center justify-center hover:bg-gray-100 rounded text-xs transition-colors border border-gray-200 border-solid",
+            onClick: () => updateObject({ angle: toFloat(properties.angle) + 1 }),
+            children: "+"
+          }
+        ),
+        /* @__PURE__ */ jsx("div", { className: "flex items-center gap-1 ml-1", children: angleOptions.map(({ value, label }) => /* @__PURE__ */ jsx(
+          "button",
+          {
+            className: "w-6 h-6 flex items-center justify-center hover:bg-gray-100 rounded text-xs transition-colors border border-gray-200 border-solid",
+            onClick: () => updateObject({ angle: value }),
+            title: label,
+            children: /* @__PURE__ */ jsxs(
+              "svg",
+              {
+                xmlns: "http://www.w3.org/2000/svg",
+                width: "12",
+                height: "12",
+                viewBox: "0 0 24 24",
+                fill: "none",
+                stroke: "currentColor",
+                strokeWidth: "2",
+                strokeLinecap: "round",
+                strokeLinejoin: "round",
+                style: { transform: `rotate(${value + 90}deg)` },
+                children: [
+                  /* @__PURE__ */ jsx("path", { d: "M12 2v20M2 12h20" }),
+                  /* @__PURE__ */ jsx("path", { d: "M2 12l4-4M2 12l4 4" })
+                ]
+              }
+            )
+          },
+          value
+        )) })
+      ] })
     ] })
-  ] }),
-  /* @__PURE__ */ jsxs("div", { children: [
-    /* @__PURE__ */ jsx("label", { className: "block text-sm font-medium text-gray-700", children: "Position X" }),
-    /* @__PURE__ */ jsxs("div", { className: "flex items-center mt-1", children: [
-      /* @__PURE__ */ jsx("button", { className: "px-2 py-1 bg-gray-200 rounded-l-md", onClick: () => updateObject({ left: toFloat(properties.left) - 1 }), children: "-" }),
-      /* @__PURE__ */ jsx(
-        "input",
-        {
-          type: "number",
-          value: toFloat(properties.left),
-          onChange: (e) => updateObject({ left: Number(e.target.value) }),
-          className: "w-full px-2 py-1 text-center border-t border-b shadow-sm"
-        }
-      ),
-      /* @__PURE__ */ jsx("button", { className: "px-2 py-1 bg-gray-200 rounded-r-md", onClick: () => updateObject({ left: toFloat(properties.left) + 1 }), children: "+" })
-    ] })
-  ] }),
-  /* @__PURE__ */ jsxs("div", { children: [
-    /* @__PURE__ */ jsx("label", { className: "block text-sm font-medium text-gray-700", children: "Position Y" }),
-    /* @__PURE__ */ jsxs("div", { className: "flex items-center mt-1", children: [
-      /* @__PURE__ */ jsx("button", { className: "px-2 py-1 bg-gray-200 rounded-l-md", onClick: () => updateObject({ top: toFloat(properties.top) - 1 }), children: "-" }),
-      /* @__PURE__ */ jsx(
-        "input",
-        {
-          type: "number",
-          value: toFloat(properties.top),
-          onChange: (e) => updateObject({ top: Number(e.target.value) }),
-          className: "w-full px-2 py-1 text-center border-t border-b shadow-sm"
-        }
-      ),
-      /* @__PURE__ */ jsx("button", { className: "px-2 py-1 bg-gray-200 rounded-r-md", onClick: () => updateObject({ top: toFloat(properties.top) + 1 }), children: "+" })
-    ] })
-  ] })
-] });
+  ] });
+};
 var commonProperties_default = CommonProperties;
-var CircleProperties = ({ properties, updateObject }) => /* @__PURE__ */ jsxs("div", { children: [
-  /* @__PURE__ */ jsx("label", { className: "block text-sm font-medium text-gray-700", children: "Radius" }),
-  /* @__PURE__ */ jsxs("div", { className: "flex items-center mt-1", children: [
-    /* @__PURE__ */ jsx("button", { className: "px-2 py-1 bg-gray-200 rounded-l-md", onClick: () => updateObject({ radius: toFloat(properties.radius) - 1 }), children: "-" }),
+var statusOptions = [
+  { value: "available", label: "Available" },
+  { value: "reserved", label: "Reserved" },
+  { value: "sold", label: "Sold" }
+];
+var categoryOptions = [
+  { value: "standard", label: "Standard" },
+  { value: "vip", label: "VIP" },
+  { value: "premium", label: "Premium" }
+];
+var SeatAttributes = ({
+  properties,
+  updateObject,
+  Select: Select2
+}) => /* @__PURE__ */ jsxs("div", { className: "space-y-4", children: [
+  /* @__PURE__ */ jsxs("div", { children: [
+    /* @__PURE__ */ jsx("label", { className: "block text-sm font-medium text-gray-700", children: "Seat Number" }),
+    /* @__PURE__ */ jsx(
+      "input",
+      {
+        type: "text",
+        value: properties.seatNumber || "",
+        onChange: (e) => updateObject({ seatNumber: e.target.value }),
+        className: "mt-1 px-2 py-1 w-full border rounded-md"
+      }
+    )
+  ] }),
+  /* @__PURE__ */ jsxs("div", { children: [
+    /* @__PURE__ */ jsx("label", { className: "block text-sm font-medium text-gray-700", children: "Category" }),
+    /* @__PURE__ */ jsx(
+      Select2,
+      {
+        options: categoryOptions,
+        value: properties.category || "standard",
+        onChange: (value) => updateObject({ category: value })
+      }
+    )
+  ] }),
+  /* @__PURE__ */ jsxs("div", { children: [
+    /* @__PURE__ */ jsx("label", { className: "block text-sm font-medium text-gray-700", children: "Price" }),
     /* @__PURE__ */ jsx(
       "input",
       {
         type: "number",
-        value: toFloat(properties.radius),
-        onChange: (e) => updateObject({ radius: Number(e.target.value) }),
-        className: "w-full px-2 py-1 text-center border-t border-b shadow-sm"
+        value: properties.price || 0,
+        onChange: (e) => updateObject({ price: Number(e.target.value) }),
+        className: "mt-1 px-2 py-1 w-full border rounded-md"
       }
-    ),
-    /* @__PURE__ */ jsx("button", { className: "px-2 py-1 bg-gray-200 rounded-r-md", onClick: () => updateObject({ radius: toFloat(properties.radius) + 1 }), children: "+" })
-  ] })
-] });
-var circleProperties_default = CircleProperties;
-var RectangleProperties = ({
-  properties,
-  updateObject
-}) => /* @__PURE__ */ jsxs(Fragment, { children: [
-  /* @__PURE__ */ jsxs("div", { children: [
-    /* @__PURE__ */ jsx("label", { className: "block text-sm font-medium text-gray-700", children: "Width" }),
-    /* @__PURE__ */ jsxs("div", { className: "flex items-center mt-1", children: [
-      /* @__PURE__ */ jsx("button", { className: "px-2 py-1 bg-gray-200 rounded-l-md", onClick: () => updateObject({ width: toFloat(properties.width) - 1 }), children: "-" }),
-      /* @__PURE__ */ jsx(
-        "input",
-        {
-          type: "number",
-          value: toFloat(properties.width),
-          onChange: (e) => updateObject({ width: Number(e.target.value) }),
-          className: "w-full px-2 py-1 text-center border-t border-b shadow-sm"
-        }
-      ),
-      /* @__PURE__ */ jsx("button", { className: "px-2 py-1 bg-gray-200 rounded-r-md", onClick: () => updateObject({ width: toFloat(properties.width) + 1 }), children: "+" })
-    ] })
+    )
   ] }),
   /* @__PURE__ */ jsxs("div", { children: [
-    /* @__PURE__ */ jsx("label", { className: "block text-sm font-medium text-gray-700", children: "Height" }),
-    /* @__PURE__ */ jsxs("div", { className: "flex items-center  mt-1", children: [
-      /* @__PURE__ */ jsx("button", { className: "px-2 py-1 bg-gray-200 rounded-l-md", onClick: () => updateObject({ height: toFloat(properties.height) - 1 }), children: "-" }),
+    /* @__PURE__ */ jsx("label", { className: "block text-sm font-medium text-gray-700", children: "Status" }),
+    /* @__PURE__ */ jsx(
+      Select2,
+      {
+        options: statusOptions,
+        value: properties.status || "available",
+        onChange: (value) => updateObject({ status: value })
+      }
+    )
+  ] })
+] });
+var CircleProperties = ({
+  properties,
+  updateObject,
+  Select: Select2
+}) => {
+  const [activeTab, setActiveTab] = React.useState(
+    "basic"
+  );
+  return /* @__PURE__ */ jsxs("div", { className: "space-y-4", children: [
+    /* @__PURE__ */ jsxs("div", { className: "flex items-center gap-2 border-b border-gray-200", children: [
+      /* @__PURE__ */ jsx(
+        "button",
+        {
+          className: `px-3 py-1.5 text-sm font-medium ${activeTab === "basic" ? "border-b-2 border-blue-500 text-blue-600" : "text-gray-500 hover:text-gray-700"}`,
+          onClick: () => setActiveTab("basic"),
+          children: "Properties"
+        }
+      ),
+      /* @__PURE__ */ jsx(
+        "button",
+        {
+          className: `px-3 py-1.5 text-sm font-medium ${activeTab === "attributes" ? "border-b-2 border-blue-500 text-blue-600" : "text-gray-500 hover:text-gray-700"}`,
+          onClick: () => setActiveTab("attributes"),
+          children: "Attributes"
+        }
+      )
+    ] }),
+    activeTab === "basic" ? /* @__PURE__ */ jsxs("div", { children: [
+      /* @__PURE__ */ jsx("label", { className: "block text-sm font-medium text-gray-700", children: "Radius" }),
+      /* @__PURE__ */ jsxs("div", { className: "flex items-center justify-between", children: [
+        /* @__PURE__ */ jsxs("div", { className: "flex items-center gap-1", children: [
+          /* @__PURE__ */ jsx(
+            "button",
+            {
+              className: "w-6 h-6 flex items-center justify-center hover:bg-gray-100 rounded border border-gray-200 border-solid text-xs transition-colors",
+              onClick: () => updateObject({ radius: toFloat(properties.radius) - 1 }),
+              children: "-"
+            }
+          ),
+          /* @__PURE__ */ jsx(
+            "input",
+            {
+              type: "number",
+              value: toFloat(properties.radius),
+              onChange: (e) => updateObject({ radius: Number(e.target.value) }),
+              className: "w-12 px-1 py-0.5 text-center border border-gray-200 border-solid rounded text-xs focus:outline-none focus:ring-1 focus:ring-gray-500 bg-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+            }
+          ),
+          /* @__PURE__ */ jsx(
+            "button",
+            {
+              className: "w-6 h-6 flex items-center justify-center hover:bg-gray-100 rounded border border-gray-200 border-solid text-xs transition-colors",
+              onClick: () => updateObject({ radius: toFloat(properties.radius) + 1 }),
+              children: "+"
+            }
+          )
+        ] }),
+        /* @__PURE__ */ jsxs("div", { className: "flex items-center gap-1 mb-1", children: [
+          /* @__PURE__ */ jsx(
+            "button",
+            {
+              className: `w-6 h-6 flex items-center justify-center rounded border border-gray-200 border-solid ${properties.radius === 0 ? "bg-gray-200" : "bg-white"} transition-colors`,
+              onClick: () => updateObject({ radius: 0 }),
+              title: "None",
+              children: /* @__PURE__ */ jsx(
+                "svg",
+                {
+                  width: "14",
+                  height: "14",
+                  viewBox: "0 0 14 14",
+                  fill: "none",
+                  stroke: "currentColor",
+                  strokeWidth: "2",
+                  children: /* @__PURE__ */ jsx("rect", { x: "2", y: "2", width: "10", height: "10", rx: "0" })
+                }
+              )
+            }
+          ),
+          /* @__PURE__ */ jsx(
+            "button",
+            {
+              className: `w-6 h-6 flex items-center justify-center rounded border border-gray-200 border-solid ${properties.radius === 4 ? "bg-gray-200" : "bg-white"} transition-colors text-xs`,
+              onClick: () => updateObject({ radius: 4 }),
+              title: "Small",
+              children: "sm"
+            }
+          ),
+          /* @__PURE__ */ jsx(
+            "button",
+            {
+              className: `w-6 h-6 flex items-center justify-center rounded border border-gray-200 border-solid ${properties.radius === 10 ? "bg-gray-200" : "bg-white"} transition-colors text-xs`,
+              onClick: () => updateObject({ radius: 10 }),
+              title: "Medium",
+              children: "md"
+            }
+          ),
+          /* @__PURE__ */ jsx(
+            "button",
+            {
+              className: `w-6 h-6 flex items-center justify-center rounded border border-gray-200 border-solid ${properties.radius === 20 ? "bg-gray-200" : "bg-white"} transition-colors text-xs`,
+              onClick: () => updateObject({ radius: 20 }),
+              title: "Large",
+              children: "lg"
+            }
+          )
+        ] })
+      ] })
+    ] }) : /* @__PURE__ */ jsx(
+      SeatAttributes,
+      {
+        properties,
+        updateObject,
+        Select: Select2
+      }
+    )
+  ] });
+};
+var circleProperties_default = CircleProperties;
+var strokeWidthOptions = [
+  { value: 0, label: "None" },
+  { value: 1, label: "Thin" },
+  { value: 2, label: "Medium" },
+  { value: 3, label: "Thick" },
+  { value: 4, label: "Extra Thick" }
+];
+var RectangleProperties = ({
+  properties,
+  updateObject,
+  Select: Select2
+}) => {
+  var _a, _b, _c, _d, _e, _f;
+  const [lockAspect, setLockAspect] = useState(true);
+  const { canvas } = useEventGuiStore();
+  useEffect(() => {
+    if (!canvas) return;
+    const activeObject = canvas.getActiveObject && canvas.getActiveObject();
+    if (activeObject && activeObject.type === "rect") {
+      activeObject.set("lockUniScaling", lockAspect);
+      activeObject.setControlsVisibility({
+        mt: !lockAspect,
+        mb: !lockAspect,
+        ml: !lockAspect,
+        mr: !lockAspect
+      });
+      canvas.renderAll && canvas.renderAll();
+    }
+  }, [lockAspect, canvas]);
+  return /* @__PURE__ */ jsxs(Fragment, { children: [
+    /* @__PURE__ */ jsxs("div", { className: "flex items-center mt-2", children: [
       /* @__PURE__ */ jsx(
         "input",
         {
-          type: "number",
-          value: toFloat(properties.height),
-          onChange: (e) => updateObject({ height: Number(e.target.value) }),
-          className: "w-full px-2 py-1 text-center border-t border-b shadow-sm"
+          type: "checkbox",
+          checked: lockAspect,
+          onChange: (e) => setLockAspect(e.target.checked),
+          className: "mr-2"
         }
       ),
-      /* @__PURE__ */ jsx("button", { className: "px-2 py-1 bg-gray-200 rounded-r-md", onClick: () => updateObject({ height: toFloat(properties.height) + 1 }), children: "+" })
+      /* @__PURE__ */ jsx("span", { className: "text-xs text-gray-600", children: "Lock aspect ratio" })
+    ] }),
+    /* @__PURE__ */ jsxs("div", { children: [
+      /* @__PURE__ */ jsx("label", { className: "block text-sm font-medium text-gray-700", children: "Stroke Width" }),
+      /* @__PURE__ */ jsx(
+        Select2,
+        {
+          options: strokeWidthOptions,
+          value: ((_a = properties.strokeWidth) == null ? void 0 : _a.toString()) || "1",
+          onChange: (value) => updateObject({ strokeWidth: Number(value) })
+        }
+      )
+    ] }),
+    /* @__PURE__ */ jsxs("div", { className: "mt-2", children: [
+      /* @__PURE__ */ jsx("label", { className: "block text-sm font-medium text-gray-700 mb-1", children: "Border Radius" }),
+      /* @__PURE__ */ jsxs("div", { className: "flex items-center justify-between", children: [
+        /* @__PURE__ */ jsxs("div", { className: "flex items-center gap-1", children: [
+          /* @__PURE__ */ jsx(
+            "button",
+            {
+              className: "w-6 h-6 flex items-center justify-center hover:bg-gray-100 rounded border border-gray-200 border-solid text-xs transition-colors",
+              onClick: () => {
+                var _a2, _b2;
+                return updateObject({
+                  rx: toFloat((_a2 = properties.rx) != null ? _a2 : 0) - 1,
+                  ry: toFloat((_b2 = properties.ry) != null ? _b2 : 0) - 1
+                });
+              },
+              children: "-"
+            }
+          ),
+          /* @__PURE__ */ jsx(
+            "input",
+            {
+              type: "number",
+              value: toFloat((_b = properties.rx) != null ? _b : 0),
+              onChange: (e) => updateObject({
+                rx: Number(e.target.value),
+                ry: Number(e.target.value)
+              }),
+              className: "w-12 px-1 py-0.5 text-center border border-gray-200 border-solid rounded text-xs focus:outline-none focus:ring-1 focus:ring-gray-500 bg-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+            }
+          ),
+          /* @__PURE__ */ jsx(
+            "button",
+            {
+              className: "w-6 h-6 flex items-center justify-center hover:bg-gray-100 rounded border border-gray-200 border-solid text-xs transition-colors",
+              onClick: () => {
+                var _a2, _b2;
+                return updateObject({
+                  rx: toFloat((_a2 = properties.rx) != null ? _a2 : 0) + 1,
+                  ry: toFloat((_b2 = properties.ry) != null ? _b2 : 0) + 1
+                });
+              },
+              children: "+"
+            }
+          )
+        ] }),
+        /* @__PURE__ */ jsxs("div", { className: "flex items-center gap-1 mb-1", children: [
+          /* @__PURE__ */ jsx(
+            "button",
+            {
+              className: `w-6 h-6 flex items-center justify-center rounded border border-gray-200 border-solid ${((_c = properties.rx) != null ? _c : 0) === 0 ? "bg-gray-200" : "bg-white"} transition-colors`,
+              onClick: () => updateObject({ rx: 0, ry: 0 }),
+              title: "None",
+              children: /* @__PURE__ */ jsx(
+                "svg",
+                {
+                  width: "14",
+                  height: "14",
+                  viewBox: "0 0 14 14",
+                  fill: "none",
+                  stroke: "currentColor",
+                  strokeWidth: "2",
+                  children: /* @__PURE__ */ jsx("rect", { x: "2", y: "2", width: "10", height: "10", rx: "0" })
+                }
+              )
+            }
+          ),
+          /* @__PURE__ */ jsx(
+            "button",
+            {
+              className: `w-6 h-6 flex items-center justify-center rounded border border-gray-200 border-solid ${((_d = properties.rx) != null ? _d : 0) === 4 ? "bg-gray-200" : "bg-white"} transition-colors text-xs`,
+              onClick: () => updateObject({ rx: 4, ry: 4 }),
+              title: "Small",
+              children: "sm"
+            }
+          ),
+          /* @__PURE__ */ jsx(
+            "button",
+            {
+              className: `w-6 h-6 flex items-center justify-center rounded border border-gray-200 border-solid ${((_e = properties.rx) != null ? _e : 0) === 10 ? "bg-gray-200" : "bg-white"} transition-colors text-xs`,
+              onClick: () => updateObject({ rx: 10, ry: 10 }),
+              title: "Medium",
+              children: "md"
+            }
+          ),
+          /* @__PURE__ */ jsx(
+            "button",
+            {
+              className: `w-6 h-6 flex items-center justify-center rounded border border-gray-200 border-solid ${((_f = properties.rx) != null ? _f : 0) === 20 ? "bg-gray-200" : "bg-white"} transition-colors text-xs`,
+              onClick: () => updateObject({ rx: 20, ry: 20 }),
+              title: "Large",
+              children: "lg"
+            }
+          )
+        ] })
+      ] })
     ] })
-  ] })
-] });
+  ] });
+};
 var rectangleProperties_default = RectangleProperties;
 var fontWeightOptions = [
-  { value: "normal", label: "Normal" },
-  { value: "bold", label: "Bold" }
+  { value: "100", label: "Thin" },
+  { value: "200", label: "Extra Light" },
+  { value: "300", label: "Light" },
+  { value: "400", label: "Regular" },
+  { value: "500", label: "Medium" },
+  { value: "600", label: "Semi Bold" },
+  { value: "700", label: "Bold" },
+  { value: "800", label: "Extra Bold" },
+  { value: "900", label: "Black" }
 ];
 var fontFamilyOptions = [
   { value: "sans-serif", label: "Sans-serif" },
@@ -621,61 +1109,117 @@ var fontFamilyOptions = [
   { value: "monospace", label: "Monospace" },
   { value: "poppins", label: "Poppins" }
 ];
-var TextProperties = ({ properties, updateObject, Select: Select2 }) => /* @__PURE__ */ jsxs(Fragment, { children: [
-  /* @__PURE__ */ jsxs("div", { children: [
-    /* @__PURE__ */ jsx("label", { className: "block text-sm font-medium text-gray-700", children: "Text" }),
-    /* @__PURE__ */ jsx(
-      "input",
-      {
-        type: "text",
-        value: properties.text,
-        onChange: (e) => updateObject({ text: e.target.value }),
-        className: "mt-1 px-2 py-1 w-full border rounded-md"
-      }
-    )
-  ] }),
-  /* @__PURE__ */ jsxs("div", { children: [
-    /* @__PURE__ */ jsx("label", { className: "block text-sm font-medium text-gray-700", children: "Font Size" }),
-    /* @__PURE__ */ jsxs("div", { className: "flex items-center mt-1", children: [
-      /* @__PURE__ */ jsx("button", { className: "px-2 py-1 bg-gray-200 rounded-l-md", onClick: () => updateObject({ fontSize: toFloat(properties.fontSize) - 1 }), children: "-" }),
+var strokeWidthOptions2 = [
+  { value: 0, label: "None" },
+  { value: 1, label: "Thin" },
+  { value: 2, label: "Medium" },
+  { value: 3, label: "Thick" },
+  { value: 4, label: "Extra Thick" }
+];
+var TextProperties = ({
+  properties,
+  updateObject,
+  Select: Select2
+}) => {
+  var _a;
+  return /* @__PURE__ */ jsxs(Fragment, { children: [
+    /* @__PURE__ */ jsxs("div", { children: [
+      /* @__PURE__ */ jsx("label", { className: "block text-sm font-medium text-gray-700", children: "Text" }),
       /* @__PURE__ */ jsx(
         "input",
         {
-          type: "number",
-          value: toFloat(properties.fontSize),
-          onChange: (e) => updateObject({ fontSize: Number(e.target.value) }),
-          className: "w-full px-2 py-1 text-center border-t border-b shadow-sm"
+          type: "text",
+          value: properties.text,
+          onChange: (e) => updateObject({ text: e.target.value }),
+          className: "mt-1 px-2 py-1 w-full border rounded-md"
         }
-      ),
-      /* @__PURE__ */ jsx("button", { className: "px-2 py-1 bg-gray-200 rounded-r-md", onClick: () => updateObject({ fontSize: toFloat(properties.fontSize) + 1 }), children: "+" })
+      )
+    ] }),
+    /* @__PURE__ */ jsxs("div", { children: [
+      /* @__PURE__ */ jsx("label", { className: "block text-sm font-medium text-gray-700", children: "Font Size" }),
+      /* @__PURE__ */ jsxs("div", { className: "flex items-center mt-1", children: [
+        /* @__PURE__ */ jsx(
+          "button",
+          {
+            className: "px-2 py-1 bg-gray-200 rounded-l-md",
+            onClick: () => updateObject({ fontSize: toFloat(properties.fontSize) - 1 }),
+            children: "-"
+          }
+        ),
+        /* @__PURE__ */ jsx(
+          "input",
+          {
+            type: "number",
+            value: toFloat(properties.fontSize),
+            onChange: (e) => updateObject({ fontSize: Number(e.target.value) }),
+            className: "w-full px-2 py-1 text-center border-t border-b shadow-sm"
+          }
+        ),
+        /* @__PURE__ */ jsx(
+          "button",
+          {
+            className: "px-2 py-1 bg-gray-200 rounded-r-md",
+            onClick: () => updateObject({ fontSize: toFloat(properties.fontSize) + 1 }),
+            children: "+"
+          }
+        )
+      ] })
+    ] }),
+    /* @__PURE__ */ jsxs("div", { children: [
+      /* @__PURE__ */ jsx("label", { className: "block text-sm font-medium text-gray-700", children: "Font Weight" }),
+      /* @__PURE__ */ jsx(
+        Select2,
+        {
+          options: fontWeightOptions,
+          value: properties.fontWeight,
+          onChange: (value) => updateObject({ fontWeight: value })
+        }
+      )
+    ] }),
+    /* @__PURE__ */ jsxs("div", { children: [
+      /* @__PURE__ */ jsx("label", { className: "block text-sm font-medium text-gray-700", children: "Font Family" }),
+      /* @__PURE__ */ jsx(
+        Select2,
+        {
+          options: fontFamilyOptions,
+          value: properties.fontFamily,
+          onChange: (value) => updateObject({ fontFamily: value })
+        }
+      )
+    ] }),
+    /* @__PURE__ */ jsxs("div", { children: [
+      /* @__PURE__ */ jsx("label", { className: "block text-sm font-medium text-gray-700", children: "Stroke Width" }),
+      /* @__PURE__ */ jsx(
+        Select2,
+        {
+          options: strokeWidthOptions2.map((option) => ({
+            value: option.value.toString(),
+            label: option.label
+          })),
+          value: ((_a = properties.strokeWidth) == null ? void 0 : _a.toString()) || "0",
+          onChange: (value) => updateObject({ strokeWidth: Number(value) })
+        }
+      )
     ] })
-  ] }),
-  /* @__PURE__ */ jsxs("div", { children: [
-    /* @__PURE__ */ jsx("label", { className: "block text-sm font-medium text-gray-700", children: "Font Weight" }),
-    /* @__PURE__ */ jsx(
-      Select2,
-      {
-        options: fontWeightOptions,
-        value: properties.fontWeight,
-        onChange: (value) => updateObject({ fontWeight: value })
-      }
-    )
-  ] }),
-  /* @__PURE__ */ jsxs("div", { children: [
-    /* @__PURE__ */ jsx("label", { className: "block text-sm font-medium text-gray-700", children: "Font Family" }),
-    /* @__PURE__ */ jsx(
-      Select2,
-      {
-        options: fontFamilyOptions,
-        value: properties.fontFamily,
-        onChange: (value) => updateObject({ fontFamily: value })
-      }
-    )
-  ] })
-] });
+  ] });
+};
 var textProperties_default = TextProperties;
-var ColorProperties = ({ properties, updateObject, objectType }) => {
+var ColorProperties = ({
+  properties,
+  updateObject,
+  objectType
+}) => {
   var _a, _b, _c, _d;
+  const [syncColors, setSyncColors] = useState(false);
+  useEffect(() => {
+    setSyncColors(properties.stroke === properties.fill);
+  }, [properties.stroke, properties.fill]);
+  const handleFillChange = (value) => {
+    updateObject({ fill: value });
+    if (syncColors) {
+      updateObject({ stroke: value });
+    }
+  };
   return /* @__PURE__ */ jsxs(Fragment, { children: [
     /* @__PURE__ */ jsxs("div", { children: [
       /* @__PURE__ */ jsx("label", { className: "block text-sm font-medium text-gray-700", children: "Fill Color" }),
@@ -684,11 +1228,8 @@ var ColorProperties = ({ properties, updateObject, objectType }) => {
           "input",
           {
             type: "color",
-            value: (properties == null ? void 0 : properties.fill) === "transparent" ? "#ffffff" : ((_a = properties.fill) == null ? void 0 : _a.toString()) || "#ffffff",
-            onChange: (e) => {
-              updateObject({ fill: e.target.value });
-              updateObject({ stroke: properties.stroke });
-            },
+            value: typeof properties.fill === "string" && /^#([0-9A-Fa-f]{6})$/.test(properties.fill) ? "#ffffff" : ((_a = properties.fill) == null ? void 0 : _a.toString()) || "#ffffff",
+            onChange: (e) => handleFillChange(e.target.value),
             className: "w-8 h-8 rounded-md border shadow-sm"
           }
         ),
@@ -696,15 +1237,34 @@ var ColorProperties = ({ properties, updateObject, objectType }) => {
           "input",
           {
             type: "text",
-            value: properties.fill === "transparent" ? "transparent" : (((_b = properties.fill) == null ? void 0 : _b.toString()) || "").toUpperCase(),
-            onChange: (e) => updateObject({ fill: e.target.value }),
+            value: typeof properties.fill === "string" && /^#([0-9A-Fa-f]{6})$/.test(properties.fill) ? "transparent" : (((_b = properties.fill) == null ? void 0 : _b.toString()) || "").toUpperCase(),
+            onChange: (e) => handleFillChange(e.target.value),
             className: "ml-2 px-2 py-1 w-full border rounded-md shadow-sm"
           }
         )
       ] })
     ] }),
-    objectType !== "i-text" && /* @__PURE__ */ jsxs("div", { children: [
-      /* @__PURE__ */ jsx("label", { className: "block text-sm font-medium text-gray-700", children: "Border Color" }),
+    /* @__PURE__ */ jsxs("div", { children: [
+      /* @__PURE__ */ jsxs("div", { className: "flex items-center justify-between", children: [
+        /* @__PURE__ */ jsx("label", { className: "block text-sm font-medium text-gray-700", children: "Stroke Color" }),
+        /* @__PURE__ */ jsxs("label", { className: "flex items-center space-x-1 text-xs text-gray-600", children: [
+          /* @__PURE__ */ jsx(
+            "input",
+            {
+              type: "checkbox",
+              checked: syncColors,
+              onChange: (e) => {
+                setSyncColors(e.target.checked);
+                if (e.target.checked) {
+                  updateObject({ stroke: properties.fill });
+                }
+              },
+              className: "w-3 h-3 rounded border-gray-300"
+            }
+          ),
+          /* @__PURE__ */ jsx("span", { children: "Sync with fill" })
+        ] })
+      ] }),
       /* @__PURE__ */ jsxs("div", { className: "flex items-center mt-1", children: [
         /* @__PURE__ */ jsx(
           "input",
@@ -712,7 +1272,8 @@ var ColorProperties = ({ properties, updateObject, objectType }) => {
             type: "color",
             value: (properties == null ? void 0 : properties.stroke) === "transparent" ? "#ffffff" : ((_c = properties.stroke) == null ? void 0 : _c.toString()) || "#000000",
             onChange: (e) => updateObject({ stroke: e.target.value }),
-            className: "w-8 h-8 rounded-md border shadow-sm"
+            disabled: syncColors,
+            className: `w-8 h-8 rounded-md border shadow-sm ${syncColors ? "opacity-50" : ""}`
           }
         ),
         /* @__PURE__ */ jsx(
@@ -721,7 +1282,8 @@ var ColorProperties = ({ properties, updateObject, objectType }) => {
             type: "text",
             value: properties.stroke === "transparent" ? "transparent" : (((_d = properties.stroke) == null ? void 0 : _d.toString()) || "").toUpperCase(),
             onChange: (e) => updateObject({ stroke: e.target.value }),
-            className: "ml-2 px-2 py-1 w-full border rounded-md shadow-sm"
+            disabled: syncColors,
+            className: `ml-2 px-2 py-1 w-full border rounded-md shadow-sm ${syncColors ? "opacity-50" : ""}`
           }
         )
       ] })
@@ -729,10 +1291,74 @@ var ColorProperties = ({ properties, updateObject, objectType }) => {
   ] });
 };
 var colorProperties_default = ColorProperties;
+var statusOptions2 = [
+  { value: "available", label: "Available" },
+  { value: "reserved", label: "Reserved" },
+  { value: "sold", label: "Sold" }
+];
+var categoryOptions2 = [
+  { value: "standard", label: "Standard" },
+  { value: "vip", label: "VIP" },
+  { value: "premium", label: "Premium" }
+];
+var SeatAttributes2 = ({
+  properties,
+  updateObject,
+  Select: Select2
+}) => /* @__PURE__ */ jsxs("div", { className: "space-y-4", children: [
+  /* @__PURE__ */ jsxs("div", { children: [
+    /* @__PURE__ */ jsx("label", { className: "block text-sm font-medium text-gray-700", children: "Seat Number" }),
+    /* @__PURE__ */ jsx(
+      "input",
+      {
+        type: "text",
+        value: properties.seatNumber || "",
+        onChange: (e) => updateObject({ seatNumber: e.target.value }),
+        className: "mt-1 px-2 py-1 w-full border rounded-md"
+      }
+    )
+  ] }),
+  /* @__PURE__ */ jsxs("div", { children: [
+    /* @__PURE__ */ jsx("label", { className: "block text-sm font-medium text-gray-700", children: "Category" }),
+    /* @__PURE__ */ jsx(
+      Select2,
+      {
+        options: categoryOptions2,
+        value: properties.category || "standard",
+        onChange: (value) => updateObject({ category: value })
+      }
+    )
+  ] }),
+  /* @__PURE__ */ jsxs("div", { children: [
+    /* @__PURE__ */ jsx("label", { className: "block text-sm font-medium text-gray-700", children: "Price" }),
+    /* @__PURE__ */ jsx(
+      "input",
+      {
+        type: "number",
+        value: properties.price || 0,
+        onChange: (e) => updateObject({ price: Number(e.target.value) }),
+        className: "mt-1 px-2 py-1 w-full border rounded-md"
+      }
+    )
+  ] }),
+  /* @__PURE__ */ jsxs("div", { children: [
+    /* @__PURE__ */ jsx("label", { className: "block text-sm font-medium text-gray-700", children: "Status" }),
+    /* @__PURE__ */ jsx(
+      Select2,
+      {
+        options: statusOptions2,
+        value: properties.status || "available",
+        onChange: (value) => updateObject({ status: value })
+      }
+    )
+  ] })
+] });
+var seatAttributes_default = SeatAttributes2;
 var Sidebar = () => {
   const { canvas } = useEventGuiStore();
   const [selectedObject, setSelectedObject] = useState(null);
   const [objectType, setObjectType] = useState(null);
+  const [activeTab, setActiveTab] = useState("basic");
   const { properties, setProperties } = useObjectProperties(
     canvas,
     selectedObject
@@ -744,6 +1370,28 @@ var Sidebar = () => {
       const activeObject = canvas.getActiveObject();
       setSelectedObject(activeObject || null);
       setObjectType(activeObject == null ? void 0 : activeObject.type);
+      if (activeObject) {
+        setProperties((prev) => {
+          var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k, _l, _m, _n, _o, _p;
+          return {
+            ...prev,
+            angle: (_a = activeObject.angle) != null ? _a : prev.angle,
+            radius: (_b = activeObject.radius) != null ? _b : prev.radius,
+            width: ((_c = activeObject.width) != null ? _c : prev.width) * ((_d = activeObject.scaleX) != null ? _d : 1),
+            height: ((_e = activeObject.height) != null ? _e : prev.height) * ((_f = activeObject.scaleY) != null ? _f : 1),
+            fill: (_g = activeObject.fill) != null ? _g : prev.fill,
+            stroke: (_h = activeObject.stroke) != null ? _h : prev.stroke,
+            text: (_i = activeObject.text) != null ? _i : prev.text,
+            fontSize: (_j = activeObject.fontSize) != null ? _j : prev.fontSize,
+            fontWeight: (_k = activeObject.fontWeight) != null ? _k : prev.fontWeight,
+            fontFamily: (_l = activeObject.fontFamily) != null ? _l : prev.fontFamily,
+            left: (_m = activeObject.left) != null ? _m : prev.left,
+            top: (_n = activeObject.top) != null ? _n : prev.top,
+            rx: (_o = activeObject.rx) != null ? _o : prev.rx,
+            ry: (_p = activeObject.ry) != null ? _p : prev.ry
+          };
+        });
+      }
     };
     const eventsToListen = [
       "selection:created",
@@ -779,51 +1427,80 @@ var Sidebar = () => {
           {
             type: "checkbox",
             id: "ground-floor",
-            className: "rounded text-blue-600"
+            className: "rounded text-gray-600"
           }
         ),
         /* @__PURE__ */ jsx("label", { htmlFor: "ground-floor", children: "Ground floor" })
       ] })
     ] }),
     selectedObject && /* @__PURE__ */ jsxs("div", { className: "bg-white rounded-md shadow p-4 space-y-4", children: [
-      /* @__PURE__ */ jsx("h3", { className: "font-semibold", children: "Properties" }),
-      /* @__PURE__ */ jsx(
-        commonProperties_default,
-        {
-          properties,
-          updateObject
-        }
-      ),
-      objectType === "circle" && /* @__PURE__ */ jsx(
-        circleProperties_default,
-        {
-          properties,
-          updateObject
-        }
-      ),
-      objectType === "rect" && /* @__PURE__ */ jsx(
-        rectangleProperties_default,
-        {
-          properties,
-          updateObject
-        }
-      ),
-      objectType === "i-text" && /* @__PURE__ */ jsx(
-        textProperties_default,
+      objectType === "circle" && /* @__PURE__ */ jsxs("div", { className: "flex items-center border-solid gap-2 border-0 border-b border-gray-200 mb-4", children: [
+        /* @__PURE__ */ jsx(
+          "button",
+          {
+            className: `px-3 py-1.5 text-sm font-medium ${activeTab === "basic" ? "border-0 border-b-2 border-solid border-gray-500 text-gray-600" : "text-gray-500 hover:text-gray-700"}`,
+            onClick: () => setActiveTab("basic"),
+            children: "Properties"
+          }
+        ),
+        /* @__PURE__ */ jsx(
+          "button",
+          {
+            className: `px-3 py-1.5 text-sm font-medium ${activeTab === "attributes" ? "border-0 border-b-2 border-solid border-gray-500 text-gray-600" : "text-gray-500 hover:text-gray-700"}`,
+            onClick: () => setActiveTab("attributes"),
+            children: "Attributes"
+          }
+        )
+      ] }),
+      objectType === "circle" && activeTab === "attributes" ? /* @__PURE__ */ jsx(
+        seatAttributes_default,
         {
           properties,
           updateObject,
           Select: select_default
         }
-      ),
-      /* @__PURE__ */ jsx(
-        colorProperties_default,
-        {
-          properties,
-          updateObject,
-          objectType
-        }
-      )
+      ) : /* @__PURE__ */ jsxs(Fragment, { children: [
+        /* @__PURE__ */ jsx("h3", { className: "font-semibold", children: "Properties" }),
+        /* @__PURE__ */ jsx(
+          commonProperties_default,
+          {
+            properties,
+            updateObject
+          }
+        ),
+        objectType === "circle" && /* @__PURE__ */ jsx(
+          circleProperties_default,
+          {
+            properties,
+            updateObject,
+            Select: select_default
+          }
+        ),
+        objectType === "rect" && /* @__PURE__ */ jsx(
+          rectangleProperties_default,
+          {
+            properties,
+            updateObject,
+            Select: select_default
+          }
+        ),
+        objectType === "i-text" && /* @__PURE__ */ jsx(
+          textProperties_default,
+          {
+            properties,
+            updateObject,
+            Select: select_default
+          }
+        ),
+        /* @__PURE__ */ jsx(
+          colorProperties_default,
+          {
+            properties,
+            updateObject,
+            objectType
+          }
+        )
+      ] })
     ] })
   ] });
 };
@@ -841,7 +1518,9 @@ var CustomRect = class extends fabric.Rect {
       cornerColor: this.cornerColor,
       cornerSize: this.cornerSize,
       cornerStrokeColor: this.cornerStrokeColor,
-      transparentCorners: this.transparentCorners
+      transparentCorners: this.transparentCorners,
+      rx: this.rx,
+      ry: this.ry
     });
   }
 };
@@ -885,7 +1564,7 @@ var createRect = (left, top) => {
   const rect = new CustomRect({
     left,
     top,
-    fill: "transparent",
+    fill: "#cccccc",
     stroke: "black",
     strokeWidth: 1,
     width: 100,
@@ -898,7 +1577,10 @@ var createRect = (left, top) => {
     cornerSize: 5,
     cornerStrokeColor: "blue",
     transparentCorners: false,
-    id: v4()
+    id: v4(),
+    strokeUniform: true,
+    rx: 0,
+    ry: 0
   });
   rect.setControlsVisibility({
     mt: false,
@@ -925,7 +1607,8 @@ var createSeat = (left, top) => {
     transparentCorners: false,
     rx: 0.25,
     ry: 0.25,
-    id: v4()
+    id: v4(),
+    strokeUniform: true
   });
   seat.setControlsVisibility({
     mt: false,
@@ -951,7 +1634,8 @@ var createText = (left, top, text = "Type here") => {
     cornerStrokeColor: "blue",
     transparentCorners: false,
     fontFamily: "sans-serif",
-    id: v4()
+    id: v4(),
+    strokeUniform: true
   });
   textObject.setControlsVisibility({
     mt: false,
@@ -982,15 +1666,44 @@ var useCanvasSetup = (canvasRef, canvasParent, setCanvas) => {
     const seat = createSeat(100, 100);
     seat.angle = 45;
     newCanvas.on("object:moving", (event) => {
-      var _a, _b, _c, _d, _e, _f;
+      var _a, _b;
       const obj = event.target;
       const { width: canvasWidth, height: canvasHeight } = newCanvas;
       if (obj) {
-        const objWidth = ((_a = obj.width) != null ? _a : 0) * ((_b = obj.scaleX) != null ? _b : 1);
-        const objHeight = ((_c = obj.height) != null ? _c : 0) * ((_d = obj.scaleY) != null ? _d : 1);
-        obj.left = Math.max(0, Math.min((_e = obj.left) != null ? _e : 0, (canvasWidth != null ? canvasWidth : 0) - objWidth));
-        obj.top = Math.max(0, Math.min((_f = obj.top) != null ? _f : 0, (canvasHeight != null ? canvasHeight : 0) - objHeight));
+        obj.setCoords();
+        const rect = obj.getBoundingRect();
+        let dx = 0, dy = 0;
+        if (rect.left < 0) {
+          dx = -rect.left;
+        } else if (rect.left + rect.width > canvasWidth) {
+          dx = canvasWidth - (rect.left + rect.width);
+        }
+        if (rect.top < 0) {
+          dy = -rect.top;
+        } else if (rect.top + rect.height > canvasHeight) {
+          dy = canvasHeight - (rect.top + rect.height);
+        }
+        if (dx !== 0 || dy !== 0) {
+          obj.left = ((_a = obj.left) != null ? _a : 0) + dx;
+          obj.top = ((_b = obj.top) != null ? _b : 0) + dy;
+          obj.setCoords();
+        }
       }
+    });
+    newCanvas.on("selection:created", (event) => {
+      const objs = event.selected || (event.target ? [event.target] : []);
+      objs.forEach((obj) => {
+        if (["rect", "circle", "i-text"].includes(obj.type)) {
+          obj.strokeUniform = true;
+        }
+      });
+    });
+    newCanvas.on("after:render", () => {
+      newCanvas.getObjects().forEach((obj) => {
+        if (["rect", "circle", "i-text"].includes(obj.type)) {
+          obj.strokeUniform = true;
+        }
+      });
     });
     return () => {
       window.removeEventListener("resize", resizeCanvas);
@@ -1100,6 +1813,8 @@ var useObjectDeletion = (canvas, toolAction) => {
 var useObjectDeletion_default = useObjectDeletion;
 var useObjectCreator = (canvas, toolMode, setToolMode) => {
   const startPointRef = useRef(null);
+  const rectRef = useRef(null);
+  const isDraggingRef = useRef(false);
   useEffect(() => {
     if (!canvas) return;
     const handleMouseDown = (event) => {
@@ -1110,7 +1825,8 @@ var useObjectCreator = (canvas, toolMode, setToolMode) => {
         canvas.renderAll();
       } else if (toolMode === "shape-square") {
         const rect = createRect(pointer.x, pointer.y);
-        rect.set({ width: 0, height: 0 });
+        rectRef.current = rect;
+        isDraggingRef.current = false;
         canvas.add(rect);
         canvas.setActiveObject(rect);
         startPointRef.current = { x: pointer.x, y: pointer.y };
@@ -1123,23 +1839,27 @@ var useObjectCreator = (canvas, toolMode, setToolMode) => {
       }
     };
     const handleMouseMove = (event) => {
-      if (toolMode === "shape-square" && startPointRef.current) {
+      if (toolMode === "shape-square" && startPointRef.current && rectRef.current) {
         const pointer = canvas.getPointer(event.e);
-        const activeObject = canvas.getActiveObject();
-        if (activeObject && activeObject.type === "rect") {
-          const width = Math.abs(pointer.x - startPointRef.current.x);
-          const height = Math.abs(pointer.y - startPointRef.current.y);
-          activeObject.set({
-            width,
-            height
-          });
-          canvas.renderAll();
-        }
+        const width = Math.abs(pointer.x - startPointRef.current.x);
+        const height = Math.abs(pointer.y - startPointRef.current.y);
+        rectRef.current.set({
+          width,
+          height
+        });
+        isDraggingRef.current = true;
+        canvas.renderAll();
       }
     };
     const handleMouseUp = () => {
-      if (toolMode === "shape-square") {
+      if (toolMode === "shape-square" && rectRef.current) {
+        if (!isDraggingRef.current) {
+          rectRef.current.set({ width: 100, height: 100 });
+          canvas.renderAll();
+        }
         startPointRef.current = null;
+        rectRef.current = null;
+        isDraggingRef.current = false;
       }
       setToolMode("select");
     };

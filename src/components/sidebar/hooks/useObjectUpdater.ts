@@ -3,7 +3,7 @@
 // import { Properties } from './useObjectProperties';
 
 // export const useObjectUpdater = (
-//   canvas: fabric.Canvas | null, 
+//   canvas: fabric.Canvas | null,
 //   setProperties: React.Dispatch<React.SetStateAction<Properties>>
 // ) => {
 //   const updateObject = (updates: Partial<Properties>) => {
@@ -71,7 +71,10 @@ export const useObjectUpdater = (
       }
 
       // Ensure stroke is always a string when it's being updated
-      if ('stroke' in updatedProperties && updatedProperties.stroke !== undefined) {
+      if (
+        'stroke' in updatedProperties &&
+        updatedProperties.stroke !== undefined
+      ) {
         updatedProperties.stroke = String(updatedProperties.stroke);
       }
 
@@ -101,7 +104,8 @@ export const useObjectUpdater = (
         const rect = selectedObject.getBoundingRect();
         const canvasWidth = canvas.getWidth();
         const canvasHeight = canvas.getHeight();
-        let dx = 0, dy = 0;
+        let dx = 0,
+          dy = 0;
         // Snap left/right
         if (rect.left < 0) {
           dx = -rect.left;
@@ -130,9 +134,9 @@ export const useObjectUpdater = (
 
       canvas.renderAll();
 
-      setProperties(prev => ({
+      setProperties((prev) => ({
         ...prev,
-        ...updatedProperties
+        ...updatedProperties,
       }));
     });
   };

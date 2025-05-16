@@ -94,15 +94,15 @@ const Sidebar: React.FC = () => {
   }, [canvas]);
 
   return (
-    <div className="w-[20rem] min-h-screen bg-gray-50 p-4 space-y-4">
-      <div className="bg-white rounded-md shadow">
-        <div className="flex items-center justify-between p-2 bg-gray-200 rounded-t-md">
+    <div className="min-h-screen w-[20rem] space-y-4 bg-gray-50 p-4">
+      <div className="rounded-md bg-white shadow">
+        <div className="flex items-center justify-between rounded-t-md bg-gray-200 p-2">
           <span className="font-semibold">Zones</span>
           <button className="text-gray-600 hover:text-gray-800">
             <LuPlus size={20} />
           </button>
         </div>
-        <div className="p-2 flex items-center space-x-2">
+        <div className="flex items-center space-x-2 p-2">
           <input
             type="checkbox"
             id="ground-floor"
@@ -113,9 +113,9 @@ const Sidebar: React.FC = () => {
       </div>
 
       {selectedObject && (
-        <div className="bg-white rounded-md shadow p-4 space-y-4">
+        <div className="space-y-4 rounded-md bg-white p-4 shadow">
           {objectType === 'circle' && (
-            <div className="flex items-center border-solid gap-2 border-0 border-b border-gray-200 mb-4">
+            <div className="mb-4 flex items-center gap-2 border-0 border-b border-solid border-gray-200">
               <button
                 className={`px-3 py-1.5 text-sm font-medium ${
                   activeTab === 'basic'

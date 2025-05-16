@@ -7,33 +7,45 @@ const useUndoRedo = () => {
   // :::::::::::::::: Function: appends undo state
   const handleObjectModified = useCallback(() => {
     if (canvas) {
-      const jsonState = JSON.stringify(canvas.toJSON(['id', 'borderColor', 'borderDashArray', 'cornerColor', 'cornerSize', 'cornerStrokeColor', 'transparentCorners', 'rx', 'ry']));
+      const jsonState = JSON.stringify(
+        canvas.toJSON([
+          'id',
+          'borderColor',
+          'borderDashArray',
+          'cornerColor',
+          'cornerSize',
+          'cornerStrokeColor',
+          'transparentCorners',
+          'rx',
+          'ry',
+        ])
+      );
       addToUndoStack(jsonState);
     }
   }, [canvas, addToUndoStack]);
 
   useEffect(() => {
-    if (!canvas) return
+    if (!canvas) return;
 
     const eventsToListen = [
       'object:modified',
       'object:added',
-      'object:removed'
+      'object:removed',
     ];
 
     // ::::::::::::::: Loop through events to call function
-    eventsToListen.forEach(event => {
+    eventsToListen.forEach((event) => {
       canvas.on(event, handleObjectModified);
     });
 
     return () => {
-      eventsToListen.forEach(event => {
+      eventsToListen.forEach((event) => {
         canvas.off(event, handleObjectModified);
       });
-    }
-  }, [canvas, addToUndoStack])
+    };
+  }, [canvas, addToUndoStack]);
 
-  return { undo, redo }
-}
+  return { undo, redo };
+};
 
 export default useUndoRedo;

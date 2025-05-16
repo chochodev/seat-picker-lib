@@ -29,9 +29,9 @@ const SeatCanvas = ({ className }: { className?: string }) => {
   return (
     <div className={`relative size-full bg-gray-200 ${className}`}>
       <Toolbar />
-      <div className="flex justify-between w-full">
+      <div className="flex w-full justify-between">
         <div
-          className="w-full max-w-[45rem] mx-auto bg-gray-100"
+          className="mx-auto w-full max-w-[45rem] bg-gray-100"
           ref={canvasParent}
         >
           <canvas ref={canvasRef} />

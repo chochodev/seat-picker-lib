@@ -32,7 +32,7 @@ const ColorProperties: React.FC<ColorPropertiesProps> = ({
         <label className="block text-sm font-medium text-gray-700">
           Fill Color
         </label>
-        <div className="flex items-center mt-1">
+        <div className="mt-1 flex items-center">
           <input
             type="color"
             value={
@@ -42,7 +42,7 @@ const ColorProperties: React.FC<ColorPropertiesProps> = ({
                 : properties.fill?.toString() || '#ffffff'
             }
             onChange={(e) => handleFillChange(e.target.value)}
-            className="w-8 h-8 rounded-md border shadow-sm"
+            className="h-8 w-8 rounded-md border shadow-sm"
           />
           <input
             type="text"
@@ -53,7 +53,7 @@ const ColorProperties: React.FC<ColorPropertiesProps> = ({
                 : (properties.fill?.toString() || '').toUpperCase()
             }
             onChange={(e) => handleFillChange(e.target.value)}
-            className="ml-2 px-2 py-1 w-full border rounded-md shadow-sm"
+            className="ml-2 w-full rounded-md border px-2 py-1 shadow-sm"
           />
         </div>
       </div>
@@ -73,12 +73,12 @@ const ColorProperties: React.FC<ColorPropertiesProps> = ({
                   updateObject({ stroke: properties.fill });
                 }
               }}
-              className="w-3 h-3 rounded border-gray-300"
+              className="h-3 w-3 rounded border-gray-300"
             />
             <span>Sync with fill</span>
           </label>
         </div>
-        <div className="flex items-center mt-1">
+        <div className="mt-1 flex items-center">
           <input
             type="color"
             value={
@@ -88,7 +88,7 @@ const ColorProperties: React.FC<ColorPropertiesProps> = ({
             }
             onChange={(e) => updateObject({ stroke: e.target.value })}
             disabled={syncColors}
-            className={`w-8 h-8 rounded-md border shadow-sm ${
+            className={`h-8 w-8 rounded-md border shadow-sm ${
               syncColors ? 'opacity-50' : ''
             }`}
           />
@@ -101,7 +101,7 @@ const ColorProperties: React.FC<ColorPropertiesProps> = ({
             }
             onChange={(e) => updateObject({ stroke: e.target.value })}
             disabled={syncColors}
-            className={`ml-2 px-2 py-1 w-full border rounded-md shadow-sm ${
+            className={`ml-2 w-full rounded-md border px-2 py-1 shadow-sm ${
               syncColors ? 'opacity-50' : ''
             }`}
           />

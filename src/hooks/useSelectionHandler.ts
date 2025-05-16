@@ -7,7 +7,7 @@ const useSelectionHandler = (canvas: fabric.Canvas | null) => {
 
     const handleSelection = () => {
       const activeObject = canvas.getActiveObject();
-      
+
       if (activeObject && activeObject.type === 'activeSelection') {
         activeObject.setControlsVisibility({
           mt: false,
@@ -22,7 +22,7 @@ const useSelectionHandler = (canvas: fabric.Canvas | null) => {
         activeObject.cornerColor = 'lightblue';
         activeObject.cornerSize = 7;
         activeObject.cornerStrokeColor = 'blue';
-        
+
         canvas.requestRenderAll();
       }
     };

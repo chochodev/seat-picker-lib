@@ -39,13 +39,17 @@ const useObjectCreator = (
     };
 
     const handleMouseMove = (event: fabric.IEvent) => {
-      if (toolMode === 'shape-square' && startPointRef.current && rectRef.current) {
+      if (
+        toolMode === 'shape-square' &&
+        startPointRef.current &&
+        rectRef.current
+      ) {
         const pointer = canvas.getPointer(event.e);
         const width = Math.abs(pointer.x - startPointRef.current.x);
         const height = Math.abs(pointer.y - startPointRef.current.y);
         rectRef.current.set({
           width: width,
-          height: height
+          height: height,
         });
         isDraggingRef.current = true;
         canvas.renderAll();

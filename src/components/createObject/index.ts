@@ -165,5 +165,11 @@ const createText = (left: number, top: number, text: string = 'Type here') => {
   return textObject;
 };
 
-
-export { CustomRect, CustomCircle, CustomText, createRect, createSeat, createText };
+export {
+  CustomRect,
+  CustomCircle,
+  CustomText,
+  createRect,
+  createSeat,
+  createText,
+};

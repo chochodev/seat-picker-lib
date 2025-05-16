@@ -28,7 +28,6 @@ export const useObjectProperties = (
   canvas: fabric.Canvas | null,
   selectedObject: CustomFabricObject | null
 ) => {
-
   // ::::::::::::::::::: Properties state
   const [properties, setProperties] = useState<Properties>({
     angle: 0,
@@ -42,7 +41,7 @@ export const useObjectProperties = (
     fontWeight: 'normal',
     fontFamily: 'sans-serif',
     left: 0,
-    top: 0
+    top: 0,
   });
 
   // ::::::::::::::::::::::: Listen for object selection
@@ -51,15 +50,24 @@ export const useObjectProperties = (
 
     setProperties({
       angle: selectedObject.angle || 0,
-      radius: ((selectedObject as any).radius * (selectedObject as any).scaleX) || 10,
+      radius:
+        (selectedObject as any).radius * (selectedObject as any).scaleX || 10,
       width: (selectedObject.width ?? 100) * (selectedObject.scaleX ?? 1),
       height: (selectedObject.height ?? 100) * (selectedObject.scaleY ?? 1),
 
       // ::::::::::: fill
-      fill: selectedObject.fill ? String(selectedObject.fill).toUpperCase() === 'BLACK' ? '#000000' : String(selectedObject.fill) : 'transparent',
+      fill: selectedObject.fill
+        ? String(selectedObject.fill).toUpperCase() === 'BLACK'
+          ? '#000000'
+          : String(selectedObject.fill)
+        : 'transparent',
 
       // ::::::::::: stroke
-      stroke: selectedObject.stroke ? (Number(selectedObject.stroke) === 1 ? '#000000' : String(selectedObject.stroke)) : '#000000',
+      stroke: selectedObject.stroke
+        ? Number(selectedObject.stroke) === 1
+          ? '#000000'
+          : String(selectedObject.stroke)
+        : '#000000',
 
       text: (selectedObject as any).text || '',
       fontSize: (selectedObject as any).fontSize || 20,

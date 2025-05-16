@@ -37,7 +37,7 @@ const SeatAttributes: React.FC<SeatAttributesProps> = ({
         type="text"
         value={properties.seatNumber || ''}
         onChange={(e) => updateObject({ seatNumber: e.target.value })}
-        className="mt-1 px-2 py-1 w-full border rounded-md"
+        className="mt-1 w-full rounded-md border px-2 py-1"
       />
     </div>
     <div>
@@ -56,7 +56,7 @@ const SeatAttributes: React.FC<SeatAttributesProps> = ({
         type="number"
         value={properties.price || 0}
         onChange={(e) => updateObject({ price: Number(e.target.value) })}
-        className="mt-1 px-2 py-1 w-full border rounded-md"
+        className="mt-1 w-full rounded-md border px-2 py-1"
       />
     </div>
     <div>

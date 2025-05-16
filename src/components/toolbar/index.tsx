@@ -127,7 +127,7 @@ const Toolbar: React.FC = () => {
   ];
 
   return (
-    <div className="sticky top-0 left-0 z-[200] flex items-center gap-1 w-full bg-white px-[1rem] py-[0.5rem] shadow">
+    <div className="sticky left-0 top-0 z-[200] flex w-full items-center gap-1 bg-white px-[1rem] py-[0.5rem] shadow">
       {buttonGroups.map((item, index) => (
         <React.Fragment key={index}>
           {/* :::::::::::::: add seperator */}
@@ -158,7 +158,7 @@ const Toolbar: React.FC = () => {
         tooltip="Zoom Out"
         onClick={() => setZoomLevel(zoomLevel - 10)}
       />
-      <div className="flex items-center justify-center w-12 h-8 text-sm font-medium">
+      <div className="flex h-8 w-12 items-center justify-center text-sm font-medium">
         {zoomLevel}%
       </div>
       <Button
@@ -190,9 +190,9 @@ const Button: React.FC<ButtonProps> = ({ icon, tooltip, state, ...props }) => {
   return (
     <div className="relative">
       <button
-        className={`p-2 rounded-md hover:bg-gray-200/60 ${
-          state ? 'ring-1 ring-gray-400 shadow-sm shadow-gray-400' : ''
-        } active:bg-gray-200 ease-250 `}
+        className={`rounded-md p-2 hover:bg-gray-200/60 ${
+          state ? 'shadow-sm shadow-gray-400 ring-1 ring-gray-400' : ''
+        } ease-250 active:bg-gray-200 `}
         onMouseEnter={() => setShowTooltip(true)}
         onMouseLeave={() => setShowTooltip(false)}
         {...props}
@@ -201,11 +201,11 @@ const Button: React.FC<ButtonProps> = ({ icon, tooltip, state, ...props }) => {
       </button>
 
       <div
-        className={`absolute left-1/2 transform -translate-x-1/2 ${
+        className={`absolute left-1/2 -translate-x-1/2 transform ${
           showTooltip
             ? 'top-[calc(100%+0.5rem)] opacity-100'
             : 'top-[100%] opacity-0'
-        } px-2 py-1 bg-gray-200 text-gray-900 text-[0.625rem] rounded whitespace-nowrap shadow-md ease-250`}
+        } ease-250 whitespace-nowrap rounded bg-gray-200 px-2 py-1 text-[0.625rem] text-gray-900 shadow-md`}
       >
         {tooltip}
       </div>
@@ -214,5 +214,5 @@ const Button: React.FC<ButtonProps> = ({ icon, tooltip, state, ...props }) => {
 };
 
 const Separator: React.FC = () => (
-  <div className="w-px h-6 bg-gray-300 mx-[1rem] " />
+  <div className="mx-[1rem] h-6 w-px bg-gray-300 " />
 );

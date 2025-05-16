@@ -46,7 +46,7 @@ const SeatAttributes: React.FC<CirclePropertiesProps> = ({
         type="text"
         value={properties.seatNumber || ''}
         onChange={(e) => updateObject({ seatNumber: e.target.value })}
-        className="mt-1 px-2 py-1 w-full border rounded-md"
+        className="mt-1 w-full rounded-md border px-2 py-1"
       />
     </div>
     <div>
@@ -65,7 +65,7 @@ const SeatAttributes: React.FC<CirclePropertiesProps> = ({
         type="number"
         value={properties.price || 0}
         onChange={(e) => updateObject({ price: Number(e.target.value) })}
-        className="mt-1 px-2 py-1 w-full border rounded-md"
+        className="mt-1 w-full rounded-md border px-2 py-1"
       />
     </div>
     <div>
@@ -123,7 +123,7 @@ const CircleProperties: React.FC<CirclePropertiesProps> = ({
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-1">
               <button
-                className="w-6 h-6 flex items-center justify-center hover:bg-gray-100 rounded border border-gray-200 border-solid text-xs transition-colors"
+                className="flex h-6 w-6 items-center justify-center rounded border border-solid border-gray-200 text-xs transition-colors hover:bg-gray-100"
                 onClick={() =>
                   updateObject({ radius: toFloat(properties.radius) - 1 })
                 }
@@ -136,10 +136,10 @@ const CircleProperties: React.FC<CirclePropertiesProps> = ({
                 onChange={(e) =>
                   updateObject({ radius: Number(e.target.value) })
                 }
-                className="w-12 px-1 py-0.5 text-center border border-gray-200 border-solid rounded text-xs focus:outline-none focus:ring-1 focus:ring-gray-500 bg-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                className="w-12 rounded border border-solid border-gray-200 bg-white px-1 py-0.5 text-center text-xs [appearance:textfield] focus:outline-none focus:ring-1 focus:ring-gray-500 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
               />
               <button
-                className="w-6 h-6 flex items-center justify-center hover:bg-gray-100 rounded border border-gray-200 border-solid text-xs transition-colors"
+                className="flex h-6 w-6 items-center justify-center rounded border border-solid border-gray-200 text-xs transition-colors hover:bg-gray-100"
                 onClick={() =>
                   updateObject({ radius: toFloat(properties.radius) + 1 })
                 }
@@ -147,9 +147,9 @@ const CircleProperties: React.FC<CirclePropertiesProps> = ({
                 +
               </button>
             </div>
-            <div className="flex items-center gap-1 mb-1">
+            <div className="mb-1 flex items-center gap-1">
               <button
-                className={`w-6 h-6 flex items-center justify-center rounded border border-gray-200 border-solid ${
+                className={`flex h-6 w-6 items-center justify-center rounded border border-solid border-gray-200 ${
                   properties.radius === 0 ? 'bg-gray-200' : 'bg-white'
                 } transition-colors`}
                 onClick={() => updateObject({ radius: 0 })}
@@ -167,27 +167,27 @@ const CircleProperties: React.FC<CirclePropertiesProps> = ({
                 </svg>
               </button>
               <button
-                className={`w-6 h-6 flex items-center justify-center rounded border border-gray-200 border-solid ${
+                className={`flex h-6 w-6 items-center justify-center rounded border border-solid border-gray-200 ${
                   properties.radius === 4 ? 'bg-gray-200' : 'bg-white'
-                } transition-colors text-xs`}
+                } text-xs transition-colors`}
                 onClick={() => updateObject({ radius: 4 })}
                 title="Small"
               >
                 sm
               </button>
               <button
-                className={`w-6 h-6 flex items-center justify-center rounded border border-gray-200 border-solid ${
+                className={`flex h-6 w-6 items-center justify-center rounded border border-solid border-gray-200 ${
                   properties.radius === 10 ? 'bg-gray-200' : 'bg-white'
-                } transition-colors text-xs`}
+                } text-xs transition-colors`}
                 onClick={() => updateObject({ radius: 10 })}
                 title="Medium"
               >
                 md
               </button>
               <button
-                className={`w-6 h-6 flex items-center justify-center rounded border border-gray-200 border-solid ${
+                className={`flex h-6 w-6 items-center justify-center rounded border border-solid border-gray-200 ${
                   properties.radius === 20 ? 'bg-gray-200' : 'bg-white'
-                } transition-colors text-xs`}
+                } text-xs transition-colors`}
                 onClick={() => updateObject({ radius: 20 })}
                 title="Large"
               >

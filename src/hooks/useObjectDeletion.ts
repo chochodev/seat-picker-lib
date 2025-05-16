@@ -1,7 +1,10 @@
 import { useEffect } from 'react';
 import { fabric } from 'fabric';
 
-const useObjectDeletion = (canvas: fabric.Canvas | null, toolAction: string | null) => {
+const useObjectDeletion = (
+  canvas: fabric.Canvas | null,
+  toolAction: string | null
+) => {
   useEffect(() => {
     if (!canvas) return;
 
@@ -12,7 +15,7 @@ const useObjectDeletion = (canvas: fabric.Canvas | null, toolAction: string | nu
       if (activeObject.type === 'activeSelection') {
         const activeSelection = activeObject as fabric.ActiveSelection;
         const objects = [...activeSelection.getObjects()];
-        objects.forEach(obj => canvas.remove(obj));
+        objects.forEach((obj) => canvas.remove(obj));
       } else {
         canvas.remove(activeObject);
       }
@@ -22,7 +25,10 @@ const useObjectDeletion = (canvas: fabric.Canvas | null, toolAction: string | nu
     };
 
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Delete' || (event.ctrlKey && event.key.toLowerCase() === 'd')) {
+      if (
+        event.key === 'Delete' ||
+        (event.ctrlKey && event.key.toLowerCase() === 'd')
+      ) {
         deleteFunction();
       }
     };

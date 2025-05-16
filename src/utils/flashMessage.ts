@@ -3,12 +3,16 @@
 import { useLayoutState } from '@/zustand';
 
 // ::::::::::::::::::::::::: Global Flash Message Hook
-type flashSeverityType = "success" | "danger" | "warning" | "message";
+type flashSeverityType = 'success' | 'danger' | 'warning' | 'message';
 
 const useFlashMessage = () => {
   const { layoutValues, setLayoutValues } = useLayoutState();
 
-  return (title: string, message: string, severity: flashSeverityType = 'success') => {
+  return (
+    title: string,
+    message: string,
+    severity: flashSeverityType = 'success'
+  ) => {
     setLayoutValues({
       ...layoutValues,
       flashTitle: title,

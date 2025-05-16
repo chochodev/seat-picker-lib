@@ -1,7 +1,7 @@
 {
   "name": "seat-picker",
   "private": false,
-  "version": "0.0.3image.png",
+  "version": "0.0.3",
   "main": "./dist/index.js",
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -52,7 +52,8 @@
     "localbundle": "npm run build && yalc push",
     "test": "jest",
     "test:watch": "jest --watch",
-    "test:coverage": "jest --coverage"
+    "test:coverage": "jest --coverage",
+    "format": "prettier --write \"src/**/*.{ts,tsx,js,jsx}\""
   },
   "peerDependencies": {
     "react": ">=18.2.0",
@@ -67,11 +68,11 @@
     "@vitejs/plugin-react-swc": "^3.0.0",
     "autoprefixer": "^10.4.21",
     "postcss": "^8.5.3",
+    "prettier-plugin-tailwindcss": "^0.5.14",
     "tailwindcss": "^3.4.17",
     "tsup": "^8.4.0",
     "typescript": "^5.0.0",
-    "vite": "^4.0.0",
-    "prettier-plugin-tailwindcss": "^0.5.11"
+    "vite": "^4.0.0"
   },
   "dependencies": {
     "fabric": "^5.3.0",
