@@ -36,7 +36,8 @@ const ColorProperties: React.FC<ColorPropertiesProps> = ({
           <input
             type="color"
             value={
-              properties?.fill === 'transparent'
+              typeof properties.fill === 'string' &&
+              /^#([0-9A-Fa-f]{6})$/.test(properties.fill)
                 ? '#ffffff'
                 : properties.fill?.toString() || '#ffffff'
             }
@@ -46,7 +47,8 @@ const ColorProperties: React.FC<ColorPropertiesProps> = ({
           <input
             type="text"
             value={
-              properties.fill === 'transparent'
+              typeof properties.fill === 'string' &&
+              /^#([0-9A-Fa-f]{6})$/.test(properties.fill)
                 ? 'transparent'
                 : (properties.fill?.toString() || '').toUpperCase()
             }
@@ -61,22 +63,20 @@ const ColorProperties: React.FC<ColorPropertiesProps> = ({
           <label className="block text-sm font-medium text-gray-700">
             Stroke Color
           </label>
-          {objectType === 'i-text' && (
-            <label className="flex items-center space-x-1 text-xs text-gray-600">
-              <input
-                type="checkbox"
-                checked={syncColors}
-                onChange={(e) => {
-                  setSyncColors(e.target.checked);
-                  if (e.target.checked) {
-                    updateObject({ stroke: properties.fill });
-                  }
-                }}
-                className="w-3 h-3 rounded border-gray-300"
-              />
-              <span>Sync with fill</span>
-            </label>
-          )}
+          <label className="flex items-center space-x-1 text-xs text-gray-600">
+            <input
+              type="checkbox"
+              checked={syncColors}
+              onChange={(e) => {
+                setSyncColors(e.target.checked);
+                if (e.target.checked) {
+                  updateObject({ stroke: properties.fill });
+                }
+              }}
+              className="w-3 h-3 rounded border-gray-300"
+            />
+            <span>Sync with fill</span>
+          </label>
         </div>
         <div className="flex items-center mt-1">
           <input

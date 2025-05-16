@@ -9,6 +9,8 @@ const useObjectCreator = (
   setToolMode: (mode: Mode) => void
 ) => {
   const startPointRef = useRef<{ x: number; y: number } | null>(null);
+  const rectRef = useRef<fabric.Rect | null>(null);
+  const isDraggingRef = useRef(false);
 
   useEffect(() => {
     if (!canvas) return;
@@ -22,7 +24,8 @@ const useObjectCreator = (
         canvas.renderAll();
       } else if (toolMode === 'shape-square') {
         const rect = createRect(pointer.x, pointer.y);
-        rect.set({ width: 0, height: 0 });
+        rectRef.current = rect;
+        isDraggingRef.current = false;
         canvas.add(rect);
         canvas.setActiveObject(rect);
         startPointRef.current = { x: pointer.x, y: pointer.y };
@@ -36,25 +39,29 @@ const useObjectCreator = (
     };
 
     const handleMouseMove = (event: fabric.IEvent) => {
-      if (toolMode === 'shape-square' && startPointRef.current) {
+      if (toolMode === 'shape-square' && startPointRef.current && rectRef.current) {
         const pointer = canvas.getPointer(event.e);
-        const activeObject = canvas.getActiveObject() as fabric.Rect;
-
-        if (activeObject && activeObject.type === 'rect') {
-          const width = Math.abs(pointer.x - startPointRef.current.x);
-          const height = Math.abs(pointer.y - startPointRef.current.y);
-          activeObject.set({
-            width: width,
-            height: height
-          });
-          canvas.renderAll();
-        }
+        const width = Math.abs(pointer.x - startPointRef.current.x);
+        const height = Math.abs(pointer.y - startPointRef.current.y);
+        rectRef.current.set({
+          width: width,
+          height: height
+        });
+        isDraggingRef.current = true;
+        canvas.renderAll();
       }
     };
 
     const handleMouseUp = () => {
-      if (toolMode === 'shape-square') {
+      if (toolMode === 'shape-square' && rectRef.current) {
+        if (!isDraggingRef.current) {
+          // If not dragged, set to default size
+          rectRef.current.set({ width: 100, height: 100 });
+          canvas.renderAll();
+        }
         startPointRef.current = null;
+        rectRef.current = null;
+        isDraggingRef.current = false;
       }
       setToolMode('select');
     };
