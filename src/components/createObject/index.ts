@@ -18,6 +18,8 @@ class CustomRect extends fabric.Rect {
       cornerSize: this.cornerSize,
       cornerStrokeColor: this.cornerStrokeColor,
       transparentCorners: this.transparentCorners,
+      rx: this.rx,
+      ry: this.ry,
     });
   }
 }
@@ -84,7 +86,10 @@ const createRect = (left: number, top: number) => {
     cornerSize: 5,
     cornerStrokeColor: 'blue',
     transparentCorners: false,
-    id: uuidv4()
+    id: uuidv4(),
+    strokeUniform: true,
+    rx: 0,
+    ry: 0,
   });
 
   rect.setControlsVisibility({
@@ -115,7 +120,8 @@ const createSeat = (left: number, top: number) => {
     transparentCorners: false,
     rx: 0.25,
     ry: 0.25,
-    id: uuidv4()
+    id: uuidv4(),
+    strokeUniform: true,
   });
 
   seat.setControlsVisibility({
@@ -145,7 +151,8 @@ const createText = (left: number, top: number, text: string = 'Type here') => {
     cornerStrokeColor: 'blue',
     transparentCorners: false,
     fontFamily: 'sans-serif',
-    id: uuidv4()
+    id: uuidv4(),
+    strokeUniform: true,
   });
 
   textObject.setControlsVisibility({

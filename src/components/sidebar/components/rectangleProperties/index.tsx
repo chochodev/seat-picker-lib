@@ -10,13 +10,15 @@ interface Properties {
   fill?: string | Pattern | Gradient;
   stroke?: string | Pattern | Gradient;
   strokeWidth?: number;
+  rx?: number;
+  ry?: number;
 }
 
 interface RectanglePropertiesProps {
   properties: Properties;
   updateObject: (updates: Partial<Properties>) => void;
   Select: React.FC<{
-    options: { value: number; label: string }[];
+    options: { value: string; label: string }[];
     value: string;
     onChange: (value: string) => void;
   }>;
@@ -73,6 +75,99 @@ const RectangleProperties: React.FC<RectanglePropertiesProps> = ({
           value={properties.strokeWidth?.toString() || '1'}
           onChange={(value) => updateObject({ strokeWidth: Number(value) })}
         />
+      </div>
+      <div className="mt-2">
+        <label className="block text-sm font-medium text-gray-700 mb-1">
+          Border Radius
+        </label>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-1">
+            <button
+              className="w-6 h-6 flex items-center justify-center hover:bg-gray-100 rounded border border-gray-200 border-solid text-xs transition-colors"
+              onClick={() =>
+                updateObject({
+                  rx: toFloat((properties as any).rx ?? 0) - 1,
+                  ry: toFloat((properties as any).ry ?? 0) - 1,
+                })
+              }
+            >
+              -
+            </button>
+            <input
+              type="number"
+              value={toFloat((properties as any).rx ?? 0)}
+              onChange={(e) =>
+                updateObject({
+                  rx: Number(e.target.value),
+                  ry: Number(e.target.value),
+                })
+              }
+              className="w-12 px-1 py-0.5 text-center border border-gray-200 border-solid rounded text-xs focus:outline-none focus:ring-1 focus:ring-gray-500 bg-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+            />
+            <button
+              className="w-6 h-6 flex items-center justify-center hover:bg-gray-100 rounded border border-gray-200 border-solid text-xs transition-colors"
+              onClick={() =>
+                updateObject({
+                  rx: toFloat((properties as any).rx ?? 0) + 1,
+                  ry: toFloat((properties as any).ry ?? 0) + 1,
+                })
+              }
+            >
+              +
+            </button>
+          </div>
+          <div className="flex items-center gap-1 mb-1">
+            <button
+              className={`w-6 h-6 flex items-center justify-center rounded border border-gray-200 border-solid ${
+                ((properties as any).rx ?? 0) === 0 ? 'bg-gray-200' : 'bg-white'
+              } transition-colors`}
+              onClick={() => updateObject({ rx: 0, ry: 0 })}
+              title="None"
+            >
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 14 14"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+              >
+                <rect x="2" y="2" width="10" height="10" rx="0" />
+              </svg>
+            </button>
+            <button
+              className={`w-6 h-6 flex items-center justify-center rounded border border-gray-200 border-solid ${
+                ((properties as any).rx ?? 0) === 4 ? 'bg-gray-200' : 'bg-white'
+              } transition-colors text-xs`}
+              onClick={() => updateObject({ rx: 4, ry: 4 })}
+              title="Small"
+            >
+              sm
+            </button>
+            <button
+              className={`w-6 h-6 flex items-center justify-center rounded border border-gray-200 border-solid ${
+                ((properties as any).rx ?? 0) === 10
+                  ? 'bg-gray-200'
+                  : 'bg-white'
+              } transition-colors text-xs`}
+              onClick={() => updateObject({ rx: 10, ry: 10 })}
+              title="Medium"
+            >
+              md
+            </button>
+            <button
+              className={`w-6 h-6 flex items-center justify-center rounded border border-gray-200 border-solid ${
+                ((properties as any).rx ?? 0) === 20
+                  ? 'bg-gray-200'
+                  : 'bg-white'
+              } transition-colors text-xs`}
+              onClick={() => updateObject({ rx: 20, ry: 20 })}
+              title="Large"
+            >
+              lg
+            </button>
+          </div>
+        </div>
       </div>
     </>
   );

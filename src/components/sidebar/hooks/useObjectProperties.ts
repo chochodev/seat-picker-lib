@@ -16,10 +16,16 @@ export interface Properties {
   fontFamily: string;
   left: number;
   top: number;
+  rx?: number;
+  ry?: number;
+  seatNumber?: string;
+  category?: string;
+  price?: number;
+  status?: 'available' | 'reserved' | 'sold';
 }
 
 export const useObjectProperties = (
-  canvas: fabric.Canvas | null, 
+  canvas: fabric.Canvas | null,
   selectedObject: CustomFabricObject | null
 ) => {
 
@@ -46,21 +52,27 @@ export const useObjectProperties = (
     setProperties({
       angle: selectedObject.angle || 0,
       radius: ((selectedObject as any).radius * (selectedObject as any).scaleX) || 10,
-      width: selectedObject.width || 100,
-      height: selectedObject.height || 100,
-      
+      width: (selectedObject.width ?? 100) * (selectedObject.scaleX ?? 1),
+      height: (selectedObject.height ?? 100) * (selectedObject.scaleY ?? 1),
+
       // ::::::::::: fill
-      fill: selectedObject.fill? String(selectedObject.fill).toUpperCase() === 'BLACK'? '#000000' : String(selectedObject.fill) : 'transparent',
+      fill: selectedObject.fill ? String(selectedObject.fill).toUpperCase() === 'BLACK' ? '#000000' : String(selectedObject.fill) : 'transparent',
 
       // ::::::::::: stroke
-      stroke: selectedObject.stroke ? (Number(selectedObject.stroke) === 1? '#000000' : String(selectedObject.stroke)) : '#000000',
+      stroke: selectedObject.stroke ? (Number(selectedObject.stroke) === 1 ? '#000000' : String(selectedObject.stroke)) : '#000000',
 
       text: (selectedObject as any).text || '',
       fontSize: (selectedObject as any).fontSize || 20,
       fontWeight: (selectedObject as any).fontWeight || 'normal',
       fontFamily: (selectedObject as any).fontFamily || 'sans-serif',
       left: selectedObject.left || 0,
-      top: selectedObject.top || 0
+      top: selectedObject.top || 0,
+      rx: (selectedObject as any).rx ?? 0,
+      ry: (selectedObject as any).ry ?? 0,
+      seatNumber: (selectedObject as any).seatNumber || '',
+      category: (selectedObject as any).category || '',
+      price: (selectedObject as any).price || undefined,
+      status: (selectedObject as any).status || 'available',
     });
   }, [selectedObject]);
 

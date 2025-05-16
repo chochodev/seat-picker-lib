@@ -115,7 +115,10 @@ const TextProperties: React.FC<TextPropertiesProps> = ({
         Stroke Width
       </label>
       <Select
-        options={strokeWidthOptions}
+        options={strokeWidthOptions.map((option) => ({
+          value: option.value.toString(),
+          label: option.label,
+        }))}
         value={properties.strokeWidth?.toString() || '0'}
         onChange={(value) => updateObject({ strokeWidth: Number(value) })}
       />

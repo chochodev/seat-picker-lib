@@ -9,6 +9,8 @@ import CircleProperties from './components/circleProperties';
 import RectangleProperties from './components/rectangleProperties';
 import TextProperties from './components/textProperties';
 import ColorProperties from './components/colorProperties';
+import { Pattern, Gradient } from 'fabric/fabric-impl';
+import SeatAttributes from './components/seatAttributes';
 
 export type Mode =
   | 'select'
@@ -24,6 +26,7 @@ const Sidebar: React.FC = () => {
   const [objectType, setObjectType] = useState<
     'circle' | 'rect' | 'i-text' | null
   >(null);
+  const [activeTab, setActiveTab] = useState<'basic' | 'attributes'>('basic');
 
   const { properties, setProperties } = useObjectProperties(
     canvas,
@@ -39,6 +42,28 @@ const Sidebar: React.FC = () => {
       const activeObject = canvas.getActiveObject() as CustomFabricObject;
       setSelectedObject(activeObject || null);
       setObjectType(activeObject?.type as 'circle' | 'rect' | 'i-text' | null);
+      // --- Sync sidebar properties with active object ---
+      if (activeObject) {
+        setProperties((prev) => ({
+          ...prev,
+          angle: activeObject.angle ?? prev.angle,
+          radius: (activeObject as any).radius ?? prev.radius,
+          width:
+            (activeObject.width ?? prev.width) * (activeObject.scaleX ?? 1),
+          height:
+            (activeObject.height ?? prev.height) * (activeObject.scaleY ?? 1),
+          fill: activeObject.fill ?? prev.fill,
+          stroke: activeObject.stroke ?? prev.stroke,
+          text: (activeObject as any).text ?? prev.text,
+          fontSize: (activeObject as any).fontSize ?? prev.fontSize,
+          fontWeight: (activeObject as any).fontWeight ?? prev.fontWeight,
+          fontFamily: (activeObject as any).fontFamily ?? prev.fontFamily,
+          left: activeObject.left ?? prev.left,
+          top: activeObject.top ?? prev.top,
+          rx: (activeObject as any).rx ?? prev.rx,
+          ry: (activeObject as any).ry ?? prev.ry,
+        }));
+      }
     };
 
     const eventsToListen = [
@@ -81,7 +106,7 @@ const Sidebar: React.FC = () => {
           <input
             type="checkbox"
             id="ground-floor"
-            className="rounded text-blue-600"
+            className="rounded text-gray-600"
           />
           <label htmlFor="ground-floor">Ground floor</label>
         </div>
@@ -89,41 +114,76 @@ const Sidebar: React.FC = () => {
 
       {selectedObject && (
         <div className="bg-white rounded-md shadow p-4 space-y-4">
-          <h3 className="font-semibold">Properties</h3>
-
-          <CommonProperties
-            properties={properties}
-            updateObject={updateObject}
-          />
-
           {objectType === 'circle' && (
-            <CircleProperties
-              properties={properties}
-              updateObject={updateObject}
-            />
+            <div className="flex items-center border-solid gap-2 border-0 border-b border-gray-200 mb-4">
+              <button
+                className={`px-3 py-1.5 text-sm font-medium ${
+                  activeTab === 'basic'
+                    ? 'border-0 border-b-2 border-solid border-gray-500 text-gray-600'
+                    : 'text-gray-500 hover:text-gray-700'
+                }`}
+                onClick={() => setActiveTab('basic')}
+              >
+                Properties
+              </button>
+              <button
+                className={`px-3 py-1.5 text-sm font-medium ${
+                  activeTab === 'attributes'
+                    ? 'border-0 border-b-2 border-solid border-gray-500 text-gray-600'
+                    : 'text-gray-500 hover:text-gray-700'
+                }`}
+                onClick={() => setActiveTab('attributes')}
+              >
+                Attributes
+              </button>
+            </div>
           )}
 
-          {objectType === 'rect' && (
-            <RectangleProperties
+          {objectType === 'circle' && activeTab === 'attributes' ? (
+            <SeatAttributes
               properties={properties}
               updateObject={updateObject}
               Select={Select}
             />
-          )}
+          ) : (
+            <>
+              <h3 className="font-semibold">Properties</h3>
+              <CommonProperties
+                properties={properties}
+                updateObject={updateObject}
+              />
 
-          {objectType === 'i-text' && (
-            <TextProperties
-              properties={properties}
-              updateObject={updateObject}
-              Select={Select}
-            />
-          )}
+              {objectType === 'circle' && (
+                <CircleProperties
+                  properties={properties}
+                  updateObject={updateObject}
+                  Select={Select}
+                />
+              )}
 
-          <ColorProperties
-            properties={properties}
-            updateObject={updateObject}
-            objectType={objectType}
-          />
+              {objectType === 'rect' && (
+                <RectangleProperties
+                  properties={properties}
+                  updateObject={updateObject}
+                  Select={Select}
+                />
+              )}
+
+              {objectType === 'i-text' && (
+                <TextProperties
+                  properties={properties}
+                  updateObject={updateObject}
+                  Select={Select}
+                />
+              )}
+
+              <ColorProperties
+                properties={properties}
+                updateObject={updateObject}
+                objectType={objectType}
+              />
+            </>
+          )}
         </div>
       )}
     </div>

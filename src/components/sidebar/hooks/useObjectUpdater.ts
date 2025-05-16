@@ -75,6 +75,16 @@ export const useObjectUpdater = (
         updatedProperties.stroke = String(updatedProperties.stroke);
       }
 
+      // Special handling for width/height: set and reset scaleX/scaleY
+      if ('width' in updates && updates.width !== undefined) {
+        selectedObject.set({ width: updates.width, scaleX: 1 });
+        delete updatedProperties.width;
+      }
+      if ('height' in updates && updates.height !== undefined) {
+        selectedObject.set({ height: updates.height, scaleY: 1 });
+        delete updatedProperties.height;
+      }
+
       selectedObject.set(updatedProperties);
 
       // :::::::::::: Ensures the text's scales remains 1, only font-size should change
@@ -85,29 +95,36 @@ export const useObjectUpdater = (
         });
       }
 
-      // --- Auto-snap to canvas edge after rotation ---
+      // --- Improved auto-snap to canvas edge after rotation ---
       if (Object.prototype.hasOwnProperty.call(updates, 'angle')) {
-        // Get bounding box after rotation
+        selectedObject.setCoords(); // recalculate coords after rotation
         const rect = selectedObject.getBoundingRect();
         const canvasWidth = canvas.getWidth();
         const canvasHeight = canvas.getHeight();
-        let newLeft = selectedObject.left ?? 0;
-        let newTop = selectedObject.top ?? 0;
+        let dx = 0, dy = 0;
         // Snap left/right
         if (rect.left < 0) {
-          newLeft += -rect.left;
+          dx = -rect.left;
         } else if (rect.left + rect.width > canvasWidth) {
-          newLeft -= (rect.left + rect.width - canvasWidth);
+          dx = canvasWidth - (rect.left + rect.width);
         }
         // Snap top/bottom
         if (rect.top < 0) {
-          newTop += -rect.top;
+          dy = -rect.top;
         } else if (rect.top + rect.height > canvasHeight) {
-          newTop -= (rect.top + rect.height - canvasHeight);
+          dy = canvasHeight - (rect.top + rect.height);
         }
-        // Only update if changed
-        if (newLeft !== selectedObject.left || newTop !== selectedObject.top) {
-          selectedObject.set({ left: newLeft, top: newTop });
+        if (dx !== 0 || dy !== 0) {
+          // Move by offset, using current origin
+          const originX = selectedObject.originX || 'center';
+          const originY = selectedObject.originY || 'center';
+          // Calculate new center position
+          const newCenter = {
+            x: (selectedObject.left ?? 0) + dx,
+            y: (selectedObject.top ?? 0) + dy,
+          };
+          selectedObject.setPositionByOrigin(newCenter, originX, originY);
+          selectedObject.setCoords();
         }
       }
 
