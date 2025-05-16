@@ -107,6 +107,7 @@ const Sidebar: React.FC = () => {
             <RectangleProperties
               properties={properties}
               updateObject={updateObject}
+              Select={Select}
             />
           )}
 

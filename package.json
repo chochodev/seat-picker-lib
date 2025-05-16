@@ -1,7 +1,7 @@
 {
   "name": "seat-picker",
   "private": false,
-  "version": "0.0.1",
+  "version": "0.0.2",
   "main": "./dist/index.js",
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -46,6 +46,7 @@
     "build": "tsup src/index.ts --format esm,cjs --dts --external react",
     "lint": "eslint .",
     "preview": "vite preview",
+    "publish": "npm publish --access=public",
     "bundle": "npm run build && npm publish --access=public",
     "localbundleinit": "yalc publish && yalc add seat-picker",
     "localbundle": "npm run build && yalc push",

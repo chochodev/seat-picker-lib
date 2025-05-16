@@ -54,8 +54,8 @@
     "test:coverage": "jest --coverage"
   },
   "peerDependencies": {
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0"
+    "react": ">=18.2.0",
+    "react-dom": ">=18.2.0"
   },
   "dependencies": {
     "fabric": "^5.3.0",
@@ -64,5 +64,5 @@
     "uuid": "^9.0.0",
     "zustand": "^5.0.4"
   },
-  "yalcSig": "ff2cdb0aabaf80f28edeebd95085fb1e"
+  "yalcSig": "9c8f57ea0b1770afd281c654d80edb70"
 }

@@ -71,7 +71,7 @@ const createRect = (left: number, top: number) => {
   const rect = new CustomRect({
     left,
     top,
-    fill: 'transparent',
+    fill: '#cccccc',
     stroke: 'black',
     strokeWidth: 1,
     width: 100,
@@ -93,8 +93,8 @@ const createRect = (left: number, top: number) => {
     ml: false,
     mr: false,
   });
-  
-  return rect;    
+
+  return rect;
 };
 
 // ::::::::::::::: Create seat object
@@ -124,8 +124,8 @@ const createSeat = (left: number, top: number) => {
     ml: false,
     mr: false,
   });
-  
-  return seat;    
+
+  return seat;
 };
 
 // ::::::::::::::: Create text object
@@ -154,7 +154,7 @@ const createText = (left: number, top: number, text: string = 'Type here') => {
     ml: false,
     mr: false,
   });
-  
+
   return textObject;
 };
 

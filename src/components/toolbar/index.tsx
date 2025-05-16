@@ -60,7 +60,12 @@ const Toolbar: React.FC = () => {
       state: toolMode === 'select',
     },
     { icon: LuGrid2X2, tooltip: 'Grid View', onClick: () => {}, state: false },
-    { icon: LuLayoutDashboard, tooltip: 'Layout View', onClick: () => {}, state: false },
+    {
+      icon: LuLayoutDashboard,
+      tooltip: 'Layout View',
+      onClick: () => {},
+      state: false,
+    },
     {
       icon: RiText,
       tooltip: 'Add Text',
@@ -179,14 +184,14 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   state?: boolean;
 }
 
-const Button: React.FC<ButtonProps> = ({ icon, tooltip, ...props }) => {
+const Button: React.FC<ButtonProps> = ({ icon, tooltip, state, ...props }) => {
   const [showTooltip, setShowTooltip] = useState(false);
 
   return (
     <div className="relative">
       <button
         className={`p-2 rounded-md hover:bg-gray-200/60 ${
-          props.state ? 'ring-1 ring-gray-400 shadow-sm shadow-gray-400' : ''
+          state ? 'ring-1 ring-gray-400 shadow-sm shadow-gray-400' : ''
         } active:bg-gray-200 ease-250 `}
         onMouseEnter={() => setShowTooltip(true)}
         onMouseLeave={() => setShowTooltip(false)}

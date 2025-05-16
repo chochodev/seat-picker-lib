@@ -7,6 +7,6 @@ export default defineConfig({
   splitting: false,
   sourcemap: true,
   clean: true,
-  external: ['react', 'react-dom', 'zustand', 'fabric', 'uuid', 'react-icons'],
+  external: ['react', 'react-dom'],
   treeshake: true,
 });
