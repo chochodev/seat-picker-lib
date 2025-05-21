@@ -35,7 +35,7 @@ const useMultipleSeatCreator = (
         for (let j = 0; j < cols; j++) {
           const left = startPoint.x + j * 60;
           const top = startPoint.y + i * 60;
-          const seat = createSeat(left, top);
+          const seat = createSeat(left, top, canvas);
           canvas.add(seat);
         }
       }

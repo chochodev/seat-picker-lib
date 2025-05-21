@@ -42,7 +42,7 @@ const ColorProperties: React.FC<ColorPropertiesProps> = ({
                 : properties.fill?.toString() || '#ffffff'
             }
             onChange={(e) => handleFillChange(e.target.value)}
-            className="h-8 w-8 rounded-md border shadow-sm"
+            className="h-8 w-8 rounded-md"
           />
           <input
             type="text"
@@ -53,7 +53,7 @@ const ColorProperties: React.FC<ColorPropertiesProps> = ({
                 : (properties.fill?.toString() || '').toUpperCase()
             }
             onChange={(e) => handleFillChange(e.target.value)}
-            className="ml-2 w-full rounded-md border px-2 py-1 shadow-sm"
+            className="ml-2 w-full rounded-md border border-solid border-gray-200 px-2 py-1 shadow-sm"
           />
         </div>
       </div>
@@ -88,9 +88,7 @@ const ColorProperties: React.FC<ColorPropertiesProps> = ({
             }
             onChange={(e) => updateObject({ stroke: e.target.value })}
             disabled={syncColors}
-            className={`h-8 w-8 rounded-md border shadow-sm ${
-              syncColors ? 'opacity-50' : ''
-            }`}
+            className={`h-8 w-8 rounded-md ${syncColors ? 'opacity-50' : ''}`}
           />
           <input
             type="text"
@@ -101,7 +99,7 @@ const ColorProperties: React.FC<ColorPropertiesProps> = ({
             }
             onChange={(e) => updateObject({ stroke: e.target.value })}
             disabled={syncColors}
-            className={`ml-2 w-full rounded-md border px-2 py-1 shadow-sm ${
+            className={`ml-2 w-full rounded-md border border-solid border-gray-200 px-2 py-1 shadow-sm ${
               syncColors ? 'opacity-50' : ''
             }`}
           />

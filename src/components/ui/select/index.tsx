@@ -73,7 +73,7 @@ const Select: React.FC<SelectProps> = ({
   return (
     <div ref={selectRef} className="relative">
       <div
-        className="flex w-full cursor-pointer items-center justify-between rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-500"
+        className="flex w-full cursor-pointer items-center justify-between rounded-md border border-solid border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-500"
         onClick={handleToggle}
       >
         <span className="block truncate">

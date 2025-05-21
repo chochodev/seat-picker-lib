@@ -19,7 +19,7 @@ const useObjectCreator = (
       const pointer = canvas.getPointer(event.e);
 
       if (toolMode === 'one-seat') {
-        const seat = createSeat(pointer.x, pointer.y);
+        const seat = createSeat(pointer.x, pointer.y, canvas);
         canvas.add(seat);
         canvas.renderAll();
       } else if (toolMode === 'shape-square') {

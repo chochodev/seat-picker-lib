@@ -1,7 +1,8 @@
 import { Pattern, Gradient } from 'fabric/fabric-impl';
 
 // :::::::::::::::::::: Converts number to float conditionally
-export const toFloat = (num: number) => {
+export const toFloat = (num: any) => {
+  if (typeof num !== 'number' || isNaN(num)) return '';
   return num % 1 !== 0 ? Number(num.toFixed(2)) : num;
 };
 

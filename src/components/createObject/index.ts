@@ -68,6 +68,16 @@ class CustomText extends fabric.IText {
   }
 }
 
+// Helper to get the next available seat number from the canvas
+function getNextSeatNumber(canvas?: fabric.Canvas | null) {
+  if (!canvas) return 1;
+  const allSeats = canvas.getObjects('circle');
+  const numbers = allSeats
+    .map((obj) => parseInt((obj as any).seatNumber || '', 10))
+    .filter((n) => !isNaN(n));
+  return numbers.length ? Math.max(...numbers) + 1 : 1;
+}
+
 // ::::::::::::::: Create rectangle object
 const createRect = (left: number, top: number) => {
   const rect = new CustomRect({
@@ -103,7 +113,12 @@ const createRect = (left: number, top: number) => {
 };
 
 // ::::::::::::::: Create seat object
-const createSeat = (left: number, top: number) => {
+const createSeat = (
+  left: number,
+  top: number,
+  canvas?: fabric.Canvas | null
+) => {
+  const seatNumber = getNextSeatNumber(canvas);
   const seat = new CustomCircle({
     left,
     top,
@@ -122,6 +137,7 @@ const createSeat = (left: number, top: number) => {
     ry: 0.25,
     id: uuidv4(),
     strokeUniform: true,
+    seatNumber: String(seatNumber),
   });
 
   seat.setControlsVisibility({

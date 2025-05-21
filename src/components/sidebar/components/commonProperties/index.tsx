@@ -33,7 +33,12 @@ const CommonProperties: React.FC<CommonPropertiesProps> = ({
         <div className="flex items-center gap-1">
           <button
             className="flex h-6 w-6 items-center justify-center rounded border border-solid border-gray-200 text-xs transition-colors hover:bg-gray-100"
-            onClick={() => updateObject({ left: toFloat(properties.left) - 1 })}
+            onClick={() => {
+              if (typeof properties.left === 'number') {
+                updateObject({ left: properties.left - 1 });
+              }
+            }}
+            disabled={typeof properties.left !== 'number'}
           >
             -
           </button>
@@ -45,7 +50,12 @@ const CommonProperties: React.FC<CommonPropertiesProps> = ({
           />
           <button
             className="flex h-6 w-6 items-center justify-center rounded border border-solid border-gray-200 text-xs transition-colors hover:bg-gray-100"
-            onClick={() => updateObject({ left: toFloat(properties.left) + 1 })}
+            onClick={() => {
+              if (typeof properties.left === 'number') {
+                updateObject({ left: properties.left + 1 });
+              }
+            }}
+            disabled={typeof properties.left !== 'number'}
           >
             +
           </button>
@@ -58,7 +68,12 @@ const CommonProperties: React.FC<CommonPropertiesProps> = ({
         <div className="flex items-center gap-1">
           <button
             className="flex h-6 w-6 items-center justify-center rounded border border-solid border-gray-200 text-xs transition-colors hover:bg-gray-100"
-            onClick={() => updateObject({ top: toFloat(properties.top) - 1 })}
+            onClick={() => {
+              if (typeof properties.top === 'number') {
+                updateObject({ top: properties.top - 1 });
+              }
+            }}
+            disabled={typeof properties.top !== 'number'}
           >
             -
           </button>
@@ -70,7 +85,12 @@ const CommonProperties: React.FC<CommonPropertiesProps> = ({
           />
           <button
             className="flex h-6 w-6 items-center justify-center rounded border border-solid border-gray-200 text-xs transition-colors hover:bg-gray-100"
-            onClick={() => updateObject({ top: toFloat(properties.top) + 1 })}
+            onClick={() => {
+              if (typeof properties.top === 'number') {
+                updateObject({ top: properties.top + 1 });
+              }
+            }}
+            disabled={typeof properties.top !== 'number'}
           >
             +
           </button>
@@ -83,9 +103,12 @@ const CommonProperties: React.FC<CommonPropertiesProps> = ({
         <div className="flex items-center gap-1">
           <button
             className="flex h-6 w-6 items-center justify-center rounded border border-solid border-gray-200 text-xs transition-colors hover:bg-gray-100"
-            onClick={() =>
-              updateObject({ width: toFloat(properties.width ?? 0) - 1 })
-            }
+            onClick={() => {
+              if (typeof properties.width === 'number') {
+                updateObject({ width: properties.width - 1 });
+              }
+            }}
+            disabled={typeof properties.width !== 'number'}
           >
             -
           </button>
@@ -97,9 +120,12 @@ const CommonProperties: React.FC<CommonPropertiesProps> = ({
           />
           <button
             className="flex h-6 w-6 items-center justify-center rounded border border-solid border-gray-200 text-xs transition-colors hover:bg-gray-100"
-            onClick={() =>
-              updateObject({ width: toFloat(properties.width ?? 0) + 1 })
-            }
+            onClick={() => {
+              if (typeof properties.width === 'number') {
+                updateObject({ width: properties.width + 1 });
+              }
+            }}
+            disabled={typeof properties.width !== 'number'}
           >
             +
           </button>
@@ -112,9 +138,12 @@ const CommonProperties: React.FC<CommonPropertiesProps> = ({
         <div className="flex items-center gap-1">
           <button
             className="flex h-6 w-6 items-center justify-center rounded border border-solid border-gray-200 text-xs transition-colors hover:bg-gray-100"
-            onClick={() =>
-              updateObject({ height: toFloat(properties.height ?? 0) - 1 })
-            }
+            onClick={() => {
+              if (typeof properties.height === 'number') {
+                updateObject({ height: properties.height - 1 });
+              }
+            }}
+            disabled={typeof properties.height !== 'number'}
           >
             -
           </button>
@@ -126,9 +155,12 @@ const CommonProperties: React.FC<CommonPropertiesProps> = ({
           />
           <button
             className="flex h-6 w-6 items-center justify-center rounded border border-solid border-gray-200 text-xs transition-colors hover:bg-gray-100"
-            onClick={() =>
-              updateObject({ height: toFloat(properties.height ?? 0) + 1 })
-            }
+            onClick={() => {
+              if (typeof properties.height === 'number') {
+                updateObject({ height: properties.height + 1 });
+              }
+            }}
+            disabled={typeof properties.height !== 'number'}
           >
             +
           </button>
@@ -142,7 +174,12 @@ const CommonProperties: React.FC<CommonPropertiesProps> = ({
       <div className="flex items-center gap-1">
         <button
           className="flex h-6 w-6 items-center justify-center rounded border border-solid border-gray-200 text-xs transition-colors hover:bg-gray-100"
-          onClick={() => updateObject({ angle: toFloat(properties.angle) - 1 })}
+          onClick={() => {
+            if (typeof properties.angle === 'number') {
+              updateObject({ angle: properties.angle - 1 });
+            }
+          }}
+          disabled={typeof properties.angle !== 'number'}
         >
           -
         </button>
@@ -154,7 +191,12 @@ const CommonProperties: React.FC<CommonPropertiesProps> = ({
         />
         <button
           className="flex h-6 w-6 items-center justify-center rounded border border-solid border-gray-200 text-xs transition-colors hover:bg-gray-100"
-          onClick={() => updateObject({ angle: toFloat(properties.angle) + 1 })}
+          onClick={() => {
+            if (typeof properties.angle === 'number') {
+              updateObject({ angle: properties.angle + 1 });
+            }
+          }}
+          disabled={typeof properties.angle !== 'number'}
         >
           +
         </button>

@@ -18,15 +18,15 @@ export interface Properties {
   top: number;
   rx?: number;
   ry?: number;
-  seatNumber?: string;
-  category?: string;
-  price?: number;
-  status?: 'available' | 'reserved' | 'sold';
+  seatNumber?: string | 'mixed';
+  category?: string | 'mixed';
+  price?: number | 'mixed';
+  status?: 'available' | 'reserved' | 'sold' | 'mixed';
 }
 
 export const useObjectProperties = (
   canvas: fabric.Canvas | null,
-  selectedObject: CustomFabricObject | null
+  selectedObjects: CustomFabricObject[]
 ) => {
   // ::::::::::::::::::: Properties state
   const [properties, setProperties] = useState<Properties>({
@@ -44,45 +44,36 @@ export const useObjectProperties = (
     top: 0,
   });
 
-  // ::::::::::::::::::::::: Listen for object selection
+  function getMergedValue<T>(objs: any[], key: string) {
+    if (objs.length === 0) return '';
+    const first = objs[0][key];
+    return objs.every((obj) => obj[key] === first) ? first : 'mixed';
+  }
+
   useEffect(() => {
-    if (!selectedObject) return;
-
+    if (!selectedObjects || selectedObjects.length === 0) return;
+    const objs = selectedObjects;
     setProperties({
-      angle: selectedObject.angle || 0,
-      radius:
-        (selectedObject as any).radius * (selectedObject as any).scaleX || 10,
-      width: (selectedObject.width ?? 100) * (selectedObject.scaleX ?? 1),
-      height: (selectedObject.height ?? 100) * (selectedObject.scaleY ?? 1),
-
-      // ::::::::::: fill
-      fill: selectedObject.fill
-        ? String(selectedObject.fill).toUpperCase() === 'BLACK'
-          ? '#000000'
-          : String(selectedObject.fill)
-        : 'transparent',
-
-      // ::::::::::: stroke
-      stroke: selectedObject.stroke
-        ? Number(selectedObject.stroke) === 1
-          ? '#000000'
-          : String(selectedObject.stroke)
-        : '#000000',
-
-      text: (selectedObject as any).text || '',
-      fontSize: (selectedObject as any).fontSize || 20,
-      fontWeight: (selectedObject as any).fontWeight || 'normal',
-      fontFamily: (selectedObject as any).fontFamily || 'sans-serif',
-      left: selectedObject.left || 0,
-      top: selectedObject.top || 0,
-      rx: (selectedObject as any).rx ?? 0,
-      ry: (selectedObject as any).ry ?? 0,
-      seatNumber: (selectedObject as any).seatNumber || '',
-      category: (selectedObject as any).category || '',
-      price: (selectedObject as any).price || undefined,
-      status: (selectedObject as any).status || 'available',
+      angle: getMergedValue(objs, 'angle'),
+      radius: getMergedValue(objs, 'radius'),
+      width: getMergedValue(objs, 'width'),
+      height: getMergedValue(objs, 'height'),
+      fill: getMergedValue(objs, 'fill'),
+      stroke: getMergedValue(objs, 'stroke'),
+      text: getMergedValue(objs, 'text'),
+      fontSize: getMergedValue(objs, 'fontSize'),
+      fontWeight: getMergedValue(objs, 'fontWeight'),
+      fontFamily: getMergedValue(objs, 'fontFamily'),
+      left: getMergedValue(objs, 'left'),
+      top: getMergedValue(objs, 'top'),
+      rx: getMergedValue(objs, 'rx'),
+      ry: getMergedValue(objs, 'ry'),
+      seatNumber: getMergedValue(objs, 'seatNumber'),
+      category: getMergedValue(objs, 'category'),
+      price: getMergedValue(objs, 'price'),
+      status: getMergedValue(objs, 'status'),
     });
-  }, [selectedObject]);
+  }, [selectedObjects]);
 
   return { properties, setProperties };
 };
