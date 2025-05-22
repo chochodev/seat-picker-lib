@@ -25,11 +25,11 @@ interface RectanglePropertiesProps {
 }
 
 const strokeWidthOptions = [
-  { value: 0, label: 'None' },
-  { value: 1, label: 'Thin' },
-  { value: 2, label: 'Medium' },
-  { value: 3, label: 'Thick' },
-  { value: 4, label: 'Extra Thick' },
+  { value: '0', label: 'None' },
+  { value: '1', label: 'Thin' },
+  { value: '2', label: 'Medium' },
+  { value: '3', label: 'Thick' },
+  { value: '4', label: 'Extra Thick' },
 ];
 
 const RectangleProperties: React.FC<RectanglePropertiesProps> = ({
@@ -67,7 +67,7 @@ const RectangleProperties: React.FC<RectanglePropertiesProps> = ({
         <span className="text-xs text-gray-600">Lock aspect ratio</span>
       </div>
       <div>
-        <label className="block text-sm font-medium text-gray-700">
+        <label className="mb-1 block text-sm font-medium text-gray-700">
           Stroke Width
         </label>
         <Select
@@ -86,8 +86,8 @@ const RectangleProperties: React.FC<RectanglePropertiesProps> = ({
               className="flex h-6 w-6 items-center justify-center rounded border border-solid border-gray-200 text-xs transition-colors hover:bg-gray-100"
               onClick={() =>
                 updateObject({
-                  rx: toFloat((properties as any).rx ?? 0) - 1,
-                  ry: toFloat((properties as any).ry ?? 0) - 1,
+                  rx: Number(toFloat((properties as any).rx ?? 0)) - 1,
+                  ry: Number(toFloat((properties as any).ry ?? 0)) - 1,
                 })
               }
             >
@@ -108,8 +108,8 @@ const RectangleProperties: React.FC<RectanglePropertiesProps> = ({
               className="flex h-6 w-6 items-center justify-center rounded border border-solid border-gray-200 text-xs transition-colors hover:bg-gray-100"
               onClick={() =>
                 updateObject({
-                  rx: toFloat((properties as any).rx ?? 0) + 1,
-                  ry: toFloat((properties as any).ry ?? 0) + 1,
+                  rx: Number(toFloat((properties as any).rx ?? 0)) + 1,
+                  ry: Number(toFloat((properties as any).ry ?? 0)) + 1,
                 })
               }
             >

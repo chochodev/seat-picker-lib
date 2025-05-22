@@ -76,6 +76,9 @@ interface EventGuiState {
   addToUndoStack: (state: string) => void;
   undo: () => void;
   redo: () => void;
+
+  snapEnabled: boolean;
+  setSnapEnabled: (enabled: boolean) => void;
 }
 
 export const useEventGuiStore = create<EventGuiState>((set, get) => ({
@@ -250,4 +253,7 @@ export const useEventGuiStore = create<EventGuiState>((set, get) => ({
       // console.log('\n\nredo func: ', undoStack, '\n\nredo stack: ', redoStack);
     }
   },
+
+  snapEnabled: true,
+  setSnapEnabled: (enabled) => set({ snapEnabled: enabled }),
 }));

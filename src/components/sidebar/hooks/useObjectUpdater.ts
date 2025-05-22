@@ -54,7 +54,8 @@ import { Properties } from './useObjectProperties';
 
 export const useObjectUpdater = (
   canvas: fabric.Canvas | null,
-  setProperties: React.Dispatch<React.SetStateAction<Properties>>
+  setProperties: React.Dispatch<React.SetStateAction<Properties>>,
+  lockAspect: boolean = false
 ) => {
   const updateObject = (updates: Partial<Properties>) => {
     if (!canvas) return;
@@ -80,11 +81,21 @@ export const useObjectUpdater = (
 
       // Special handling for width/height: set and reset scaleX/scaleY
       if ('width' in updates && updates.width !== undefined) {
-        selectedObject.set({ width: updates.width, scaleX: 1 });
+        const newWidth = updates.width;
+        selectedObject.set({
+          width: newWidth,
+          scaleX: 1,
+          height: lockAspect ? newWidth : selectedObject.height,
+        });
         delete updatedProperties.width;
       }
       if ('height' in updates && updates.height !== undefined) {
-        selectedObject.set({ height: updates.height, scaleY: 1 });
+        const newHeight = updates.height;
+        selectedObject.set({
+          height: newHeight,
+          scaleY: 1,
+          width: lockAspect ? newHeight : selectedObject.width,
+        });
         delete updatedProperties.height;
       }
 

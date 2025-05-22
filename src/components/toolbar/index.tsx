@@ -37,6 +37,8 @@ const Toolbar: React.FC = () => {
     toolAction,
     setToolAction,
     canvas,
+    snapEnabled,
+    setSnapEnabled,
   } = useEventGuiStore();
 
   const { copySelectedObjects, cutSelectedObjects, pasteObjects } =
@@ -68,7 +70,12 @@ const Toolbar: React.FC = () => {
       },
       state: toolMode === 'select',
     },
-    { icon: LuGrid2X2, tooltip: 'Grid View', onClick: () => {}, state: false },
+    {
+      icon: LuGrid2X2,
+      tooltip: snapEnabled ? 'Smart Snap On' : 'Smart Snap Off',
+      onClick: () => setSnapEnabled(!snapEnabled),
+      state: snapEnabled,
+    },
     {
       icon: LuLayoutDashboard,
       tooltip: 'Layout View',

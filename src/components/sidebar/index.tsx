@@ -36,7 +36,8 @@ const Sidebar: React.FC = () => {
     canvas,
     selectedObjects
   );
-  const { updateObject } = useObjectUpdater(canvas, setProperties);
+  const [lockAspect, setLockAspect] = useState(true);
+  const { updateObject } = useObjectUpdater(canvas, setProperties, lockAspect);
 
   // ::::::::::::::::::::::: Listen for object selection
   useEffect(() => {
