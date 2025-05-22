@@ -9,12 +9,13 @@ import useObjectDeletion from '@/hooks/useObjectDeletion';
 import useObjectCreator from '@/hooks/useObjectCreator';
 import useKeyboardShortcuts from '@/hooks/useKeyboardShortcuts';
 import useUndoRedo from '@/hooks/useUndoRedo';
+import { useSmartSnap } from '@/hooks/useSmartSnap';
 import '@/index.css';
 
 const SeatCanvas = ({ className }: { className?: string }) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const canvasParent = useRef<HTMLDivElement>(null);
-  const { canvas, setCanvas, toolMode, setToolMode, toolAction } =
+  const { canvas, setCanvas, toolMode, setToolMode, toolAction, snapEnabled } =
     useEventGuiStore();
 
   useCanvasSetup(canvasRef, canvasParent, setCanvas);
@@ -23,8 +24,8 @@ const SeatCanvas = ({ className }: { className?: string }) => {
   useObjectDeletion(canvas, toolAction);
   useObjectCreator(canvas, toolMode, setToolMode);
   useUndoRedo();
-
   useKeyboardShortcuts();
+  useSmartSnap(canvas, snapEnabled);
 
   return (
     <div className={`relative size-full bg-gray-200 ${className}`}>
