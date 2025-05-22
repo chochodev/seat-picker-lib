@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useEventGuiStore } from '@/zustand';
 import useClipboardActions from '@/hooks/useClipboardActions';
 import useUndoRedo from '@/hooks/useUndoRedo';
+import { useLockSelection } from '@/hooks/useLockSelection';
 import {
   LuFile,
   LuFolderOpen,
@@ -18,9 +19,14 @@ import {
   LuTrash2,
   LuZoomIn,
   LuZoomOut,
-  LuQrCode,
+  LuLock,
 } from 'react-icons/lu';
-import { RiText, RiShapeLine, RiApps2AddLine } from 'react-icons/ri';
+import {
+  RiText,
+  RiShapeLine,
+  RiApps2AddLine,
+  RiLockUnlockLine,
+} from 'react-icons/ri';
 
 const Toolbar: React.FC = () => {
   const {
@@ -30,11 +36,14 @@ const Toolbar: React.FC = () => {
     setToolMode,
     toolAction,
     setToolAction,
+    canvas,
   } = useEventGuiStore();
 
   const { copySelectedObjects, cutSelectedObjects, pasteObjects } =
     useClipboardActions();
   const { undo, redo } = useUndoRedo();
+
+  const { isSelectionLocked, toggleLockSelection } = useLockSelection(canvas);
 
   // ::::::::::::::::::: Function: toggle create multiple seats mode
   const toggleMultipleSeatMode = () => {
@@ -170,8 +179,18 @@ const Toolbar: React.FC = () => {
       {/* ::::::::::::::: add space */}
       <div className="flex-1" />
 
-      {/* ::::::::::::::: qr code button */}
-      <Button icon={<LuQrCode className="h-4 w-4" />} tooltip="QR Code" />
+      {/* ::::::::::::::: Lock/Unlock button */}
+      <Button
+        icon={
+          isSelectionLocked() ? (
+            <LuLock className="h-4 w-4" />
+          ) : (
+            <RiLockUnlockLine className="h-4 w-4" />
+          )
+        }
+        tooltip={isSelectionLocked() ? 'Unlock Selection' : 'Lock Selection'}
+        onClick={toggleLockSelection}
+      />
     </div>
   );
 };

@@ -15,11 +15,13 @@ var useEventGuiStore = create((set, get) => ({
   setCanvas: (canvas) => set({ canvas }),
   // ::::::::::::::::::: Seat states
   seats: [],
-  // ::::::::::::::::::: Add Seat 
+  // ::::::::::::::::::: Add Seat
   addSeat: (seat) => set((state) => ({ seats: [...state.seats, seat] })),
   // ::::::::::::::::::: Update Seat
   updateSeat: (id, updates) => set((state) => ({
-    seats: state.seats.map((seat) => seat.id === id ? { ...seat, ...updates } : seat)
+    seats: state.seats.map(
+      (seat) => seat.id === id ? { ...seat, ...updates } : seat
+    )
   })),
   // ::::::::::::::::::: Delete Seat
   deleteSeat: (id) => set((state) => ({
@@ -39,7 +41,9 @@ var useEventGuiStore = create((set, get) => ({
   })),
   // ::::::::::::::::::: Update zone
   updateZone: (id, updates) => set((state) => ({
-    zones: state.zones.map((zone) => zone.id === id ? { ...zone, ...updates } : zone)
+    zones: state.zones.map(
+      (zone) => zone.id === id ? { ...zone, ...updates } : zone
+    )
   })),
   // ::::::::::::::::::: Delete zone
   deleteZone: (id) => set((state) => ({
@@ -99,7 +103,7 @@ var useEventGuiStore = create((set, get) => ({
       set({ loading: false });
     }
   },
-  // :::::::::::::: Function: REDO 
+  // :::::::::::::: Function: REDO
   redo: () => {
     const { canvas, undoStack, redoStack } = get();
     if (redoStack.length > 0 && canvas) {
@@ -117,7 +121,19 @@ var useEventGuiStore = create((set, get) => ({
           }
         });
         canvas.renderAll();
-        const currentState = JSON.stringify(canvas.toJSON(["id", "borderColor", "borderDashArray", "cornerColor", "cornerSize", "cornerStrokeColor", "transparentCorners", "rx", "ry"]));
+        const currentState = JSON.stringify(
+          canvas.toJSON([
+            "id",
+            "borderColor",
+            "borderDashArray",
+            "cornerColor",
+            "cornerSize",
+            "cornerStrokeColor",
+            "transparentCorners",
+            "rx",
+            "ry"
+          ])
+        );
         set({
           undoStack: [...undoStack, currentState],
           redoStack: redoStack.slice(1)
@@ -134,7 +150,9 @@ var useClipboardActions = () => {
     const activeObjects = canvas.getActiveObjects();
     if (activeObjects.length === 0) return;
     setToolAction("copy");
-    const clonedObjects = activeObjects.map((obj) => fabric.util.object.clone(obj));
+    const clonedObjects = activeObjects.map(
+      (obj) => fabric.util.object.clone(obj)
+    );
     setClipboard(clonedObjects);
   };
   const cutSelectedObjects = () => {
@@ -142,7 +160,9 @@ var useClipboardActions = () => {
     const activeObjects = canvas.getActiveObjects();
     if (activeObjects.length === 0) return;
     setToolAction("cut");
-    const clonedObjects = activeObjects.map((obj) => fabric.util.object.clone(obj));
+    const clonedObjects = activeObjects.map(
+      (obj) => fabric.util.object.clone(obj)
+    );
     setClipboard(clonedObjects);
     canvas.remove(...activeObjects);
     canvas.discardActiveObject();
@@ -182,7 +202,19 @@ var useUndoRedo = () => {
   const { canvas, addToUndoStack, undo, redo, undoStack } = useEventGuiStore();
   const handleObjectModified = useCallback(() => {
     if (canvas) {
-      const jsonState = JSON.stringify(canvas.toJSON(["id", "borderColor", "borderDashArray", "cornerColor", "cornerSize", "cornerStrokeColor", "transparentCorners", "rx", "ry"]));
+      const jsonState = JSON.stringify(
+        canvas.toJSON([
+          "id",
+          "borderColor",
+          "borderDashArray",
+          "cornerColor",
+          "cornerSize",
+          "cornerStrokeColor",
+          "transparentCorners",
+          "rx",
+          "ry"
+        ])
+      );
       addToUndoStack(jsonState);
     }
   }, [canvas, addToUndoStack]);
@@ -308,7 +340,7 @@ var Toolbar = () => {
       // toolAction === 'delete'
     }
   ];
-  return /* @__PURE__ */ jsxs("div", { className: "sticky top-0 left-0 z-[200] flex items-center gap-1 w-full bg-white px-[1rem] py-[0.5rem] shadow", children: [
+  return /* @__PURE__ */ jsxs("div", { className: "sticky left-0 top-0 z-[200] flex w-full items-center gap-1 bg-white px-[1rem] py-[0.5rem] shadow", children: [
     buttonGroups.map((item, index) => /* @__PURE__ */ jsxs(React.Fragment, { children: [
       [6, 10, 12].includes(index) && /* @__PURE__ */ jsx(Separator, {}, `seperator-${index}`),
       3 === index && /* @__PURE__ */ jsx("div", { className: "flex-1" }, `space-${index}`),
@@ -332,7 +364,7 @@ var Toolbar = () => {
         onClick: () => setZoomLevel(zoomLevel - 10)
       }
     ),
-    /* @__PURE__ */ jsxs("div", { className: "flex items-center justify-center w-12 h-8 text-sm font-medium", children: [
+    /* @__PURE__ */ jsxs("div", { className: "flex h-8 w-12 items-center justify-center text-sm font-medium", children: [
       zoomLevel,
       "%"
     ] }),
@@ -355,7 +387,7 @@ var Button = ({ icon, tooltip, state, ...props }) => {
     /* @__PURE__ */ jsx(
       "button",
       {
-        className: `p-2 rounded-md hover:bg-gray-200/60 ${state ? "ring-1 ring-gray-400 shadow-sm shadow-gray-400" : ""} active:bg-gray-200 ease-250 `,
+        className: `rounded-md p-2 hover:bg-gray-200/60 ${state ? "shadow-sm shadow-gray-400 ring-1 ring-gray-400" : ""} ease-250 active:bg-gray-200 `,
         onMouseEnter: () => setShowTooltip(true),
         onMouseLeave: () => setShowTooltip(false),
         ...props,
@@ -365,17 +397,24 @@ var Button = ({ icon, tooltip, state, ...props }) => {
     /* @__PURE__ */ jsx(
       "div",
       {
-        className: `absolute left-1/2 transform -translate-x-1/2 ${showTooltip ? "top-[calc(100%+0.5rem)] opacity-100" : "top-[100%] opacity-0"} px-2 py-1 bg-gray-200 text-gray-900 text-[0.625rem] rounded whitespace-nowrap shadow-md ease-250`,
+        className: `absolute left-1/2 -translate-x-1/2 transform ${showTooltip ? "top-[calc(100%+0.5rem)] opacity-100" : "top-[100%] opacity-0"} ease-250 whitespace-nowrap rounded bg-gray-200 px-2 py-1 text-[0.625rem] text-gray-900 shadow-md`,
         children: tooltip
       }
     )
   ] });
 };
-var Separator = () => /* @__PURE__ */ jsx("div", { className: "w-px h-6 bg-gray-300 mx-[1rem] " });
-var Select = ({ options, value, onChange, placeholder = "Select an option" }) => {
+var Separator = () => /* @__PURE__ */ jsx("div", { className: "mx-[1rem] h-6 w-px bg-gray-300 " });
+var Select = ({
+  options,
+  value,
+  onChange,
+  placeholder = "Select an option"
+}) => {
   const [isOpen, setIsOpen] = useState(false);
   const selectRef = useRef(null);
-  const [dropdownPosition, setDropdownPosition] = useState("bottom");
+  const [dropdownPosition, setDropdownPosition] = useState(
+    "bottom"
+  );
   const handleToggle = () => setIsOpen(!isOpen);
   const handleOptionClick = (optionValue) => {
     onChange(optionValue);
@@ -413,30 +452,68 @@ var Select = ({ options, value, onChange, placeholder = "Select an option" }) =>
     /* @__PURE__ */ jsxs(
       "div",
       {
-        className: "flex items-center justify-between w-full px-3 py-2 text-sm bg-white border border-gray-300 rounded-md shadow-sm cursor-pointer focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-gray-500",
+        className: "flex w-full cursor-pointer items-center justify-between rounded-md border border-solid border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-500",
         onClick: handleToggle,
         children: [
           /* @__PURE__ */ jsx("span", { className: "block truncate", children: selectedOption ? selectedOption.label : placeholder }),
-          /* @__PURE__ */ jsx("span", { className: "pointer-events-none", children: /* @__PURE__ */ jsx("svg", { className: "w-5 h-5 text-gray-400", viewBox: "0 0 20 20", fill: "none", stroke: "currentColor", children: /* @__PURE__ */ jsx("path", { d: "M7 7l3-3 3 3m0 6l-3 3-3-3", strokeWidth: "1.5", strokeLinecap: "round", strokeLinejoin: "round" }) }) })
+          /* @__PURE__ */ jsx("span", { className: "pointer-events-none", children: /* @__PURE__ */ jsx(
+            "svg",
+            {
+              className: "h-5 w-5 text-gray-400",
+              viewBox: "0 0 20 20",
+              fill: "none",
+              stroke: "currentColor",
+              children: /* @__PURE__ */ jsx(
+                "path",
+                {
+                  d: "M7 7l3-3 3 3m0 6l-3 3-3-3",
+                  strokeWidth: "1.5",
+                  strokeLinecap: "round",
+                  strokeLinejoin: "round"
+                }
+              )
+            }
+          ) })
         ]
       }
     ),
-    /* @__PURE__ */ jsx("div", { className: `absolute z-10 w-full mt-1 bg-white border-solid border border-gray-300 shadow-lg rounded-[8px] overflow-hidden ${dropdownPosition === "top" ? "bottom-full mb-1" : "top-full mt-1"} ${isOpen ? "opacity-100 user-select-auto visible" : "select-none user-select-none invisible opacity-0"} ease-250`, children: /* @__PURE__ */ jsx("ul", { className: "overflow-auto text-base max-h-60 focus:outline-none sm:text-sm", children: options.map((option) => /* @__PURE__ */ jsxs(
-      "li",
+    /* @__PURE__ */ jsx(
+      "div",
       {
-        className: `cursor-pointer select-none relative py-2 pl-3 pr-9 ${value === option.value ? "bg-gray-100 text-gray-600" : "text-gray-900 hover:bg-gray-50"}`,
-        onClick: () => handleOptionClick(option.value),
-        children: [
-          /* @__PURE__ */ jsx("span", { className: "block truncate", children: option.label }),
-          value === option.value && /* @__PURE__ */ jsx("span", { className: "absolute inset-y-0 right-0 flex items-center pr-4 text-gray-600", children: /* @__PURE__ */ jsx("svg", { className: "w-5 h-5", viewBox: "0 0 20 20", fill: "currentColor", children: /* @__PURE__ */ jsx("path", { fillRule: "evenodd", d: "M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z", clipRule: "evenodd" }) }) })
-        ]
-      },
-      option.value
-    )) }) })
+        className: `absolute z-10 mt-1 w-full overflow-hidden rounded-[8px] border border-solid border-gray-300 bg-white shadow-lg ${dropdownPosition === "top" ? "bottom-full mb-1" : "top-full mt-1"} ${isOpen ? "user-select-auto visible opacity-100" : "user-select-none invisible select-none opacity-0"} ease-250`,
+        children: /* @__PURE__ */ jsx("ul", { className: "max-h-60 overflow-auto text-base focus:outline-none sm:text-sm", children: options.map((option) => /* @__PURE__ */ jsxs(
+          "li",
+          {
+            className: `relative cursor-pointer select-none py-2 pl-3 pr-9 ${value === option.value ? "bg-gray-100 text-gray-600" : "text-gray-900 hover:bg-gray-50"}`,
+            onClick: () => handleOptionClick(option.value),
+            children: [
+              /* @__PURE__ */ jsx("span", { className: "block truncate", children: option.label }),
+              value === option.value && /* @__PURE__ */ jsx("span", { className: "absolute inset-y-0 right-0 flex items-center pr-4 text-gray-600", children: /* @__PURE__ */ jsx(
+                "svg",
+                {
+                  className: "h-5 w-5",
+                  viewBox: "0 0 20 20",
+                  fill: "currentColor",
+                  children: /* @__PURE__ */ jsx(
+                    "path",
+                    {
+                      fillRule: "evenodd",
+                      d: "M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z",
+                      clipRule: "evenodd"
+                    }
+                  )
+                }
+              ) })
+            ]
+          },
+          option.value
+        )) })
+      }
+    )
   ] });
 };
 var select_default = Select;
-var useObjectProperties = (canvas, selectedObject) => {
+var useObjectProperties = (canvas, selectedObjects) => {
   const [properties, setProperties] = useState({
     angle: 0,
     radius: 10,
@@ -451,32 +528,35 @@ var useObjectProperties = (canvas, selectedObject) => {
     left: 0,
     top: 0
   });
+  function getMergedValue(objs, key) {
+    if (objs.length === 0) return "";
+    const first = objs[0][key];
+    return objs.every((obj) => obj[key] === first) ? first : "mixed";
+  }
   useEffect(() => {
-    var _a, _b, _c, _d, _e, _f;
-    if (!selectedObject) return;
+    if (!selectedObjects || selectedObjects.length === 0) return;
+    const objs = selectedObjects;
     setProperties({
-      angle: selectedObject.angle || 0,
-      radius: selectedObject.radius * selectedObject.scaleX || 10,
-      width: ((_a = selectedObject.width) != null ? _a : 100) * ((_b = selectedObject.scaleX) != null ? _b : 1),
-      height: ((_c = selectedObject.height) != null ? _c : 100) * ((_d = selectedObject.scaleY) != null ? _d : 1),
-      // ::::::::::: fill
-      fill: selectedObject.fill ? String(selectedObject.fill).toUpperCase() === "BLACK" ? "#000000" : String(selectedObject.fill) : "transparent",
-      // ::::::::::: stroke
-      stroke: selectedObject.stroke ? Number(selectedObject.stroke) === 1 ? "#000000" : String(selectedObject.stroke) : "#000000",
-      text: selectedObject.text || "",
-      fontSize: selectedObject.fontSize || 20,
-      fontWeight: selectedObject.fontWeight || "normal",
-      fontFamily: selectedObject.fontFamily || "sans-serif",
-      left: selectedObject.left || 0,
-      top: selectedObject.top || 0,
-      rx: (_e = selectedObject.rx) != null ? _e : 0,
-      ry: (_f = selectedObject.ry) != null ? _f : 0,
-      seatNumber: selectedObject.seatNumber || "",
-      category: selectedObject.category || "",
-      price: selectedObject.price || void 0,
-      status: selectedObject.status || "available"
+      angle: getMergedValue(objs, "angle"),
+      radius: getMergedValue(objs, "radius"),
+      width: getMergedValue(objs, "width"),
+      height: getMergedValue(objs, "height"),
+      fill: getMergedValue(objs, "fill"),
+      stroke: getMergedValue(objs, "stroke"),
+      text: getMergedValue(objs, "text"),
+      fontSize: getMergedValue(objs, "fontSize"),
+      fontWeight: getMergedValue(objs, "fontWeight"),
+      fontFamily: getMergedValue(objs, "fontFamily"),
+      left: getMergedValue(objs, "left"),
+      top: getMergedValue(objs, "top"),
+      rx: getMergedValue(objs, "rx"),
+      ry: getMergedValue(objs, "ry"),
+      seatNumber: getMergedValue(objs, "seatNumber"),
+      category: getMergedValue(objs, "category"),
+      price: getMergedValue(objs, "price"),
+      status: getMergedValue(objs, "status")
     });
-  }, [selectedObject]);
+  }, [selectedObjects]);
   return { properties, setProperties };
 };
 
@@ -551,6 +631,7 @@ var useObjectUpdater = (canvas, setProperties) => {
 
 // src/utils/index.ts
 var toFloat = (num) => {
+  if (typeof num !== "number" || isNaN(num)) return "";
   return num % 1 !== 0 ? Number(num.toFixed(2)) : num;
 };
 var angleOptions = [
@@ -567,13 +648,18 @@ var CommonProperties = ({
   return /* @__PURE__ */ jsxs("div", { className: "space-y-2", children: [
     /* @__PURE__ */ jsxs("div", { className: "grid grid-cols-2 gap-2", children: [
       /* @__PURE__ */ jsxs("div", { children: [
-        /* @__PURE__ */ jsx("label", { className: "block text-xs font-medium text-gray-600 mb-1", children: "Position X" }),
+        /* @__PURE__ */ jsx("label", { className: "mb-1 block text-xs font-medium text-gray-600", children: "Position X" }),
         /* @__PURE__ */ jsxs("div", { className: "flex items-center gap-1", children: [
           /* @__PURE__ */ jsx(
             "button",
             {
-              className: "w-6 h-6 flex items-center justify-center hover:bg-gray-100 rounded text-xs transition-colors border border-gray-200 border-solid",
-              onClick: () => updateObject({ left: toFloat(properties.left) - 1 }),
+              className: "flex h-6 w-6 items-center justify-center rounded border border-solid border-gray-200 text-xs transition-colors hover:bg-gray-100",
+              onClick: () => {
+                if (typeof properties.left === "number") {
+                  updateObject({ left: properties.left - 1 });
+                }
+              },
+              disabled: typeof properties.left !== "number",
               children: "-"
             }
           ),
@@ -583,27 +669,37 @@ var CommonProperties = ({
               type: "number",
               value: toFloat(properties.left),
               onChange: (e) => updateObject({ left: Number(e.target.value) }),
-              className: "border-solid w-16 px-1 py-0.5 text-center border border-gray-200 rounded text-xs focus:outline-none focus:ring-1 focus:ring-gray-500 bg-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+              className: "w-16 rounded border border-solid border-gray-200 bg-white px-1 py-0.5 text-center text-xs [appearance:textfield] focus:outline-none focus:ring-1 focus:ring-gray-500 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
             }
           ),
           /* @__PURE__ */ jsx(
             "button",
             {
-              className: "w-6 h-6 flex items-center justify-center hover:bg-gray-100 rounded text-xs transition-colors border border-gray-200 border-solid",
-              onClick: () => updateObject({ left: toFloat(properties.left) + 1 }),
+              className: "flex h-6 w-6 items-center justify-center rounded border border-solid border-gray-200 text-xs transition-colors hover:bg-gray-100",
+              onClick: () => {
+                if (typeof properties.left === "number") {
+                  updateObject({ left: properties.left + 1 });
+                }
+              },
+              disabled: typeof properties.left !== "number",
               children: "+"
             }
           )
         ] })
       ] }),
       /* @__PURE__ */ jsxs("div", { children: [
-        /* @__PURE__ */ jsx("label", { className: "block text-xs font-medium text-gray-600 mb-1", children: "Position Y" }),
+        /* @__PURE__ */ jsx("label", { className: "mb-1 block text-xs font-medium text-gray-600", children: "Position Y" }),
         /* @__PURE__ */ jsxs("div", { className: "flex items-center gap-1", children: [
           /* @__PURE__ */ jsx(
             "button",
             {
-              className: "w-6 h-6 flex items-center justify-center hover:bg-gray-100 rounded text-xs transition-colors border border-gray-200 border-solid",
-              onClick: () => updateObject({ top: toFloat(properties.top) - 1 }),
+              className: "flex h-6 w-6 items-center justify-center rounded border border-solid border-gray-200 text-xs transition-colors hover:bg-gray-100",
+              onClick: () => {
+                if (typeof properties.top === "number") {
+                  updateObject({ top: properties.top - 1 });
+                }
+              },
+              disabled: typeof properties.top !== "number",
               children: "-"
             }
           ),
@@ -613,30 +709,37 @@ var CommonProperties = ({
               type: "number",
               value: toFloat(properties.top),
               onChange: (e) => updateObject({ top: Number(e.target.value) }),
-              className: "border-solid w-16 px-1 py-0.5 text-center border border-gray-200 rounded text-xs focus:outline-none focus:ring-1 focus:ring-gray-500 bg-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+              className: "w-16 rounded border border-solid border-gray-200 bg-white px-1 py-0.5 text-center text-xs [appearance:textfield] focus:outline-none focus:ring-1 focus:ring-gray-500 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
             }
           ),
           /* @__PURE__ */ jsx(
             "button",
             {
-              className: "w-6 h-6 flex items-center justify-center hover:bg-gray-100 rounded text-xs transition-colors border border-gray-200 border-solid",
-              onClick: () => updateObject({ top: toFloat(properties.top) + 1 }),
+              className: "flex h-6 w-6 items-center justify-center rounded border border-solid border-gray-200 text-xs transition-colors hover:bg-gray-100",
+              onClick: () => {
+                if (typeof properties.top === "number") {
+                  updateObject({ top: properties.top + 1 });
+                }
+              },
+              disabled: typeof properties.top !== "number",
               children: "+"
             }
           )
         ] })
       ] }),
       /* @__PURE__ */ jsxs("div", { children: [
-        /* @__PURE__ */ jsx("label", { className: "block text-xs font-medium text-gray-600 mb-1", children: "Width" }),
+        /* @__PURE__ */ jsx("label", { className: "mb-1 block text-xs font-medium text-gray-600", children: "Width" }),
         /* @__PURE__ */ jsxs("div", { className: "flex items-center gap-1", children: [
           /* @__PURE__ */ jsx(
             "button",
             {
-              className: "w-6 h-6 flex items-center justify-center hover:bg-gray-100 rounded text-xs transition-colors border border-gray-200 border-solid",
+              className: "flex h-6 w-6 items-center justify-center rounded border border-solid border-gray-200 text-xs transition-colors hover:bg-gray-100",
               onClick: () => {
-                var _a2;
-                return updateObject({ width: toFloat((_a2 = properties.width) != null ? _a2 : 0) - 1 });
+                if (typeof properties.width === "number") {
+                  updateObject({ width: properties.width - 1 });
+                }
               },
+              disabled: typeof properties.width !== "number",
               children: "-"
             }
           ),
@@ -646,33 +749,37 @@ var CommonProperties = ({
               type: "number",
               value: toFloat((_a = properties.width) != null ? _a : 0),
               onChange: (e) => updateObject({ width: Number(e.target.value) }),
-              className: "border-solid w-16 px-1 py-0.5 text-center border border-gray-200 rounded text-xs focus:outline-none focus:ring-1 focus:ring-gray-500 bg-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+              className: "w-16 rounded border border-solid border-gray-200 bg-white px-1 py-0.5 text-center text-xs [appearance:textfield] focus:outline-none focus:ring-1 focus:ring-gray-500 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
             }
           ),
           /* @__PURE__ */ jsx(
             "button",
             {
-              className: "w-6 h-6 flex items-center justify-center hover:bg-gray-100 rounded text-xs transition-colors border border-gray-200 border-solid",
+              className: "flex h-6 w-6 items-center justify-center rounded border border-solid border-gray-200 text-xs transition-colors hover:bg-gray-100",
               onClick: () => {
-                var _a2;
-                return updateObject({ width: toFloat((_a2 = properties.width) != null ? _a2 : 0) + 1 });
+                if (typeof properties.width === "number") {
+                  updateObject({ width: properties.width + 1 });
+                }
               },
+              disabled: typeof properties.width !== "number",
               children: "+"
             }
           )
         ] })
       ] }),
       /* @__PURE__ */ jsxs("div", { children: [
-        /* @__PURE__ */ jsx("label", { className: "block text-xs font-medium text-gray-600 mb-1", children: "Height" }),
+        /* @__PURE__ */ jsx("label", { className: "mb-1 block text-xs font-medium text-gray-600", children: "Height" }),
         /* @__PURE__ */ jsxs("div", { className: "flex items-center gap-1", children: [
           /* @__PURE__ */ jsx(
             "button",
             {
-              className: "w-6 h-6 flex items-center justify-center hover:bg-gray-100 rounded text-xs transition-colors border border-gray-200 border-solid",
+              className: "flex h-6 w-6 items-center justify-center rounded border border-solid border-gray-200 text-xs transition-colors hover:bg-gray-100",
               onClick: () => {
-                var _a2;
-                return updateObject({ height: toFloat((_a2 = properties.height) != null ? _a2 : 0) - 1 });
+                if (typeof properties.height === "number") {
+                  updateObject({ height: properties.height - 1 });
+                }
               },
+              disabled: typeof properties.height !== "number",
               children: "-"
             }
           ),
@@ -682,17 +789,19 @@ var CommonProperties = ({
               type: "number",
               value: toFloat((_b = properties.height) != null ? _b : 0),
               onChange: (e) => updateObject({ height: Number(e.target.value) }),
-              className: "border-solid w-16 px-1 py-0.5 text-center border border-gray-200 rounded text-xs focus:outline-none focus:ring-1 focus:ring-gray-500 bg-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+              className: "w-16 rounded border border-solid border-gray-200 bg-white px-1 py-0.5 text-center text-xs [appearance:textfield] focus:outline-none focus:ring-1 focus:ring-gray-500 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
             }
           ),
           /* @__PURE__ */ jsx(
             "button",
             {
-              className: "w-6 h-6 flex items-center justify-center hover:bg-gray-100 rounded text-xs transition-colors border border-gray-200 border-solid",
+              className: "flex h-6 w-6 items-center justify-center rounded border border-solid border-gray-200 text-xs transition-colors hover:bg-gray-100",
               onClick: () => {
-                var _a2;
-                return updateObject({ height: toFloat((_a2 = properties.height) != null ? _a2 : 0) + 1 });
+                if (typeof properties.height === "number") {
+                  updateObject({ height: properties.height + 1 });
+                }
               },
+              disabled: typeof properties.height !== "number",
               children: "+"
             }
           )
@@ -700,13 +809,18 @@ var CommonProperties = ({
       ] })
     ] }),
     /* @__PURE__ */ jsxs("div", { children: [
-      /* @__PURE__ */ jsx("label", { className: "block text-xs font-medium text-gray-600 mb-1", children: "Angle" }),
+      /* @__PURE__ */ jsx("label", { className: "mb-1 block text-xs font-medium text-gray-600", children: "Angle" }),
       /* @__PURE__ */ jsxs("div", { className: "flex items-center gap-1", children: [
         /* @__PURE__ */ jsx(
           "button",
           {
-            className: "w-6 h-6 flex items-center justify-center hover:bg-gray-100 rounded text-xs transition-colors border border-gray-200 border-solid",
-            onClick: () => updateObject({ angle: toFloat(properties.angle) - 1 }),
+            className: "flex h-6 w-6 items-center justify-center rounded border border-solid border-gray-200 text-xs transition-colors hover:bg-gray-100",
+            onClick: () => {
+              if (typeof properties.angle === "number") {
+                updateObject({ angle: properties.angle - 1 });
+              }
+            },
+            disabled: typeof properties.angle !== "number",
             children: "-"
           }
         ),
@@ -716,21 +830,26 @@ var CommonProperties = ({
             type: "number",
             value: toFloat(properties.angle),
             onChange: (e) => updateObject({ angle: Number(e.target.value) }),
-            className: "border-solid w-16 px-1 py-0.5 text-center border border-gray-200 rounded text-xs focus:outline-none focus:ring-1 focus:ring-gray-500 bg-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+            className: "w-16 rounded border border-solid border-gray-200 bg-white px-1 py-0.5 text-center text-xs [appearance:textfield] focus:outline-none focus:ring-1 focus:ring-gray-500 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
           }
         ),
         /* @__PURE__ */ jsx(
           "button",
           {
-            className: "w-6 h-6 flex items-center justify-center hover:bg-gray-100 rounded text-xs transition-colors border border-gray-200 border-solid",
-            onClick: () => updateObject({ angle: toFloat(properties.angle) + 1 }),
+            className: "flex h-6 w-6 items-center justify-center rounded border border-solid border-gray-200 text-xs transition-colors hover:bg-gray-100",
+            onClick: () => {
+              if (typeof properties.angle === "number") {
+                updateObject({ angle: properties.angle + 1 });
+              }
+            },
+            disabled: typeof properties.angle !== "number",
             children: "+"
           }
         ),
-        /* @__PURE__ */ jsx("div", { className: "flex items-center gap-1 ml-1", children: angleOptions.map(({ value, label }) => /* @__PURE__ */ jsx(
+        /* @__PURE__ */ jsx("div", { className: "ml-1 flex items-center gap-1", children: angleOptions.map(({ value, label }) => /* @__PURE__ */ jsx(
           "button",
           {
-            className: "w-6 h-6 flex items-center justify-center hover:bg-gray-100 rounded text-xs transition-colors border border-gray-200 border-solid",
+            className: "flex h-6 w-6 items-center justify-center rounded border border-solid border-gray-200 text-xs transition-colors hover:bg-gray-100",
             onClick: () => updateObject({ angle: value }),
             title: label,
             children: /* @__PURE__ */ jsxs(
@@ -760,68 +879,6 @@ var CommonProperties = ({
   ] });
 };
 var commonProperties_default = CommonProperties;
-var statusOptions = [
-  { value: "available", label: "Available" },
-  { value: "reserved", label: "Reserved" },
-  { value: "sold", label: "Sold" }
-];
-var categoryOptions = [
-  { value: "standard", label: "Standard" },
-  { value: "vip", label: "VIP" },
-  { value: "premium", label: "Premium" }
-];
-var SeatAttributes = ({
-  properties,
-  updateObject,
-  Select: Select2
-}) => /* @__PURE__ */ jsxs("div", { className: "space-y-4", children: [
-  /* @__PURE__ */ jsxs("div", { children: [
-    /* @__PURE__ */ jsx("label", { className: "block text-sm font-medium text-gray-700", children: "Seat Number" }),
-    /* @__PURE__ */ jsx(
-      "input",
-      {
-        type: "text",
-        value: properties.seatNumber || "",
-        onChange: (e) => updateObject({ seatNumber: e.target.value }),
-        className: "mt-1 px-2 py-1 w-full border rounded-md"
-      }
-    )
-  ] }),
-  /* @__PURE__ */ jsxs("div", { children: [
-    /* @__PURE__ */ jsx("label", { className: "block text-sm font-medium text-gray-700", children: "Category" }),
-    /* @__PURE__ */ jsx(
-      Select2,
-      {
-        options: categoryOptions,
-        value: properties.category || "standard",
-        onChange: (value) => updateObject({ category: value })
-      }
-    )
-  ] }),
-  /* @__PURE__ */ jsxs("div", { children: [
-    /* @__PURE__ */ jsx("label", { className: "block text-sm font-medium text-gray-700", children: "Price" }),
-    /* @__PURE__ */ jsx(
-      "input",
-      {
-        type: "number",
-        value: properties.price || 0,
-        onChange: (e) => updateObject({ price: Number(e.target.value) }),
-        className: "mt-1 px-2 py-1 w-full border rounded-md"
-      }
-    )
-  ] }),
-  /* @__PURE__ */ jsxs("div", { children: [
-    /* @__PURE__ */ jsx("label", { className: "block text-sm font-medium text-gray-700", children: "Status" }),
-    /* @__PURE__ */ jsx(
-      Select2,
-      {
-        options: statusOptions,
-        value: properties.status || "available",
-        onChange: (value) => updateObject({ status: value })
-      }
-    )
-  ] })
-] });
 var CircleProperties = ({
   properties,
   updateObject,
@@ -831,112 +888,96 @@ var CircleProperties = ({
     "basic"
   );
   return /* @__PURE__ */ jsxs("div", { className: "space-y-4", children: [
-    /* @__PURE__ */ jsxs("div", { className: "flex items-center gap-2 border-b border-gray-200", children: [
-      /* @__PURE__ */ jsx(
-        "button",
-        {
-          className: `px-3 py-1.5 text-sm font-medium ${activeTab === "basic" ? "border-b-2 border-blue-500 text-blue-600" : "text-gray-500 hover:text-gray-700"}`,
-          onClick: () => setActiveTab("basic"),
-          children: "Properties"
-        }
-      ),
-      /* @__PURE__ */ jsx(
-        "button",
-        {
-          className: `px-3 py-1.5 text-sm font-medium ${activeTab === "attributes" ? "border-b-2 border-blue-500 text-blue-600" : "text-gray-500 hover:text-gray-700"}`,
-          onClick: () => setActiveTab("attributes"),
-          children: "Attributes"
-        }
-      )
-    ] }),
-    activeTab === "basic" ? /* @__PURE__ */ jsxs("div", { children: [
-      /* @__PURE__ */ jsx("label", { className: "block text-sm font-medium text-gray-700", children: "Radius" }),
-      /* @__PURE__ */ jsxs("div", { className: "flex items-center justify-between", children: [
-        /* @__PURE__ */ jsxs("div", { className: "flex items-center gap-1", children: [
-          /* @__PURE__ */ jsx(
-            "button",
-            {
-              className: "w-6 h-6 flex items-center justify-center hover:bg-gray-100 rounded border border-gray-200 border-solid text-xs transition-colors",
-              onClick: () => updateObject({ radius: toFloat(properties.radius) - 1 }),
-              children: "-"
-            }
-          ),
-          /* @__PURE__ */ jsx(
-            "input",
-            {
-              type: "number",
-              value: toFloat(properties.radius),
-              onChange: (e) => updateObject({ radius: Number(e.target.value) }),
-              className: "w-12 px-1 py-0.5 text-center border border-gray-200 border-solid rounded text-xs focus:outline-none focus:ring-1 focus:ring-gray-500 bg-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-            }
-          ),
-          /* @__PURE__ */ jsx(
-            "button",
-            {
-              className: "w-6 h-6 flex items-center justify-center hover:bg-gray-100 rounded border border-gray-200 border-solid text-xs transition-colors",
-              onClick: () => updateObject({ radius: toFloat(properties.radius) + 1 }),
-              children: "+"
-            }
-          )
-        ] }),
-        /* @__PURE__ */ jsxs("div", { className: "flex items-center gap-1 mb-1", children: [
-          /* @__PURE__ */ jsx(
-            "button",
-            {
-              className: `w-6 h-6 flex items-center justify-center rounded border border-gray-200 border-solid ${properties.radius === 0 ? "bg-gray-200" : "bg-white"} transition-colors`,
-              onClick: () => updateObject({ radius: 0 }),
-              title: "None",
-              children: /* @__PURE__ */ jsx(
-                "svg",
-                {
-                  width: "14",
-                  height: "14",
-                  viewBox: "0 0 14 14",
-                  fill: "none",
-                  stroke: "currentColor",
-                  strokeWidth: "2",
-                  children: /* @__PURE__ */ jsx("rect", { x: "2", y: "2", width: "10", height: "10", rx: "0" })
-                }
-              )
-            }
-          ),
-          /* @__PURE__ */ jsx(
-            "button",
-            {
-              className: `w-6 h-6 flex items-center justify-center rounded border border-gray-200 border-solid ${properties.radius === 4 ? "bg-gray-200" : "bg-white"} transition-colors text-xs`,
-              onClick: () => updateObject({ radius: 4 }),
-              title: "Small",
-              children: "sm"
-            }
-          ),
-          /* @__PURE__ */ jsx(
-            "button",
-            {
-              className: `w-6 h-6 flex items-center justify-center rounded border border-gray-200 border-solid ${properties.radius === 10 ? "bg-gray-200" : "bg-white"} transition-colors text-xs`,
-              onClick: () => updateObject({ radius: 10 }),
-              title: "Medium",
-              children: "md"
-            }
-          ),
-          /* @__PURE__ */ jsx(
-            "button",
-            {
-              className: `w-6 h-6 flex items-center justify-center rounded border border-gray-200 border-solid ${properties.radius === 20 ? "bg-gray-200" : "bg-white"} transition-colors text-xs`,
-              onClick: () => updateObject({ radius: 20 }),
-              title: "Large",
-              children: "lg"
-            }
-          )
-        ] })
+    /* @__PURE__ */ jsx("label", { className: "block text-sm font-medium text-gray-700", children: "Radius" }),
+    /* @__PURE__ */ jsxs("div", { className: "flex items-center justify-between", children: [
+      /* @__PURE__ */ jsxs("div", { className: "flex items-center gap-1", children: [
+        /* @__PURE__ */ jsx(
+          "button",
+          {
+            className: "flex h-6 w-6 items-center justify-center rounded border border-solid border-gray-200 text-xs transition-colors hover:bg-gray-100",
+            onClick: () => {
+              if (typeof properties.radius === "number") {
+                updateObject({ radius: properties.radius - 1 });
+              }
+            },
+            disabled: properties.radius === "mixed",
+            children: "-"
+          }
+        ),
+        /* @__PURE__ */ jsx(
+          "input",
+          {
+            type: "number",
+            value: properties.radius === "mixed" ? "" : toFloat(properties.radius),
+            placeholder: properties.radius === "mixed" ? "\u2014" : "",
+            onChange: (e) => updateObject({ radius: Number(e.target.value) }),
+            className: "w-12 rounded border border-solid border-gray-200 bg-white px-1 py-0.5 text-center text-xs [appearance:textfield] focus:outline-none focus:ring-1 focus:ring-gray-500 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+          }
+        ),
+        /* @__PURE__ */ jsx(
+          "button",
+          {
+            className: "flex h-6 w-6 items-center justify-center rounded border border-solid border-gray-200 text-xs transition-colors hover:bg-gray-100",
+            onClick: () => {
+              if (typeof properties.radius === "number") {
+                updateObject({ radius: properties.radius + 1 });
+              }
+            },
+            disabled: properties.radius === "mixed",
+            children: "+"
+          }
+        )
+      ] }),
+      /* @__PURE__ */ jsxs("div", { className: "mb-1 flex items-center gap-1", children: [
+        /* @__PURE__ */ jsx(
+          "button",
+          {
+            className: `flex h-6 w-6 items-center justify-center rounded border border-solid border-gray-200 ${properties.radius === 0 ? "bg-gray-200" : "bg-white"} transition-colors`,
+            onClick: () => updateObject({ radius: 0 }),
+            title: "None",
+            children: /* @__PURE__ */ jsx(
+              "svg",
+              {
+                width: "14",
+                height: "14",
+                viewBox: "0 0 14 14",
+                fill: "none",
+                stroke: "currentColor",
+                strokeWidth: "2",
+                children: /* @__PURE__ */ jsx("rect", { x: "2", y: "2", width: "10", height: "10", rx: "0" })
+              }
+            )
+          }
+        ),
+        /* @__PURE__ */ jsx(
+          "button",
+          {
+            className: `flex h-6 w-6 items-center justify-center rounded border border-solid border-gray-200 ${properties.radius === 4 ? "bg-gray-200" : "bg-white"} text-xs transition-colors`,
+            onClick: () => updateObject({ radius: 4 }),
+            title: "Small",
+            children: "sm"
+          }
+        ),
+        /* @__PURE__ */ jsx(
+          "button",
+          {
+            className: `flex h-6 w-6 items-center justify-center rounded border border-solid border-gray-200 ${properties.radius === 10 ? "bg-gray-200" : "bg-white"} text-xs transition-colors`,
+            onClick: () => updateObject({ radius: 10 }),
+            title: "Medium",
+            children: "md"
+          }
+        ),
+        /* @__PURE__ */ jsx(
+          "button",
+          {
+            className: `flex h-6 w-6 items-center justify-center rounded border border-solid border-gray-200 ${properties.radius === 20 ? "bg-gray-200" : "bg-white"} text-xs transition-colors`,
+            onClick: () => updateObject({ radius: 20 }),
+            title: "Large",
+            children: "lg"
+          }
+        )
       ] })
-    ] }) : /* @__PURE__ */ jsx(
-      SeatAttributes,
-      {
-        properties,
-        updateObject,
-        Select: Select2
-      }
-    )
+    ] })
   ] });
 };
 var circleProperties_default = CircleProperties;
@@ -970,7 +1011,7 @@ var RectangleProperties = ({
     }
   }, [lockAspect, canvas]);
   return /* @__PURE__ */ jsxs(Fragment, { children: [
-    /* @__PURE__ */ jsxs("div", { className: "flex items-center mt-2", children: [
+    /* @__PURE__ */ jsxs("div", { className: "mt-2 flex items-center", children: [
       /* @__PURE__ */ jsx(
         "input",
         {
@@ -994,13 +1035,13 @@ var RectangleProperties = ({
       )
     ] }),
     /* @__PURE__ */ jsxs("div", { className: "mt-2", children: [
-      /* @__PURE__ */ jsx("label", { className: "block text-sm font-medium text-gray-700 mb-1", children: "Border Radius" }),
+      /* @__PURE__ */ jsx("label", { className: "mb-1 block text-sm font-medium text-gray-700", children: "Border Radius" }),
       /* @__PURE__ */ jsxs("div", { className: "flex items-center justify-between", children: [
         /* @__PURE__ */ jsxs("div", { className: "flex items-center gap-1", children: [
           /* @__PURE__ */ jsx(
             "button",
             {
-              className: "w-6 h-6 flex items-center justify-center hover:bg-gray-100 rounded border border-gray-200 border-solid text-xs transition-colors",
+              className: "flex h-6 w-6 items-center justify-center rounded border border-solid border-gray-200 text-xs transition-colors hover:bg-gray-100",
               onClick: () => {
                 var _a2, _b2;
                 return updateObject({
@@ -1020,13 +1061,13 @@ var RectangleProperties = ({
                 rx: Number(e.target.value),
                 ry: Number(e.target.value)
               }),
-              className: "w-12 px-1 py-0.5 text-center border border-gray-200 border-solid rounded text-xs focus:outline-none focus:ring-1 focus:ring-gray-500 bg-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+              className: "w-12 rounded border border-solid border-gray-200 bg-white px-1 py-0.5 text-center text-xs [appearance:textfield] focus:outline-none focus:ring-1 focus:ring-gray-500 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
             }
           ),
           /* @__PURE__ */ jsx(
             "button",
             {
-              className: "w-6 h-6 flex items-center justify-center hover:bg-gray-100 rounded border border-gray-200 border-solid text-xs transition-colors",
+              className: "flex h-6 w-6 items-center justify-center rounded border border-solid border-gray-200 text-xs transition-colors hover:bg-gray-100",
               onClick: () => {
                 var _a2, _b2;
                 return updateObject({
@@ -1038,11 +1079,11 @@ var RectangleProperties = ({
             }
           )
         ] }),
-        /* @__PURE__ */ jsxs("div", { className: "flex items-center gap-1 mb-1", children: [
+        /* @__PURE__ */ jsxs("div", { className: "mb-1 flex items-center gap-1", children: [
           /* @__PURE__ */ jsx(
             "button",
             {
-              className: `w-6 h-6 flex items-center justify-center rounded border border-gray-200 border-solid ${((_c = properties.rx) != null ? _c : 0) === 0 ? "bg-gray-200" : "bg-white"} transition-colors`,
+              className: `flex h-6 w-6 items-center justify-center rounded border border-solid border-gray-200 ${((_c = properties.rx) != null ? _c : 0) === 0 ? "bg-gray-200" : "bg-white"} transition-colors`,
               onClick: () => updateObject({ rx: 0, ry: 0 }),
               title: "None",
               children: /* @__PURE__ */ jsx(
@@ -1062,7 +1103,7 @@ var RectangleProperties = ({
           /* @__PURE__ */ jsx(
             "button",
             {
-              className: `w-6 h-6 flex items-center justify-center rounded border border-gray-200 border-solid ${((_d = properties.rx) != null ? _d : 0) === 4 ? "bg-gray-200" : "bg-white"} transition-colors text-xs`,
+              className: `flex h-6 w-6 items-center justify-center rounded border border-solid border-gray-200 ${((_d = properties.rx) != null ? _d : 0) === 4 ? "bg-gray-200" : "bg-white"} text-xs transition-colors`,
               onClick: () => updateObject({ rx: 4, ry: 4 }),
               title: "Small",
               children: "sm"
@@ -1071,7 +1112,7 @@ var RectangleProperties = ({
           /* @__PURE__ */ jsx(
             "button",
             {
-              className: `w-6 h-6 flex items-center justify-center rounded border border-gray-200 border-solid ${((_e = properties.rx) != null ? _e : 0) === 10 ? "bg-gray-200" : "bg-white"} transition-colors text-xs`,
+              className: `flex h-6 w-6 items-center justify-center rounded border border-solid border-gray-200 ${((_e = properties.rx) != null ? _e : 0) === 10 ? "bg-gray-200" : "bg-white"} text-xs transition-colors`,
               onClick: () => updateObject({ rx: 10, ry: 10 }),
               title: "Medium",
               children: "md"
@@ -1080,7 +1121,7 @@ var RectangleProperties = ({
           /* @__PURE__ */ jsx(
             "button",
             {
-              className: `w-6 h-6 flex items-center justify-center rounded border border-gray-200 border-solid ${((_f = properties.rx) != null ? _f : 0) === 20 ? "bg-gray-200" : "bg-white"} transition-colors text-xs`,
+              className: `flex h-6 w-6 items-center justify-center rounded border border-solid border-gray-200 ${((_f = properties.rx) != null ? _f : 0) === 20 ? "bg-gray-200" : "bg-white"} text-xs transition-colors`,
               onClick: () => updateObject({ rx: 20, ry: 20 }),
               title: "Large",
               children: "lg"
@@ -1131,17 +1172,17 @@ var TextProperties = ({
           type: "text",
           value: properties.text,
           onChange: (e) => updateObject({ text: e.target.value }),
-          className: "mt-1 px-2 py-1 w-full border rounded-md"
+          className: "mt-1 w-full rounded-md border px-2 py-1"
         }
       )
     ] }),
     /* @__PURE__ */ jsxs("div", { children: [
       /* @__PURE__ */ jsx("label", { className: "block text-sm font-medium text-gray-700", children: "Font Size" }),
-      /* @__PURE__ */ jsxs("div", { className: "flex items-center mt-1", children: [
+      /* @__PURE__ */ jsxs("div", { className: "mt-1 flex items-center", children: [
         /* @__PURE__ */ jsx(
           "button",
           {
-            className: "px-2 py-1 bg-gray-200 rounded-l-md",
+            className: "rounded-l-md bg-gray-200 px-2 py-1",
             onClick: () => updateObject({ fontSize: toFloat(properties.fontSize) - 1 }),
             children: "-"
           }
@@ -1152,13 +1193,13 @@ var TextProperties = ({
             type: "number",
             value: toFloat(properties.fontSize),
             onChange: (e) => updateObject({ fontSize: Number(e.target.value) }),
-            className: "w-full px-2 py-1 text-center border-t border-b shadow-sm"
+            className: "w-full border-b border-t px-2 py-1 text-center shadow-sm"
           }
         ),
         /* @__PURE__ */ jsx(
           "button",
           {
-            className: "px-2 py-1 bg-gray-200 rounded-r-md",
+            className: "rounded-r-md bg-gray-200 px-2 py-1",
             onClick: () => updateObject({ fontSize: toFloat(properties.fontSize) + 1 }),
             children: "+"
           }
@@ -1223,14 +1264,14 @@ var ColorProperties = ({
   return /* @__PURE__ */ jsxs(Fragment, { children: [
     /* @__PURE__ */ jsxs("div", { children: [
       /* @__PURE__ */ jsx("label", { className: "block text-sm font-medium text-gray-700", children: "Fill Color" }),
-      /* @__PURE__ */ jsxs("div", { className: "flex items-center mt-1", children: [
+      /* @__PURE__ */ jsxs("div", { className: "mt-1 flex items-center", children: [
         /* @__PURE__ */ jsx(
           "input",
           {
             type: "color",
             value: typeof properties.fill === "string" && /^#([0-9A-Fa-f]{6})$/.test(properties.fill) ? "#ffffff" : ((_a = properties.fill) == null ? void 0 : _a.toString()) || "#ffffff",
             onChange: (e) => handleFillChange(e.target.value),
-            className: "w-8 h-8 rounded-md border shadow-sm"
+            className: "h-8 w-8 rounded-md"
           }
         ),
         /* @__PURE__ */ jsx(
@@ -1239,7 +1280,7 @@ var ColorProperties = ({
             type: "text",
             value: typeof properties.fill === "string" && /^#([0-9A-Fa-f]{6})$/.test(properties.fill) ? "transparent" : (((_b = properties.fill) == null ? void 0 : _b.toString()) || "").toUpperCase(),
             onChange: (e) => handleFillChange(e.target.value),
-            className: "ml-2 px-2 py-1 w-full border rounded-md shadow-sm"
+            className: "ml-2 w-full rounded-md border border-solid border-gray-200 px-2 py-1 shadow-sm"
           }
         )
       ] })
@@ -1259,13 +1300,13 @@ var ColorProperties = ({
                   updateObject({ stroke: properties.fill });
                 }
               },
-              className: "w-3 h-3 rounded border-gray-300"
+              className: "h-3 w-3 rounded border-gray-300"
             }
           ),
           /* @__PURE__ */ jsx("span", { children: "Sync with fill" })
         ] })
       ] }),
-      /* @__PURE__ */ jsxs("div", { className: "flex items-center mt-1", children: [
+      /* @__PURE__ */ jsxs("div", { className: "mt-1 flex items-center", children: [
         /* @__PURE__ */ jsx(
           "input",
           {
@@ -1273,7 +1314,7 @@ var ColorProperties = ({
             value: (properties == null ? void 0 : properties.stroke) === "transparent" ? "#ffffff" : ((_c = properties.stroke) == null ? void 0 : _c.toString()) || "#000000",
             onChange: (e) => updateObject({ stroke: e.target.value }),
             disabled: syncColors,
-            className: `w-8 h-8 rounded-md border shadow-sm ${syncColors ? "opacity-50" : ""}`
+            className: `h-8 w-8 rounded-md ${syncColors ? "opacity-50" : ""}`
           }
         ),
         /* @__PURE__ */ jsx(
@@ -1283,7 +1324,7 @@ var ColorProperties = ({
             value: properties.stroke === "transparent" ? "transparent" : (((_d = properties.stroke) == null ? void 0 : _d.toString()) || "").toUpperCase(),
             onChange: (e) => updateObject({ stroke: e.target.value }),
             disabled: syncColors,
-            className: `ml-2 px-2 py-1 w-full border rounded-md shadow-sm ${syncColors ? "opacity-50" : ""}`
+            className: `ml-2 w-full rounded-md border border-solid border-gray-200 px-2 py-1 shadow-sm ${syncColors ? "opacity-50" : ""}`
           }
         )
       ] })
@@ -1291,104 +1332,142 @@ var ColorProperties = ({
   ] });
 };
 var colorProperties_default = ColorProperties;
-var statusOptions2 = [
+var statusOptions = [
   { value: "available", label: "Available" },
   { value: "reserved", label: "Reserved" },
   { value: "sold", label: "Sold" }
 ];
-var categoryOptions2 = [
+var categoryOptions = [
   { value: "standard", label: "Standard" },
   { value: "vip", label: "VIP" },
   { value: "premium", label: "Premium" }
 ];
-var SeatAttributes2 = ({
+var SeatAttributes = ({
   properties,
   updateObject,
   Select: Select2
-}) => /* @__PURE__ */ jsxs("div", { className: "space-y-4", children: [
-  /* @__PURE__ */ jsxs("div", { children: [
-    /* @__PURE__ */ jsx("label", { className: "block text-sm font-medium text-gray-700", children: "Seat Number" }),
-    /* @__PURE__ */ jsx(
-      "input",
-      {
-        type: "text",
-        value: properties.seatNumber || "",
-        onChange: (e) => updateObject({ seatNumber: e.target.value }),
-        className: "mt-1 px-2 py-1 w-full border rounded-md"
-      }
-    )
-  ] }),
-  /* @__PURE__ */ jsxs("div", { children: [
-    /* @__PURE__ */ jsx("label", { className: "block text-sm font-medium text-gray-700", children: "Category" }),
-    /* @__PURE__ */ jsx(
-      Select2,
-      {
-        options: categoryOptions2,
-        value: properties.category || "standard",
-        onChange: (value) => updateObject({ category: value })
-      }
-    )
-  ] }),
-  /* @__PURE__ */ jsxs("div", { children: [
-    /* @__PURE__ */ jsx("label", { className: "block text-sm font-medium text-gray-700", children: "Price" }),
-    /* @__PURE__ */ jsx(
-      "input",
-      {
-        type: "number",
-        value: properties.price || 0,
-        onChange: (e) => updateObject({ price: Number(e.target.value) }),
-        className: "mt-1 px-2 py-1 w-full border rounded-md"
-      }
-    )
-  ] }),
-  /* @__PURE__ */ jsxs("div", { children: [
-    /* @__PURE__ */ jsx("label", { className: "block text-sm font-medium text-gray-700", children: "Status" }),
-    /* @__PURE__ */ jsx(
-      Select2,
-      {
-        options: statusOptions2,
-        value: properties.status || "available",
-        onChange: (value) => updateObject({ status: value })
-      }
-    )
-  ] })
-] });
-var seatAttributes_default = SeatAttributes2;
+}) => {
+  const { canvas } = useEventGuiStore();
+  const [error, setError] = useState("");
+  function isSeatNumberUnique(num) {
+    if (!canvas || !num) return true;
+    const allSeats = canvas.getObjects("circle");
+    return !allSeats.some(
+      (obj) => obj.seatNumber === num && obj !== canvas.getActiveObject()
+    );
+  }
+  function handleSeatNumberChange(e) {
+    const value = e.target.value;
+    if (value && !isSeatNumberUnique(value)) {
+      setError("Seat number already used");
+    } else {
+      setError("");
+      updateObject({ seatNumber: value });
+    }
+  }
+  return /* @__PURE__ */ jsxs("div", { className: "space-y-4", children: [
+    /* @__PURE__ */ jsxs("div", { children: [
+      /* @__PURE__ */ jsx("label", { className: "block text-sm font-medium text-gray-700", children: "Seat Number" }),
+      /* @__PURE__ */ jsx(
+        "input",
+        {
+          type: "text",
+          value: properties.seatNumber === "mixed" ? "" : properties.seatNumber || "",
+          placeholder: properties.seatNumber === "mixed" ? "\u2014" : "",
+          onChange: handleSeatNumberChange,
+          className: "mt-1 w-full rounded-md border border-solid border-gray-300 px-2 py-1"
+        }
+      ),
+      error && /* @__PURE__ */ jsx("div", { className: "mt-1 text-xs text-red-500", children: error })
+    ] }),
+    /* @__PURE__ */ jsxs("div", { children: [
+      /* @__PURE__ */ jsx("label", { className: "mb-2 block text-sm font-medium text-gray-700", children: "Category" }),
+      /* @__PURE__ */ jsx(
+        Select2,
+        {
+          options: categoryOptions,
+          value: properties.category === "mixed" ? "" : properties.category || "standard",
+          onChange: (value) => updateObject({ category: value })
+        }
+      )
+    ] }),
+    /* @__PURE__ */ jsxs("div", { children: [
+      /* @__PURE__ */ jsx("label", { className: "mb-2 block text-sm font-medium text-gray-700", children: "Price" }),
+      /* @__PURE__ */ jsx(
+        "input",
+        {
+          type: "number",
+          value: properties.price === "mixed" ? "" : properties.price || 0,
+          placeholder: properties.price === "mixed" ? "\u2014" : "",
+          onChange: (e) => updateObject({ price: Number(e.target.value) }),
+          className: "mt-1 w-full rounded-md border border-solid border-gray-300 px-2 py-1"
+        }
+      )
+    ] }),
+    /* @__PURE__ */ jsxs("div", { children: [
+      /* @__PURE__ */ jsx("label", { className: "mb-2 block text-sm font-medium text-gray-700", children: "Status" }),
+      /* @__PURE__ */ jsx(
+        Select2,
+        {
+          options: statusOptions,
+          value: properties.status === "mixed" ? "" : properties.status || "available",
+          onChange: (value) => updateObject({ status: value })
+        }
+      )
+    ] })
+  ] });
+};
+var seatAttributes_default = SeatAttributes;
 var Sidebar = () => {
   const { canvas } = useEventGuiStore();
+  const [selectedObjects, setSelectedObjects] = useState(
+    []
+  );
+  const [objectTypes, setObjectTypes] = useState([]);
   const [selectedObject, setSelectedObject] = useState(null);
   const [objectType, setObjectType] = useState(null);
   const [activeTab, setActiveTab] = useState("basic");
   const { properties, setProperties } = useObjectProperties(
     canvas,
-    selectedObject
+    selectedObjects
   );
   const { updateObject } = useObjectUpdater(canvas, setProperties);
   useEffect(() => {
     if (!canvas) return;
-    const updateSelectedObject = () => {
-      const activeObject = canvas.getActiveObject();
-      setSelectedObject(activeObject || null);
-      setObjectType(activeObject == null ? void 0 : activeObject.type);
-      if (activeObject) {
+    const updateSelectedObjects = () => {
+      var _a;
+      const activeObjects = canvas.getActiveObjects();
+      setSelectedObjects(activeObjects);
+      setSelectedObject(activeObjects[0] || null);
+      setObjectType(
+        (_a = activeObjects[0]) == null ? void 0 : _a.type
+      );
+      setObjectTypes(
+        Array.from(
+          new Set(
+            activeObjects.map((obj) => obj.type).filter((type) => typeof type === "string")
+          )
+        )
+      );
+      if (activeObjects[0]) {
         setProperties((prev) => {
-          var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k, _l, _m, _n, _o, _p;
+          var _a2, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k, _l, _m, _n, _o, _p;
           return {
             ...prev,
-            angle: (_a = activeObject.angle) != null ? _a : prev.angle,
-            radius: (_b = activeObject.radius) != null ? _b : prev.radius,
-            width: ((_c = activeObject.width) != null ? _c : prev.width) * ((_d = activeObject.scaleX) != null ? _d : 1),
-            height: ((_e = activeObject.height) != null ? _e : prev.height) * ((_f = activeObject.scaleY) != null ? _f : 1),
-            fill: (_g = activeObject.fill) != null ? _g : prev.fill,
-            stroke: (_h = activeObject.stroke) != null ? _h : prev.stroke,
-            text: (_i = activeObject.text) != null ? _i : prev.text,
-            fontSize: (_j = activeObject.fontSize) != null ? _j : prev.fontSize,
-            fontWeight: (_k = activeObject.fontWeight) != null ? _k : prev.fontWeight,
-            fontFamily: (_l = activeObject.fontFamily) != null ? _l : prev.fontFamily,
-            left: (_m = activeObject.left) != null ? _m : prev.left,
-            top: (_n = activeObject.top) != null ? _n : prev.top,
-            rx: (_o = activeObject.rx) != null ? _o : prev.rx,
-            ry: (_p = activeObject.ry) != null ? _p : prev.ry
+            angle: (_a2 = activeObjects[0].angle) != null ? _a2 : prev.angle,
+            radius: (_b = activeObjects[0].radius) != null ? _b : prev.radius,
+            width: ((_c = activeObjects[0].width) != null ? _c : prev.width) * ((_d = activeObjects[0].scaleX) != null ? _d : 1),
+            height: ((_e = activeObjects[0].height) != null ? _e : prev.height) * ((_f = activeObjects[0].scaleY) != null ? _f : 1),
+            fill: (_g = activeObjects[0].fill) != null ? _g : prev.fill,
+            stroke: (_h = activeObjects[0].stroke) != null ? _h : prev.stroke,
+            text: (_i = activeObjects[0].text) != null ? _i : prev.text,
+            fontSize: (_j = activeObjects[0].fontSize) != null ? _j : prev.fontSize,
+            fontWeight: (_k = activeObjects[0].fontWeight) != null ? _k : prev.fontWeight,
+            fontFamily: (_l = activeObjects[0].fontFamily) != null ? _l : prev.fontFamily,
+            left: (_m = activeObjects[0].left) != null ? _m : prev.left,
+            top: (_n = activeObjects[0].top) != null ? _n : prev.top,
+            rx: (_o = activeObjects[0].rx) != null ? _o : prev.rx,
+            ry: (_p = activeObjects[0].ry) != null ? _p : prev.ry
           };
         });
       }
@@ -1402,26 +1481,28 @@ var Sidebar = () => {
       "object:modified"
     ];
     eventsToListen.forEach((event) => {
-      canvas.on(event, updateSelectedObject);
+      canvas.on(event, updateSelectedObjects);
     });
     canvas.on("selection:cleared", () => {
+      setSelectedObjects([]);
       setSelectedObject(null);
       setObjectType(null);
+      setObjectTypes([]);
     });
     return () => {
       eventsToListen.forEach((event) => {
-        canvas.off(event, updateSelectedObject);
+        canvas.off(event, updateSelectedObjects);
       });
       canvas.off("selection:cleared");
     };
   }, [canvas]);
-  return /* @__PURE__ */ jsxs("div", { className: "w-[20rem] min-h-screen bg-gray-50 p-4 space-y-4", children: [
-    /* @__PURE__ */ jsxs("div", { className: "bg-white rounded-md shadow", children: [
-      /* @__PURE__ */ jsxs("div", { className: "flex items-center justify-between p-2 bg-gray-200 rounded-t-md", children: [
+  return /* @__PURE__ */ jsxs("div", { className: "min-h-screen w-[20rem] space-y-4 bg-gray-50 p-4", children: [
+    /* @__PURE__ */ jsxs("div", { className: "rounded-md bg-white shadow", children: [
+      /* @__PURE__ */ jsxs("div", { className: "flex items-center justify-between rounded-t-md bg-gray-200 p-2", children: [
         /* @__PURE__ */ jsx("span", { className: "font-semibold", children: "Zones" }),
         /* @__PURE__ */ jsx("button", { className: "text-gray-600 hover:text-gray-800", children: /* @__PURE__ */ jsx(LuPlus, { size: 20 }) })
       ] }),
-      /* @__PURE__ */ jsxs("div", { className: "p-2 flex items-center space-x-2", children: [
+      /* @__PURE__ */ jsxs("div", { className: "flex items-center space-x-2 p-2", children: [
         /* @__PURE__ */ jsx(
           "input",
           {
@@ -1433,8 +1514,13 @@ var Sidebar = () => {
         /* @__PURE__ */ jsx("label", { htmlFor: "ground-floor", children: "Ground floor" })
       ] })
     ] }),
-    selectedObject && /* @__PURE__ */ jsxs("div", { className: "bg-white rounded-md shadow p-4 space-y-4", children: [
-      objectType === "circle" && /* @__PURE__ */ jsxs("div", { className: "flex items-center border-solid gap-2 border-0 border-b border-gray-200 mb-4", children: [
+    selectedObjects.length > 1 && objectTypes.length === 1 && objectTypes[0] === "circle" && /* @__PURE__ */ jsxs("div", { className: "mb-2 text-xs font-semibold text-gray-500", children: [
+      "Editing ",
+      selectedObjects.length,
+      " seats"
+    ] }),
+    selectedObject && /* @__PURE__ */ jsxs("div", { className: "space-y-4 rounded-md bg-white p-4 shadow", children: [
+      objectType === "circle" && /* @__PURE__ */ jsxs("div", { className: "mb-4 flex items-center gap-2 border-0 border-b border-solid border-gray-200", children: [
         /* @__PURE__ */ jsx(
           "button",
           {
@@ -1452,15 +1538,16 @@ var Sidebar = () => {
           }
         )
       ] }),
-      objectType === "circle" && activeTab === "attributes" ? /* @__PURE__ */ jsx(
+      objectTypes.length === 1 && objectTypes[0] === "circle" && activeTab === "attributes" ? /* @__PURE__ */ jsx(
         seatAttributes_default,
         {
           properties,
           updateObject,
-          Select: select_default
+          Select: select_default,
+          selectedObjects
         }
       ) : /* @__PURE__ */ jsxs(Fragment, { children: [
-        /* @__PURE__ */ jsx("h3", { className: "font-semibold", children: "Properties" }),
+        objectType !== "circle" && /* @__PURE__ */ jsx("h3", { className: "font-semibold", children: "Properties" }),
         /* @__PURE__ */ jsx(
           commonProperties_default,
           {
@@ -1560,6 +1647,12 @@ var CustomText = class extends fabric.IText {
     });
   }
 };
+function getNextSeatNumber(canvas) {
+  if (!canvas) return 1;
+  const allSeats = canvas.getObjects("circle");
+  const numbers = allSeats.map((obj) => parseInt(obj.seatNumber || "", 10)).filter((n) => !isNaN(n));
+  return numbers.length ? Math.max(...numbers) + 1 : 1;
+}
 var createRect = (left, top) => {
   const rect = new CustomRect({
     left,
@@ -1590,7 +1683,8 @@ var createRect = (left, top) => {
   });
   return rect;
 };
-var createSeat = (left, top) => {
+var createSeat = (left, top, canvas) => {
+  const seatNumber = getNextSeatNumber(canvas);
   const seat = new CustomCircle({
     left,
     top,
@@ -1608,7 +1702,8 @@ var createSeat = (left, top) => {
     rx: 0.25,
     ry: 0.25,
     id: v4(),
-    strokeUniform: true
+    strokeUniform: true,
+    seatNumber: String(seatNumber)
   });
   seat.setControlsVisibility({
     mt: false,
@@ -1763,7 +1858,7 @@ var useMultipleSeatCreator = (canvas, toolMode, setToolMode) => {
         for (let j = 0; j < cols; j++) {
           const left = startPoint.x + j * 60;
           const top = startPoint.y + i * 60;
-          const seat = createSeat(left, top);
+          const seat = createSeat(left, top, canvas);
           canvas.add(seat);
         }
       }
@@ -1820,7 +1915,7 @@ var useObjectCreator = (canvas, toolMode, setToolMode) => {
     const handleMouseDown = (event) => {
       const pointer = canvas.getPointer(event.e);
       if (toolMode === "one-seat") {
-        const seat = createSeat(pointer.x, pointer.y);
+        const seat = createSeat(pointer.x, pointer.y, canvas);
         canvas.add(seat);
         canvas.renderAll();
       } else if (toolMode === "shape-square") {
@@ -1907,7 +2002,13 @@ var useKeyboardShortcuts = () => {
       document.removeEventListener("keydown", handleKeyDown);
       canvas.off("mouse:down", handleMouseDown);
     };
-  }, [canvas, copySelectedObjects, cutSelectedObjects, pasteObjects, setLastClickedPoint]);
+  }, [
+    canvas,
+    copySelectedObjects,
+    cutSelectedObjects,
+    pasteObjects,
+    setLastClickedPoint
+  ]);
 };
 var useKeyboardShortcuts_default = useKeyboardShortcuts;
 var SeatCanvas = ({ className }) => {
@@ -1923,11 +2024,11 @@ var SeatCanvas = ({ className }) => {
   useKeyboardShortcuts_default();
   return /* @__PURE__ */ jsxs("div", { className: `relative size-full bg-gray-200 ${className}`, children: [
     /* @__PURE__ */ jsx(toolbar_default, {}),
-    /* @__PURE__ */ jsxs("div", { className: "flex justify-between w-full", children: [
+    /* @__PURE__ */ jsxs("div", { className: "flex w-full justify-between", children: [
       /* @__PURE__ */ jsx(
         "div",
         {
-          className: "w-full max-w-[45rem] mx-auto bg-gray-100",
+          className: "mx-auto w-full max-w-[45rem] bg-gray-100",
           ref: canvasParent,
           children: /* @__PURE__ */ jsx("canvas", { ref: canvasRef })
         }
