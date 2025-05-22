@@ -38,20 +38,15 @@ const ColorProperties: React.FC<ColorPropertiesProps> = ({
             value={
               typeof properties.fill === 'string' &&
               /^#([0-9A-Fa-f]{6})$/.test(properties.fill)
-                ? '#ffffff'
-                : properties.fill?.toString() || '#ffffff'
+                ? properties.fill
+                : '#ffffff'
             }
             onChange={(e) => handleFillChange(e.target.value)}
             className="h-8 w-8 rounded-md"
           />
           <input
             type="text"
-            value={
-              typeof properties.fill === 'string' &&
-              /^#([0-9A-Fa-f]{6})$/.test(properties.fill)
-                ? 'transparent'
-                : (properties.fill?.toString() || '').toUpperCase()
-            }
+            value={(properties.fill?.toString() || '').toUpperCase()}
             onChange={(e) => handleFillChange(e.target.value)}
             className="ml-2 w-full rounded-md border border-solid border-gray-200 px-2 py-1 shadow-sm"
           />

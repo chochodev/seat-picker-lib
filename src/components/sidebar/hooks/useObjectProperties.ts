@@ -56,8 +56,10 @@ export const useObjectProperties = (
     setProperties({
       angle: getMergedValue(objs, 'angle'),
       radius: getMergedValue(objs, 'radius'),
-      width: getMergedValue(objs, 'width'),
-      height: getMergedValue(objs, 'height'),
+      width:
+        getMergedValue(objs, 'width') * (getMergedValue(objs, 'scaleX') || 1),
+      height:
+        getMergedValue(objs, 'height') * (getMergedValue(objs, 'scaleY') || 1),
       fill: getMergedValue(objs, 'fill'),
       stroke: getMergedValue(objs, 'stroke'),
       text: getMergedValue(objs, 'text'),

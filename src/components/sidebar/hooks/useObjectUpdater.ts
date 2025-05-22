@@ -1,53 +1,3 @@
-// import { fabric } from 'fabric';
-// import { CustomFabricObject } from '@/types/fabric-types';
-// import { Properties } from './useObjectProperties';
-
-// export const useObjectUpdater = (
-//   canvas: fabric.Canvas | null,
-//   setProperties: React.Dispatch<React.SetStateAction<Properties>>
-// ) => {
-//   const updateObject = (updates: Partial<Properties>) => {
-//     if (!canvas) return;
-
-//     const activeObjects = canvas.getActiveObjects();
-//     if (activeObjects.length === 0) return;
-
-//     // Only update the properties that have changed
-//     const updatedProperties: Partial<CustomFabricObject> = {};
-//     for (const [key, value] of Object.entries(updates)) {
-//       if (activeObjects[0][key as keyof CustomFabricObject] !== value) {
-//         updatedProperties[key as keyof CustomFabricObject] = value;
-//       }
-//     }
-
-//     // Ensure stroke is always a string when it's being updated
-//     if ('stroke' in updatedProperties && updatedProperties.stroke !== undefined) {
-//       updatedProperties.stroke = String(updatedProperties.stroke);
-//     }
-
-//     activeObjects.forEach((obj) => {
-//       obj.set(updatedProperties);
-
-//       if (obj.type === 'i-text') {
-//         obj.set({
-//           scaleX: 1,
-//           scaleY: 1,
-//         });
-//       }
-//     });
-
-//     canvas.renderAll();
-
-//     // Update properties based on the first selected object
-//     setProperties(prev => ({
-//       ...prev,
-//       ...updatedProperties
-//     }));
-//   };
-
-//   return { updateObject };
-// };
-
 import { fabric } from 'fabric';
 import { CustomFabricObject } from '@/types/fabric-types';
 import { Properties } from './useObjectProperties';
@@ -81,20 +31,26 @@ export const useObjectUpdater = (
 
       // Special handling for width/height: set and reset scaleX/scaleY
       if ('width' in updates && updates.width !== undefined) {
-        const newWidth = updates.width;
+        const renderedWidth = updates.width;
+        const currentScaleX = selectedObject.scaleX || 1;
         selectedObject.set({
-          width: newWidth,
+          width: renderedWidth / currentScaleX,
           scaleX: 1,
-          height: lockAspect ? newWidth : selectedObject.height,
+          height: lockAspect
+            ? renderedWidth / currentScaleX
+            : selectedObject.height,
         });
         delete updatedProperties.width;
       }
       if ('height' in updates && updates.height !== undefined) {
-        const newHeight = updates.height;
+        const renderedHeight = updates.height;
+        const currentScaleY = selectedObject.scaleY || 1;
         selectedObject.set({
-          height: newHeight,
+          height: renderedHeight / currentScaleY,
           scaleY: 1,
-          width: lockAspect ? newHeight : selectedObject.width,
+          width: lockAspect
+            ? renderedHeight / currentScaleY
+            : selectedObject.width,
         });
         delete updatedProperties.height;
       }
@@ -134,10 +90,10 @@ export const useObjectUpdater = (
           const originX = selectedObject.originX || 'center';
           const originY = selectedObject.originY || 'center';
           // Calculate new center position
-          const newCenter = {
-            x: (selectedObject.left ?? 0) + dx,
-            y: (selectedObject.top ?? 0) + dy,
-          };
+          const newCenter = new fabric.Point(
+            (selectedObject.left ?? 0) + dx,
+            (selectedObject.top ?? 0) + dy
+          );
           selectedObject.setPositionByOrigin(newCenter, originX, originY);
           selectedObject.setCoords();
         }
