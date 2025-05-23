@@ -78,7 +78,7 @@ export const OpenFileModal: React.FC<{
         />
         <label
           htmlFor="open-file-input"
-          className="cursor-pointer rounded-md bg-gray-700 px-4 py-2 text-white shadow-sm transition-colors hover:bg-gray-800"
+          className="cursor-pointer text-sm rounded-md bg-gray-700 px-4 py-2 text-white shadow-sm transition-colors hover:bg-gray-800"
         >
           {file ? 'Change File' : 'Choose File'}
         </label>

@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { LuX } from 'react-icons/lu';
 
 interface CurrencyOption {
   label: string;
@@ -54,6 +55,8 @@ const CurrencySelect: React.FC<CurrencySelectProps> = ({ value, onChange }) => {
       )
     : options;
 
+  const showClear = !!(value || input);
+
   return (
     <div className="relative">
       <input
@@ -62,8 +65,21 @@ const CurrencySelect: React.FC<CurrencySelectProps> = ({ value, onChange }) => {
         onChange={(e) => setInput(e.target.value)}
         onFocus={() => setShow(true)}
         placeholder="Search currency..."
-        className="w-full rounded border border-gray-300 bg-white px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-gray-400"
+        className="w-full rounded border border-solid border-gray-300 bg-white px-2 py-2 pr-8 text-sm focus:outline-none focus:ring-2 focus:ring-gray-400"
       />
+      {showClear && (
+        <button
+          type="button"
+          className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-700"
+          onClick={() => {
+            setInput('');
+            onChange('', '', '');
+          }}
+          tabIndex={-1}
+        >
+          <LuX size={16} />
+        </button>
+      )}
       {show && (
         <div className="absolute z-10 mt-1 max-h-48 w-full overflow-auto rounded border border-solid border-gray-200 bg-white shadow-lg">
           {filtered.length === 0 && (
