@@ -182,7 +182,7 @@ const Sidebar: React.FC = () => {
                 <h3 className="font-semibold">Properties</h3>
               )}
               <CommonProperties
-                properties={properties}
+                properties={{ ...properties, type: objectType || undefined }}
                 updateObject={updateObject}
               />
 

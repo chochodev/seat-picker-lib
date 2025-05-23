@@ -1,11 +1,6 @@
 import { create } from 'zustand';
 import { fabric } from 'fabric';
 import { v4 as uuidv4 } from 'uuid';
-import {
-  CustomRect,
-  CustomCircle,
-  CustomText,
-} from '@/pages/gui/components/createObject';
 
 interface Seat {
   id: string;
@@ -254,6 +249,6 @@ export const useEventGuiStore = create<EventGuiState>((set, get) => ({
     }
   },
 
-  snapEnabled: true,
+  snapEnabled: false,
   setSnapEnabled: (enabled) => set({ snapEnabled: enabled }),
 }));

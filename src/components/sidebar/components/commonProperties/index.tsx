@@ -6,6 +6,7 @@ interface Properties {
   top: number;
   width?: number;
   height?: number;
+  type?: string;
 }
 
 interface CommonPropertiesProps {
@@ -96,76 +97,84 @@ const CommonProperties: React.FC<CommonPropertiesProps> = ({
           </button>
         </div>
       </div>
-      <div>
-        <label className="mb-1 block text-xs font-medium text-gray-600">
-          Width
-        </label>
-        <div className="flex items-center gap-1">
-          <button
-            className="flex h-6 w-6 items-center justify-center rounded border border-solid border-gray-200 text-xs transition-colors hover:bg-gray-100"
-            onClick={() => {
-              if (typeof properties.width === 'number') {
-                updateObject({ width: properties.width - 1 });
-              }
-            }}
-            disabled={typeof properties.width !== 'number'}
-          >
-            -
-          </button>
-          <input
-            type="number"
-            value={toFloat(properties.width ?? 0)}
-            onChange={(e) => updateObject({ width: Number(e.target.value) })}
-            className="w-16 rounded border border-solid border-gray-200 bg-white px-1 py-0.5 text-center text-xs [appearance:textfield] focus:outline-none focus:ring-1 focus:ring-gray-500 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
-          />
-          <button
-            className="flex h-6 w-6 items-center justify-center rounded border border-solid border-gray-200 text-xs transition-colors hover:bg-gray-100"
-            onClick={() => {
-              if (typeof properties.width === 'number') {
-                updateObject({ width: properties.width + 1 });
-              }
-            }}
-            disabled={typeof properties.width !== 'number'}
-          >
-            +
-          </button>
-        </div>
-      </div>
-      <div>
-        <label className="mb-1 block text-xs font-medium text-gray-600">
-          Height
-        </label>
-        <div className="flex items-center gap-1">
-          <button
-            className="flex h-6 w-6 items-center justify-center rounded border border-solid border-gray-200 text-xs transition-colors hover:bg-gray-100"
-            onClick={() => {
-              if (typeof properties.height === 'number') {
-                updateObject({ height: properties.height - 1 });
-              }
-            }}
-            disabled={typeof properties.height !== 'number'}
-          >
-            -
-          </button>
-          <input
-            type="number"
-            value={toFloat(properties.height ?? 0)}
-            onChange={(e) => updateObject({ height: Number(e.target.value) })}
-            className="w-16 rounded border border-solid border-gray-200 bg-white px-1 py-0.5 text-center text-xs [appearance:textfield] focus:outline-none focus:ring-1 focus:ring-gray-500 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
-          />
-          <button
-            className="flex h-6 w-6 items-center justify-center rounded border border-solid border-gray-200 text-xs transition-colors hover:bg-gray-100"
-            onClick={() => {
-              if (typeof properties.height === 'number') {
-                updateObject({ height: properties.height + 1 });
-              }
-            }}
-            disabled={typeof properties.height !== 'number'}
-          >
-            +
-          </button>
-        </div>
-      </div>
+      {properties.type !== 'circle' && (
+        <>
+          <div>
+            <label className="mb-1 block text-xs font-medium text-gray-600">
+              Width
+            </label>
+            <div className="flex items-center gap-1">
+              <button
+                className="flex h-6 w-6 items-center justify-center rounded border border-solid border-gray-200 text-xs transition-colors hover:bg-gray-100"
+                onClick={() => {
+                  if (typeof properties.width === 'number') {
+                    updateObject({ width: properties.width - 1 });
+                  }
+                }}
+                disabled={typeof properties.width !== 'number'}
+              >
+                -
+              </button>
+              <input
+                type="number"
+                value={toFloat(properties.width ?? 0)}
+                onChange={(e) =>
+                  updateObject({ width: Number(e.target.value) })
+                }
+                className="w-16 rounded border border-solid border-gray-200 bg-white px-1 py-0.5 text-center text-xs [appearance:textfield] focus:outline-none focus:ring-1 focus:ring-gray-500 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+              />
+              <button
+                className="flex h-6 w-6 items-center justify-center rounded border border-solid border-gray-200 text-xs transition-colors hover:bg-gray-100"
+                onClick={() => {
+                  if (typeof properties.width === 'number') {
+                    updateObject({ width: properties.width + 1 });
+                  }
+                }}
+                disabled={typeof properties.width !== 'number'}
+              >
+                +
+              </button>
+            </div>
+          </div>
+          <div>
+            <label className="mb-1 block text-xs font-medium text-gray-600">
+              Height
+            </label>
+            <div className="flex items-center gap-1">
+              <button
+                className="flex h-6 w-6 items-center justify-center rounded border border-solid border-gray-200 text-xs transition-colors hover:bg-gray-100"
+                onClick={() => {
+                  if (typeof properties.height === 'number') {
+                    updateObject({ height: properties.height - 1 });
+                  }
+                }}
+                disabled={typeof properties.height !== 'number'}
+              >
+                -
+              </button>
+              <input
+                type="number"
+                value={toFloat(properties.height ?? 0)}
+                onChange={(e) =>
+                  updateObject({ height: Number(e.target.value) })
+                }
+                className="w-16 rounded border border-solid border-gray-200 bg-white px-1 py-0.5 text-center text-xs [appearance:textfield] focus:outline-none focus:ring-1 focus:ring-gray-500 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+              />
+              <button
+                className="flex h-6 w-6 items-center justify-center rounded border border-solid border-gray-200 text-xs transition-colors hover:bg-gray-100"
+                onClick={() => {
+                  if (typeof properties.height === 'number') {
+                    updateObject({ height: properties.height + 1 });
+                  }
+                }}
+                disabled={typeof properties.height !== 'number'}
+              >
+                +
+              </button>
+            </div>
+          </div>
+        </>
+      )}
     </div>
     <div>
       <label className="mb-1 block text-xs font-medium text-gray-600">

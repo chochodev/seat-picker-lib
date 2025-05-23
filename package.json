@@ -38,9 +38,9 @@
     "url": "https://github.com/chochodev/seat-picker-lib"
   },
   "bugs": {
-    "url": "https://github.com/chocho/seat-picker-lib/issues"
+    "url": "https://github.com/chochodev/seat-picker-lib/issues"
   },
-  "homepage": "https://github.com/chocho/seat-picker-lib#readme",
+  "homepage": "https://github.com/chochodev/seat-picker-lib#readme",
   "scripts": {
     "dev": "vite",
     "build": "tsup src/index.ts --format esm,cjs --dts --external react",

@@ -1,86 +1,9 @@
 import { fabric } from 'fabric';
 import { v4 as uuidv4 } from 'uuid';
 
-class CustomRect extends fabric.Rect {
-  readonly id: string;
-
-  constructor(options: any) {
-    super(options);
-    this.id = options.id || uuidv4();
-  }
-
-  toObject(propertiesToInclude: string[] = []) {
-    return fabric.util.object.extend(super.toObject(propertiesToInclude), {
-      id: this.id,
-      borderColor: this.borderColor,
-      borderDashArray: this.borderDashArray,
-      cornerColor: this.cornerColor,
-      cornerSize: this.cornerSize,
-      cornerStrokeColor: this.cornerStrokeColor,
-      transparentCorners: this.transparentCorners,
-      rx: this.rx,
-      ry: this.ry,
-    });
-  }
-}
-
-class CustomCircle extends fabric.Circle {
-  readonly id: string;
-
-  constructor(options: any) {
-    super(options);
-    this.id = options.id || uuidv4();
-  }
-
-  toObject(propertiesToInclude: string[] = []) {
-    return fabric.util.object.extend(super.toObject(propertiesToInclude), {
-      id: this.id,
-      borderColor: this.borderColor,
-      borderDashArray: this.borderDashArray,
-      cornerColor: this.cornerColor,
-      cornerSize: this.cornerSize,
-      cornerStrokeColor: this.cornerStrokeColor,
-      transparentCorners: this.transparentCorners,
-      rx: this.radius,
-      ry: this.radius,
-    });
-  }
-}
-
-class CustomText extends fabric.IText {
-  readonly id: string;
-
-  constructor(options: any) {
-    super(options.text, options);
-    this.id = options.id || uuidv4();
-  }
-
-  toObject(propertiesToInclude: string[] = []) {
-    return fabric.util.object.extend(super.toObject(propertiesToInclude), {
-      id: this.id,
-      borderColor: this.borderColor,
-      borderDashArray: this.borderDashArray,
-      cornerColor: this.cornerColor,
-      cornerSize: this.cornerSize,
-      cornerStrokeColor: this.cornerStrokeColor,
-      transparentCorners: this.transparentCorners,
-    });
-  }
-}
-
-// Helper to get the next available seat number from the canvas
-function getNextSeatNumber(canvas?: fabric.Canvas | null) {
-  if (!canvas) return 1;
-  const allSeats = canvas.getObjects('circle');
-  const numbers = allSeats
-    .map((obj) => parseInt((obj as any).seatNumber || '', 10))
-    .filter((n) => !isNaN(n));
-  return numbers.length ? Math.max(...numbers) + 1 : 1;
-}
-
 // ::::::::::::::: Create rectangle object
 const createRect = (left: number, top: number) => {
-  const rect = new CustomRect({
+  const rect = new fabric.Rect({
     left,
     top,
     fill: '#cccccc',
@@ -108,8 +31,8 @@ const createRect = (left: number, top: number) => {
     ml: false,
     mr: false,
   });
-
-  return rect;
+  
+  return rect;    
 };
 
 // ::::::::::::::: Create seat object
@@ -119,11 +42,12 @@ const createSeat = (
   canvas?: fabric.Canvas | null
 ) => {
   const seatNumber = getNextSeatNumber(canvas);
-  const seat = new CustomCircle({
+  const seat = new fabric.Circle({
     left,
     top,
     fill: 'transparent',
-    stroke: 1,
+    stroke: 'black',
+    strokeWidth: 1,
     radius: 10,
     selectable: true,
     borderColor: 'green',
@@ -146,16 +70,15 @@ const createSeat = (
     ml: false,
     mr: false,
   });
-
-  return seat;
+  
+  return seat;    
 };
 
 // ::::::::::::::: Create text object
 const createText = (left: number, top: number, text: string = 'Type here') => {
-  const textObject = new CustomText({
+  const textObject = new fabric.IText(text, {
     left,
     top,
-    text,
     fontSize: 20,
     fill: 'black',
     selectable: true,
@@ -177,14 +100,21 @@ const createText = (left: number, top: number, text: string = 'Type here') => {
     ml: false,
     mr: false,
   });
-
+  
   return textObject;
 };
 
+// Helper to get the next available seat number from the canvas
+function getNextSeatNumber(canvas?: fabric.Canvas | null) {
+  if (!canvas) return 1;
+  const allSeats = canvas.getObjects('circle');
+  const numbers = allSeats
+    .map((obj) => parseInt((obj as any).seatNumber || '', 10))
+    .filter((n) => !isNaN(n));
+  return numbers.length ? Math.max(...numbers) + 1 : 1;
+}
+
 export {
-  CustomRect,
-  CustomCircle,
-  CustomText,
   createRect,
   createSeat,
   createText,

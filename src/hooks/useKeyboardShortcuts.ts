@@ -3,7 +3,7 @@ import { useEventGuiStore } from '@/zustand';
 import useClipboardActions from './useClipboardActions';
 
 const useKeyboardShortcuts = () => {
-  const { canvas, setLastClickedPoint } = useEventGuiStore();
+  const { canvas, setLastClickedPoint, undo, redo } = useEventGuiStore();
   const { copySelectedObjects, cutSelectedObjects, pasteObjects } =
     useClipboardActions();
 
@@ -24,6 +24,18 @@ const useKeyboardShortcuts = () => {
           case 'v':
             e.preventDefault();
             pasteObjects();
+            break;
+          case 'z':
+            e.preventDefault();
+            if (e.shiftKey) {
+              redo();
+            } else {
+              undo();
+            }
+            break;
+          case 'y':
+            e.preventDefault();
+            redo();
             break;
         }
       }
@@ -47,6 +59,8 @@ const useKeyboardShortcuts = () => {
     cutSelectedObjects,
     pasteObjects,
     setLastClickedPoint,
+    undo,
+    redo,
   ]);
 };
 

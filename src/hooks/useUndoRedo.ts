@@ -1,3 +1,4 @@
+// import '../fabricCustomRegistration';
 import { useEffect, useCallback } from 'react';
 import { useEventGuiStore } from '@/zustand';
 

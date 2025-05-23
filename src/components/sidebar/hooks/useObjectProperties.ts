@@ -5,7 +5,7 @@ import { CustomFabricObject } from '@/types/fabric-types';
 
 export interface Properties {
   angle: number;
-  radius: number;
+  radius: number | 'mixed';
   width: number;
   height: number;
   fill: string | Pattern | Gradient | undefined;
