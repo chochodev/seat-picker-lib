@@ -11,6 +11,7 @@ import useKeyboardShortcuts from '@/hooks/useKeyboardShortcuts';
 import useUndoRedo from '@/hooks/useUndoRedo';
 import { useSmartSnap } from '@/hooks/useSmartSnap';
 import '@/index.css';
+import '../fabricCustomRegistration';
 
 const SeatCanvas = ({ className }: { className?: string }) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);

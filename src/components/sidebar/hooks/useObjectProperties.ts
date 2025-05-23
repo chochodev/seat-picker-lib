@@ -22,6 +22,9 @@ export interface Properties {
   category?: string | 'mixed';
   price?: number | 'mixed';
   status?: 'available' | 'reserved' | 'sold' | 'mixed';
+  currencySymbol?: string | 'mixed';
+  currencyCode?: string | 'mixed';
+  currencyCountry?: string | 'mixed';
 }
 
 export const useObjectProperties = (
@@ -74,6 +77,9 @@ export const useObjectProperties = (
       category: getMergedValue(objs, 'category'),
       price: getMergedValue(objs, 'price'),
       status: getMergedValue(objs, 'status'),
+      currencySymbol: getMergedValue(objs, 'currencySymbol'),
+      currencyCode: getMergedValue(objs, 'currencyCode'),
+      currencyCountry: getMergedValue(objs, 'currencyCountry'),
     });
   }, [selectedObjects]);
 
