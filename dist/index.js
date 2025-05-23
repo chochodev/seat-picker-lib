@@ -2,8 +2,8 @@ import React, { useRef, useEffect, useCallback, useState } from 'react';
 import { create } from 'zustand';
 import { fabric } from 'fabric';
 import { v4 } from 'uuid';
-import { LuFile, LuFolderOpen, LuSave, LuMousePointer, LuGrid2X2, LuLayoutDashboard, LuPlus, LuUndo, LuRedo, LuScissors, LuCopy, LuClipboardCheck, LuTrash2, LuZoomOut, LuZoomIn, LuQrCode } from 'react-icons/lu';
-import { RiText, RiShapeLine, RiApps2AddLine } from 'react-icons/ri';
+import { LuFile, LuFolderOpen, LuSave, LuMousePointer, LuGrid2X2, LuLayoutDashboard, LuPlus, LuUndo, LuRedo, LuScissors, LuCopy, LuClipboardCheck, LuTrash2, LuZoomOut, LuZoomIn, LuLock } from 'react-icons/lu';
+import { RiText, RiShapeLine, RiApps2AddLine, RiLockUnlockLine } from 'react-icons/ri';
 import { jsxs, jsx, Fragment } from 'react/jsx-runtime';
 
 // src/components/index.tsx
@@ -141,59 +141,98 @@ var useEventGuiStore = create((set, get) => ({
       });
       set({ loading: false });
     }
-  }
+  },
+  snapEnabled: false,
+  setSnapEnabled: (enabled) => set({ snapEnabled: enabled })
 }));
+
+// src/components/createObject/applyCustomStyles.ts
+function applyCustomStyles(obj) {
+  obj.set({
+    borderColor: "green",
+    borderDashArray: [2, 4],
+    padding: 2,
+    cornerColor: "lightblue",
+    cornerSize: 5,
+    cornerStrokeColor: "blue",
+    transparentCorners: false,
+    strokeUniform: true
+  });
+  obj.setControlsVisibility && obj.setControlsVisibility({
+    mt: false,
+    mb: false,
+    ml: false,
+    mr: false
+  });
+}
+
+// src/hooks/useClipboardActions.ts
 var useClipboardActions = () => {
   const { canvas, clipboard, setClipboard, lastClickedPoint, setToolAction } = useEventGuiStore();
-  const copySelectedObjects = () => {
+  const copySelectedObjects = async () => {
     if (!canvas) return;
     const activeObjects = canvas.getActiveObjects();
     if (activeObjects.length === 0) return;
     setToolAction("copy");
-    const clonedObjects = activeObjects.map(
-      (obj) => fabric.util.object.clone(obj)
-    );
+    const clonedObjects = [];
+    for (const obj of activeObjects) {
+      await new Promise((resolve) => {
+        obj.clone((cloned) => {
+          if ("id" in cloned) cloned.id = v4();
+          clonedObjects.push(cloned);
+          resolve();
+        });
+      });
+    }
     setClipboard(clonedObjects);
   };
-  const cutSelectedObjects = () => {
+  const cutSelectedObjects = async () => {
     if (!canvas) return;
     const activeObjects = canvas.getActiveObjects();
     if (activeObjects.length === 0) return;
     setToolAction("cut");
-    const clonedObjects = activeObjects.map(
-      (obj) => fabric.util.object.clone(obj)
-    );
+    const clonedObjects = [];
+    for (const obj of activeObjects) {
+      await new Promise((resolve) => {
+        obj.clone((cloned) => {
+          if ("id" in cloned) cloned.id = v4();
+          clonedObjects.push(cloned);
+          resolve();
+        });
+      });
+    }
     setClipboard(clonedObjects);
     canvas.remove(...activeObjects);
     canvas.discardActiveObject();
     canvas.renderAll();
   };
-  const pasteObjects = () => {
+  const pasteObjects = async () => {
     if (!canvas || !clipboard || !lastClickedPoint) return;
-    const pastedObjects = clipboard.map((obj) => fabric.util.object.clone(obj));
-    const boundingBox = getBoundingBox(pastedObjects);
     setToolAction("paste");
-    pastedObjects.forEach((obj) => {
-      const offsetX = lastClickedPoint.x - boundingBox.left;
-      const offsetY = lastClickedPoint.y - boundingBox.top;
-      obj.set({
-        left: (obj.left || 0) + offsetX,
-        top: (obj.top || 0) + offsetY
+    const pastedObjects = [];
+    for (const obj of clipboard) {
+      await new Promise((resolve) => {
+        obj.clone((cloned) => {
+          if ("id" in cloned) cloned.id = v4();
+          applyCustomStyles(cloned);
+          cloned.set({
+            left: (cloned.left || 0) + 20,
+            top: (cloned.top || 0) + 20,
+            evented: true
+          });
+          canvas.add(cloned);
+          pastedObjects.push(cloned);
+          resolve();
+        });
       });
-      canvas.add(obj);
-    });
-    canvas.renderAll();
-  };
-  const getBoundingBox = (objects) => {
-    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
-    objects.forEach((obj) => {
-      const objBoundingRect = obj.getBoundingRect();
-      minX = Math.min(minX, objBoundingRect.left);
-      minY = Math.min(minY, objBoundingRect.top);
-      maxX = Math.max(maxX, objBoundingRect.left + objBoundingRect.width);
-      maxY = Math.max(maxY, objBoundingRect.top + objBoundingRect.height);
-    });
-    return { left: minX, top: minY, width: maxX - minX, height: maxY - minY };
+    }
+    if (pastedObjects.length === 1) {
+      canvas.setActiveObject(pastedObjects[0]);
+    } else if (pastedObjects.length > 1) {
+      const selection = new fabric.ActiveSelection(pastedObjects, { canvas });
+      canvas.setActiveObject(selection);
+    }
+    canvas.requestRenderAll();
   };
   return { copySelectedObjects, cutSelectedObjects, pasteObjects };
 };
@@ -237,6 +276,47 @@ var useUndoRedo = () => {
   return { undo, redo };
 };
 var useUndoRedo_default = useUndoRedo;
+function useLockSelection(canvas) {
+  const isSelectionLocked = useCallback(() => {
+    if (!canvas) return false;
+    const selected = canvas.getActiveObjects();
+    return selected.length > 0 && selected.every((obj) => obj.lockMovementX && obj.lockMovementY);
+  }, [canvas]);
+  const toggleLockSelection = useCallback(() => {
+    if (!canvas) return;
+    const selected = canvas.getActiveObjects();
+    if (selected.length === 0) return;
+    const shouldLock = !isSelectionLocked();
+    selected.forEach((obj) => {
+      obj.set({
+        lockMovementX: shouldLock,
+        lockMovementY: shouldLock
+      });
+    });
+    canvas.requestRenderAll();
+    if (selected.length > 1) {
+      canvas.discardActiveObject();
+      const group = new fabric.ActiveSelection(selected, { canvas });
+      canvas.setActiveObject(group);
+      canvas.requestRenderAll();
+    }
+    canvas.fire("lock:changed");
+  }, [canvas, isSelectionLocked]);
+  const [selectionVersion, setSelectionVersion] = useState(0);
+  useEffect(() => {
+    if (!canvas) return;
+    const update = () => setSelectionVersion((v) => v + 1);
+    canvas.on("selection:created", update);
+    canvas.on("selection:updated", update);
+    canvas.on("lock:changed", update);
+    return () => {
+      canvas.off("selection:created", update);
+      canvas.off("selection:updated", update);
+      canvas.off("lock:changed", update);
+    };
+  }, [canvas]);
+  return { isSelectionLocked, toggleLockSelection, selectionVersion };
+}
 var Toolbar = () => {
   const {
     zoomLevel,
@@ -244,10 +324,14 @@ var Toolbar = () => {
     toolMode,
     setToolMode,
     toolAction,
-    setToolAction
+    setToolAction,
+    canvas,
+    snapEnabled,
+    setSnapEnabled
   } = useEventGuiStore();
   const { copySelectedObjects, cutSelectedObjects, pasteObjects } = useClipboardActions_default();
   const { undo, redo } = useUndoRedo_default();
+  const { isSelectionLocked, toggleLockSelection } = useLockSelection(canvas);
   const toggleMultipleSeatMode = () => {
     setToolMode(toolMode === "multiple-seat" ? "select" : "multiple-seat");
   };
@@ -271,8 +355,12 @@ var Toolbar = () => {
       },
       state: toolMode === "select"
     },
-    { icon: LuGrid2X2, tooltip: "Grid View", onClick: () => {
-    }, state: false },
+    {
+      icon: LuGrid2X2,
+      tooltip: snapEnabled ? "Smart Snap On" : "Smart Snap Off",
+      onClick: () => setSnapEnabled(!snapEnabled),
+      state: snapEnabled
+    },
     {
       icon: LuLayoutDashboard,
       tooltip: "Layout View",
@@ -377,7 +465,14 @@ var Toolbar = () => {
       }
     ),
     /* @__PURE__ */ jsx("div", { className: "flex-1" }),
-    /* @__PURE__ */ jsx(Button, { icon: /* @__PURE__ */ jsx(LuQrCode, { className: "h-4 w-4" }), tooltip: "QR Code" })
+    /* @__PURE__ */ jsx(
+      Button,
+      {
+        icon: isSelectionLocked() ? /* @__PURE__ */ jsx(LuLock, { className: "h-4 w-4" }) : /* @__PURE__ */ jsx(RiLockUnlockLine, { className: "h-4 w-4" }),
+        tooltip: isSelectionLocked() ? "Unlock Selection" : "Lock Selection",
+        onClick: toggleLockSelection
+      }
+    )
   ] });
 };
 var toolbar_default = Toolbar;
@@ -539,8 +634,8 @@ var useObjectProperties = (canvas, selectedObjects) => {
     setProperties({
       angle: getMergedValue(objs, "angle"),
       radius: getMergedValue(objs, "radius"),
-      width: getMergedValue(objs, "width"),
-      height: getMergedValue(objs, "height"),
+      width: getMergedValue(objs, "width") * (getMergedValue(objs, "scaleX") || 1),
+      height: getMergedValue(objs, "height") * (getMergedValue(objs, "scaleY") || 1),
       fill: getMergedValue(objs, "fill"),
       stroke: getMergedValue(objs, "stroke"),
       text: getMergedValue(objs, "text"),
@@ -559,9 +654,55 @@ var useObjectProperties = (canvas, selectedObjects) => {
   }, [selectedObjects]);
   return { properties, setProperties };
 };
-
-// src/components/sidebar/hooks/useObjectUpdater.ts
-var useObjectUpdater = (canvas, setProperties) => {
+var useObjectUpdater = (canvas, setProperties, lockAspect = false) => {
+  useEffect(() => {
+    if (!canvas) return;
+    const handleScaling = (e) => {
+      const obj = e.target;
+      if (!obj) return;
+      if (obj.type === "circle") {
+        const newRadius = (obj.radius || (obj.width ? obj.width / 2 : 0)) * (obj.scaleX || 1);
+        obj.set({
+          radius: newRadius,
+          scaleX: 1,
+          scaleY: 1,
+          width: newRadius * 2,
+          height: newRadius * 2
+        });
+        obj.setCoords();
+        canvas.renderAll();
+        setProperties((prev) => ({ ...prev, radius: newRadius }));
+      } else if (obj.type === "activeSelection" && "getObjects" in obj) {
+        const selection = obj;
+        const circles = selection.getObjects().filter(
+          (o) => o.type === "circle"
+        );
+        let radii = [];
+        circles.forEach((circle) => {
+          const newRadius = (circle.radius || (circle.width ? circle.width / 2 : 0)) * (circle.scaleX || 1);
+          circle.set({
+            radius: newRadius,
+            scaleX: 1,
+            scaleY: 1,
+            width: newRadius * 2,
+            height: newRadius * 2
+          });
+          circle.setCoords();
+          radii.push(newRadius);
+        });
+        canvas.renderAll();
+        const allSame = radii.every((r) => r === radii[0]);
+        setProperties((prev) => ({
+          ...prev,
+          radius: allSame ? radii[0] : "mixed"
+        }));
+      }
+    };
+    canvas.on("object:scaling", handleScaling);
+    return () => {
+      canvas.off("object:scaling", handleScaling);
+    };
+  }, [canvas, setProperties]);
   const updateObject = (updates) => {
     if (!canvas) return;
     const activeObjects = canvas.getActiveObjects();
@@ -577,13 +718,41 @@ var useObjectUpdater = (canvas, setProperties) => {
       if ("stroke" in updatedProperties && updatedProperties.stroke !== void 0) {
         updatedProperties.stroke = String(updatedProperties.stroke);
       }
-      if ("width" in updates && updates.width !== void 0) {
-        selectedObject.set({ width: updates.width, scaleX: 1 });
-        delete updatedProperties.width;
-      }
-      if ("height" in updates && updates.height !== void 0) {
-        selectedObject.set({ height: updates.height, scaleY: 1 });
-        delete updatedProperties.height;
+      if (selectedObject.type === "circle") {
+        if ("width" in updates || "height" in updates) {
+          const currentRadius = selectedObject.radius || 0;
+          const newRadius = updates.width ? updates.width / 2 : updates.height ? updates.height / 2 : currentRadius;
+          selectedObject.set({
+            radius: newRadius,
+            scaleX: 1,
+            scaleY: 1,
+            width: newRadius * 2,
+            height: newRadius * 2
+          });
+          delete updatedProperties.width;
+          delete updatedProperties.height;
+        }
+      } else {
+        if ("width" in updates && updates.width !== void 0) {
+          const renderedWidth = updates.width;
+          const currentScaleX = selectedObject.scaleX || 1;
+          selectedObject.set({
+            width: renderedWidth / currentScaleX,
+            scaleX: 1,
+            height: lockAspect ? renderedWidth / currentScaleX : selectedObject.height
+          });
+          delete updatedProperties.width;
+        }
+        if ("height" in updates && updates.height !== void 0) {
+          const renderedHeight = updates.height;
+          const currentScaleY = selectedObject.scaleY || 1;
+          selectedObject.set({
+            height: renderedHeight / currentScaleY,
+            scaleY: 1,
+            width: lockAspect ? renderedHeight / currentScaleY : selectedObject.width
+          });
+          delete updatedProperties.height;
+        }
       }
       selectedObject.set(updatedProperties);
       if (selectedObject.type === "i-text") {
@@ -611,10 +780,10 @@ var useObjectUpdater = (canvas, setProperties) => {
         if (dx !== 0 || dy !== 0) {
           const originX = selectedObject.originX || "center";
           const originY = selectedObject.originY || "center";
-          const newCenter = {
-            x: ((_a = selectedObject.left) != null ? _a : 0) + dx,
-            y: ((_b = selectedObject.top) != null ? _b : 0) + dy
-          };
+          const newCenter = new fabric.Point(
+            ((_a = selectedObject.left) != null ? _a : 0) + dx,
+            ((_b = selectedObject.top) != null ? _b : 0) + dy
+          );
           selectedObject.setPositionByOrigin(newCenter, originX, originY);
           selectedObject.setCoords();
         }
@@ -727,84 +896,86 @@ var CommonProperties = ({
           )
         ] })
       ] }),
-      /* @__PURE__ */ jsxs("div", { children: [
-        /* @__PURE__ */ jsx("label", { className: "mb-1 block text-xs font-medium text-gray-600", children: "Width" }),
-        /* @__PURE__ */ jsxs("div", { className: "flex items-center gap-1", children: [
-          /* @__PURE__ */ jsx(
-            "button",
-            {
-              className: "flex h-6 w-6 items-center justify-center rounded border border-solid border-gray-200 text-xs transition-colors hover:bg-gray-100",
-              onClick: () => {
-                if (typeof properties.width === "number") {
-                  updateObject({ width: properties.width - 1 });
-                }
-              },
-              disabled: typeof properties.width !== "number",
-              children: "-"
-            }
-          ),
-          /* @__PURE__ */ jsx(
-            "input",
-            {
-              type: "number",
-              value: toFloat((_a = properties.width) != null ? _a : 0),
-              onChange: (e) => updateObject({ width: Number(e.target.value) }),
-              className: "w-16 rounded border border-solid border-gray-200 bg-white px-1 py-0.5 text-center text-xs [appearance:textfield] focus:outline-none focus:ring-1 focus:ring-gray-500 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
-            }
-          ),
-          /* @__PURE__ */ jsx(
-            "button",
-            {
-              className: "flex h-6 w-6 items-center justify-center rounded border border-solid border-gray-200 text-xs transition-colors hover:bg-gray-100",
-              onClick: () => {
-                if (typeof properties.width === "number") {
-                  updateObject({ width: properties.width + 1 });
-                }
-              },
-              disabled: typeof properties.width !== "number",
-              children: "+"
-            }
-          )
-        ] })
-      ] }),
-      /* @__PURE__ */ jsxs("div", { children: [
-        /* @__PURE__ */ jsx("label", { className: "mb-1 block text-xs font-medium text-gray-600", children: "Height" }),
-        /* @__PURE__ */ jsxs("div", { className: "flex items-center gap-1", children: [
-          /* @__PURE__ */ jsx(
-            "button",
-            {
-              className: "flex h-6 w-6 items-center justify-center rounded border border-solid border-gray-200 text-xs transition-colors hover:bg-gray-100",
-              onClick: () => {
-                if (typeof properties.height === "number") {
-                  updateObject({ height: properties.height - 1 });
-                }
-              },
-              disabled: typeof properties.height !== "number",
-              children: "-"
-            }
-          ),
-          /* @__PURE__ */ jsx(
-            "input",
-            {
-              type: "number",
-              value: toFloat((_b = properties.height) != null ? _b : 0),
-              onChange: (e) => updateObject({ height: Number(e.target.value) }),
-              className: "w-16 rounded border border-solid border-gray-200 bg-white px-1 py-0.5 text-center text-xs [appearance:textfield] focus:outline-none focus:ring-1 focus:ring-gray-500 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
-            }
-          ),
-          /* @__PURE__ */ jsx(
-            "button",
-            {
-              className: "flex h-6 w-6 items-center justify-center rounded border border-solid border-gray-200 text-xs transition-colors hover:bg-gray-100",
-              onClick: () => {
-                if (typeof properties.height === "number") {
-                  updateObject({ height: properties.height + 1 });
-                }
-              },
-              disabled: typeof properties.height !== "number",
-              children: "+"
-            }
-          )
+      properties.type !== "circle" && /* @__PURE__ */ jsxs(Fragment, { children: [
+        /* @__PURE__ */ jsxs("div", { children: [
+          /* @__PURE__ */ jsx("label", { className: "mb-1 block text-xs font-medium text-gray-600", children: "Width" }),
+          /* @__PURE__ */ jsxs("div", { className: "flex items-center gap-1", children: [
+            /* @__PURE__ */ jsx(
+              "button",
+              {
+                className: "flex h-6 w-6 items-center justify-center rounded border border-solid border-gray-200 text-xs transition-colors hover:bg-gray-100",
+                onClick: () => {
+                  if (typeof properties.width === "number") {
+                    updateObject({ width: properties.width - 1 });
+                  }
+                },
+                disabled: typeof properties.width !== "number",
+                children: "-"
+              }
+            ),
+            /* @__PURE__ */ jsx(
+              "input",
+              {
+                type: "number",
+                value: toFloat((_a = properties.width) != null ? _a : 0),
+                onChange: (e) => updateObject({ width: Number(e.target.value) }),
+                className: "w-16 rounded border border-solid border-gray-200 bg-white px-1 py-0.5 text-center text-xs [appearance:textfield] focus:outline-none focus:ring-1 focus:ring-gray-500 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+              }
+            ),
+            /* @__PURE__ */ jsx(
+              "button",
+              {
+                className: "flex h-6 w-6 items-center justify-center rounded border border-solid border-gray-200 text-xs transition-colors hover:bg-gray-100",
+                onClick: () => {
+                  if (typeof properties.width === "number") {
+                    updateObject({ width: properties.width + 1 });
+                  }
+                },
+                disabled: typeof properties.width !== "number",
+                children: "+"
+              }
+            )
+          ] })
+        ] }),
+        /* @__PURE__ */ jsxs("div", { children: [
+          /* @__PURE__ */ jsx("label", { className: "mb-1 block text-xs font-medium text-gray-600", children: "Height" }),
+          /* @__PURE__ */ jsxs("div", { className: "flex items-center gap-1", children: [
+            /* @__PURE__ */ jsx(
+              "button",
+              {
+                className: "flex h-6 w-6 items-center justify-center rounded border border-solid border-gray-200 text-xs transition-colors hover:bg-gray-100",
+                onClick: () => {
+                  if (typeof properties.height === "number") {
+                    updateObject({ height: properties.height - 1 });
+                  }
+                },
+                disabled: typeof properties.height !== "number",
+                children: "-"
+              }
+            ),
+            /* @__PURE__ */ jsx(
+              "input",
+              {
+                type: "number",
+                value: toFloat((_b = properties.height) != null ? _b : 0),
+                onChange: (e) => updateObject({ height: Number(e.target.value) }),
+                className: "w-16 rounded border border-solid border-gray-200 bg-white px-1 py-0.5 text-center text-xs [appearance:textfield] focus:outline-none focus:ring-1 focus:ring-gray-500 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+              }
+            ),
+            /* @__PURE__ */ jsx(
+              "button",
+              {
+                className: "flex h-6 w-6 items-center justify-center rounded border border-solid border-gray-200 text-xs transition-colors hover:bg-gray-100",
+                onClick: () => {
+                  if (typeof properties.height === "number") {
+                    updateObject({ height: properties.height + 1 });
+                  }
+                },
+                disabled: typeof properties.height !== "number",
+                children: "+"
+              }
+            )
+          ] })
         ] })
       ] })
     ] }),
@@ -982,11 +1153,11 @@ var CircleProperties = ({
 };
 var circleProperties_default = CircleProperties;
 var strokeWidthOptions = [
-  { value: 0, label: "None" },
-  { value: 1, label: "Thin" },
-  { value: 2, label: "Medium" },
-  { value: 3, label: "Thick" },
-  { value: 4, label: "Extra Thick" }
+  { value: "0", label: "None" },
+  { value: "1", label: "Thin" },
+  { value: "2", label: "Medium" },
+  { value: "3", label: "Thick" },
+  { value: "4", label: "Extra Thick" }
 ];
 var RectangleProperties = ({
   properties,
@@ -1024,7 +1195,7 @@ var RectangleProperties = ({
       /* @__PURE__ */ jsx("span", { className: "text-xs text-gray-600", children: "Lock aspect ratio" })
     ] }),
     /* @__PURE__ */ jsxs("div", { children: [
-      /* @__PURE__ */ jsx("label", { className: "block text-sm font-medium text-gray-700", children: "Stroke Width" }),
+      /* @__PURE__ */ jsx("label", { className: "mb-1 block text-sm font-medium text-gray-700", children: "Stroke Width" }),
       /* @__PURE__ */ jsx(
         Select2,
         {
@@ -1045,8 +1216,8 @@ var RectangleProperties = ({
               onClick: () => {
                 var _a2, _b2;
                 return updateObject({
-                  rx: toFloat((_a2 = properties.rx) != null ? _a2 : 0) - 1,
-                  ry: toFloat((_b2 = properties.ry) != null ? _b2 : 0) - 1
+                  rx: Number(toFloat((_a2 = properties.rx) != null ? _a2 : 0)) - 1,
+                  ry: Number(toFloat((_b2 = properties.ry) != null ? _b2 : 0)) - 1
                 });
               },
               children: "-"
@@ -1071,8 +1242,8 @@ var RectangleProperties = ({
               onClick: () => {
                 var _a2, _b2;
                 return updateObject({
-                  rx: toFloat((_a2 = properties.rx) != null ? _a2 : 0) + 1,
-                  ry: toFloat((_b2 = properties.ry) != null ? _b2 : 0) + 1
+                  rx: Number(toFloat((_a2 = properties.rx) != null ? _a2 : 0)) + 1,
+                  ry: Number(toFloat((_b2 = properties.ry) != null ? _b2 : 0)) + 1
                 });
               },
               children: "+"
@@ -1250,7 +1421,7 @@ var ColorProperties = ({
   updateObject,
   objectType
 }) => {
-  var _a, _b, _c, _d;
+  var _a, _b, _c;
   const [syncColors, setSyncColors] = useState(false);
   useEffect(() => {
     setSyncColors(properties.stroke === properties.fill);
@@ -1269,18 +1440,18 @@ var ColorProperties = ({
           "input",
           {
             type: "color",
-            value: typeof properties.fill === "string" && /^#([0-9A-Fa-f]{6})$/.test(properties.fill) ? "#ffffff" : ((_a = properties.fill) == null ? void 0 : _a.toString()) || "#ffffff",
+            value: typeof properties.fill === "string" && /^#([0-9A-Fa-f]{6})$/.test(properties.fill) ? properties.fill : "#ffffff",
             onChange: (e) => handleFillChange(e.target.value),
-            className: "h-8 w-8 rounded-md"
+            className: "h-8 w-8 bg-transparent rounded-md"
           }
         ),
         /* @__PURE__ */ jsx(
           "input",
           {
             type: "text",
-            value: typeof properties.fill === "string" && /^#([0-9A-Fa-f]{6})$/.test(properties.fill) ? "transparent" : (((_b = properties.fill) == null ? void 0 : _b.toString()) || "").toUpperCase(),
+            value: (((_a = properties.fill) == null ? void 0 : _a.toString()) || "").toUpperCase(),
             onChange: (e) => handleFillChange(e.target.value),
-            className: "ml-2 w-full rounded-md border border-solid border-gray-200 px-2 py-1 shadow-sm"
+            className: "ml-2 w-full rounded-md text-sm border border-solid border-gray-200 px-2 py-1 shadow-sm"
           }
         )
       ] })
@@ -1311,20 +1482,20 @@ var ColorProperties = ({
           "input",
           {
             type: "color",
-            value: (properties == null ? void 0 : properties.stroke) === "transparent" ? "#ffffff" : ((_c = properties.stroke) == null ? void 0 : _c.toString()) || "#000000",
+            value: (properties == null ? void 0 : properties.stroke) === "transparent" ? "#ffffff" : ((_b = properties.stroke) == null ? void 0 : _b.toString()) || "#000000",
             onChange: (e) => updateObject({ stroke: e.target.value }),
             disabled: syncColors,
-            className: `h-8 w-8 rounded-md ${syncColors ? "opacity-50" : ""}`
+            className: `h-8 w-8 rounded-md bg-transparent ${syncColors ? "opacity-50" : ""}`
           }
         ),
         /* @__PURE__ */ jsx(
           "input",
           {
             type: "text",
-            value: properties.stroke === "transparent" ? "transparent" : (((_d = properties.stroke) == null ? void 0 : _d.toString()) || "").toUpperCase(),
+            value: properties.stroke === "transparent" ? "transparent" : (((_c = properties.stroke) == null ? void 0 : _c.toString()) || "").toUpperCase(),
             onChange: (e) => updateObject({ stroke: e.target.value }),
             disabled: syncColors,
-            className: `ml-2 w-full rounded-md border border-solid border-gray-200 px-2 py-1 shadow-sm ${syncColors ? "opacity-50" : ""}`
+            className: `ml-2 w-full text-sm rounded-md border border-solid border-gray-200 px-2 py-1 shadow-sm ${syncColors ? "opacity-50" : ""}`
           }
         )
       ] })
@@ -1431,7 +1602,8 @@ var Sidebar = () => {
     canvas,
     selectedObjects
   );
-  const { updateObject } = useObjectUpdater(canvas, setProperties);
+  const [lockAspect, setLockAspect] = useState(true);
+  const { updateObject } = useObjectUpdater(canvas, setProperties, lockAspect);
   useEffect(() => {
     if (!canvas) return;
     const updateSelectedObjects = () => {
@@ -1551,7 +1723,7 @@ var Sidebar = () => {
         /* @__PURE__ */ jsx(
           commonProperties_default,
           {
-            properties,
+            properties: { ...properties, type: objectType || void 0 },
             updateObject
           }
         ),
@@ -1592,69 +1764,8 @@ var Sidebar = () => {
   ] });
 };
 var sidebar_default = Sidebar;
-var CustomRect = class extends fabric.Rect {
-  constructor(options) {
-    super(options);
-    this.id = options.id || v4();
-  }
-  toObject(propertiesToInclude = []) {
-    return fabric.util.object.extend(super.toObject(propertiesToInclude), {
-      id: this.id,
-      borderColor: this.borderColor,
-      borderDashArray: this.borderDashArray,
-      cornerColor: this.cornerColor,
-      cornerSize: this.cornerSize,
-      cornerStrokeColor: this.cornerStrokeColor,
-      transparentCorners: this.transparentCorners,
-      rx: this.rx,
-      ry: this.ry
-    });
-  }
-};
-var CustomCircle = class extends fabric.Circle {
-  constructor(options) {
-    super(options);
-    this.id = options.id || v4();
-  }
-  toObject(propertiesToInclude = []) {
-    return fabric.util.object.extend(super.toObject(propertiesToInclude), {
-      id: this.id,
-      borderColor: this.borderColor,
-      borderDashArray: this.borderDashArray,
-      cornerColor: this.cornerColor,
-      cornerSize: this.cornerSize,
-      cornerStrokeColor: this.cornerStrokeColor,
-      transparentCorners: this.transparentCorners,
-      rx: this.radius,
-      ry: this.radius
-    });
-  }
-};
-var CustomText = class extends fabric.IText {
-  constructor(options) {
-    super(options.text, options);
-    this.id = options.id || v4();
-  }
-  toObject(propertiesToInclude = []) {
-    return fabric.util.object.extend(super.toObject(propertiesToInclude), {
-      id: this.id,
-      borderColor: this.borderColor,
-      borderDashArray: this.borderDashArray,
-      cornerColor: this.cornerColor,
-      cornerSize: this.cornerSize,
-      cornerStrokeColor: this.cornerStrokeColor,
-      transparentCorners: this.transparentCorners
-    });
-  }
-};
-function getNextSeatNumber(canvas) {
-  if (!canvas) return 1;
-  const allSeats = canvas.getObjects("circle");
-  const numbers = allSeats.map((obj) => parseInt(obj.seatNumber || "", 10)).filter((n) => !isNaN(n));
-  return numbers.length ? Math.max(...numbers) + 1 : 1;
-}
 var createRect = (left, top) => {
-  const rect = new CustomRect({
+  const rect = new fabric.Rect({
     left,
     top,
     fill: "#cccccc",
@@ -1685,11 +1796,12 @@ var createRect = (left, top) => {
 };
 var createSeat = (left, top, canvas) => {
   const seatNumber = getNextSeatNumber(canvas);
-  const seat = new CustomCircle({
+  const seat = new fabric.Circle({
     left,
     top,
     fill: "transparent",
-    stroke: 1,
+    stroke: "black",
+    strokeWidth: 1,
     radius: 10,
     selectable: true,
     borderColor: "green",
@@ -1714,10 +1826,9 @@ var createSeat = (left, top, canvas) => {
   return seat;
 };
 var createText = (left, top, text = "Type here") => {
-  const textObject = new CustomText({
+  const textObject = new fabric.IText(text, {
     left,
     top,
-    text,
     fontSize: 20,
     fill: "black",
     selectable: true,
@@ -1740,6 +1851,12 @@ var createText = (left, top, text = "Type here") => {
   });
   return textObject;
 };
+function getNextSeatNumber(canvas) {
+  if (!canvas) return 1;
+  const allSeats = canvas.getObjects("circle");
+  const numbers = allSeats.map((obj) => parseInt(obj.seatNumber || "", 10)).filter((n) => !isNaN(n));
+  return numbers.length ? Math.max(...numbers) + 1 : 1;
+}
 
 // src/hooks/useCanvasSetup.ts
 var useCanvasSetup = (canvasRef, canvasParent, setCanvas) => {
@@ -1770,13 +1887,13 @@ var useCanvasSetup = (canvasRef, canvasParent, setCanvas) => {
         let dx = 0, dy = 0;
         if (rect.left < 0) {
           dx = -rect.left;
-        } else if (rect.left + rect.width > canvasWidth) {
-          dx = canvasWidth - (rect.left + rect.width);
+        } else if (rect.left + rect.width > (canvasWidth != null ? canvasWidth : 0)) {
+          dx = (canvasWidth != null ? canvasWidth : 0) - (rect.left + rect.width);
         }
         if (rect.top < 0) {
           dy = -rect.top;
-        } else if (rect.top + rect.height > canvasHeight) {
-          dy = canvasHeight - (rect.top + rect.height);
+        } else if (rect.top + rect.height > (canvasHeight != null ? canvasHeight : 0)) {
+          dy = (canvasHeight != null ? canvasHeight : 0) - (rect.top + rect.height);
         }
         if (dx !== 0 || dy !== 0) {
           obj.left = ((_a = obj.left) != null ? _a : 0) + dx;
@@ -1788,14 +1905,14 @@ var useCanvasSetup = (canvasRef, canvasParent, setCanvas) => {
     newCanvas.on("selection:created", (event) => {
       const objs = event.selected || (event.target ? [event.target] : []);
       objs.forEach((obj) => {
-        if (["rect", "circle", "i-text"].includes(obj.type)) {
+        if (typeof obj.type === "string" && ["rect", "circle", "i-text"].includes(obj.type)) {
           obj.strokeUniform = true;
         }
       });
     });
     newCanvas.on("after:render", () => {
       newCanvas.getObjects().forEach((obj) => {
-        if (["rect", "circle", "i-text"].includes(obj.type)) {
+        if (typeof obj.type === "string" && ["rect", "circle", "i-text"].includes(obj.type)) {
           obj.strokeUniform = true;
         }
       });
@@ -1970,7 +2087,7 @@ var useObjectCreator = (canvas, toolMode, setToolMode) => {
 };
 var useObjectCreator_default = useObjectCreator;
 var useKeyboardShortcuts = () => {
-  const { canvas, setLastClickedPoint } = useEventGuiStore();
+  const { canvas, setLastClickedPoint, undo, redo } = useEventGuiStore();
   const { copySelectedObjects, cutSelectedObjects, pasteObjects } = useClipboardActions_default();
   useEffect(() => {
     if (!canvas) return;
@@ -1988,6 +2105,18 @@ var useKeyboardShortcuts = () => {
           case "v":
             e.preventDefault();
             pasteObjects();
+            break;
+          case "z":
+            e.preventDefault();
+            if (e.shiftKey) {
+              redo();
+            } else {
+              undo();
+            }
+            break;
+          case "y":
+            e.preventDefault();
+            redo();
             break;
         }
       }
@@ -2007,14 +2136,157 @@ var useKeyboardShortcuts = () => {
     copySelectedObjects,
     cutSelectedObjects,
     pasteObjects,
-    setLastClickedPoint
+    setLastClickedPoint,
+    undo,
+    redo
   ]);
 };
 var useKeyboardShortcuts_default = useKeyboardShortcuts;
+var SNAP_THRESHOLD = 10;
+function getSnapPoints(obj) {
+  var _a, _b, _c, _d, _e, _f;
+  const left = (_a = obj.left) != null ? _a : 0;
+  const top = (_b = obj.top) != null ? _b : 0;
+  const width = ((_c = obj.width) != null ? _c : 0) * ((_d = obj.scaleX) != null ? _d : 1);
+  const height = ((_e = obj.height) != null ? _e : 0) * ((_f = obj.scaleY) != null ? _f : 1);
+  return {
+    left,
+    right: left + width,
+    top,
+    bottom: top + height,
+    centerX: left + width / 2,
+    centerY: top + height / 2
+  };
+}
+function useSmartSnap(canvas, snapEnabled) {
+  const guideLines = useRef([]);
+  useEffect(() => {
+    if (!canvas || !snapEnabled) return;
+    function clearGuides() {
+      guideLines.current.forEach((line) => canvas.remove(line));
+      guideLines.current = [];
+    }
+    const handleMoving = (e) => {
+      var _a, _b;
+      clearGuides();
+      const moving = e.target;
+      if (!moving) return;
+      const movingPoints = getSnapPoints(moving);
+      let snapX = (_a = moving.left) != null ? _a : 0;
+      let snapY = (_b = moving.top) != null ? _b : 0;
+      let snappedX = false;
+      let snappedY = false;
+      const others = canvas.getObjects().filter((obj) => obj !== moving && obj.selectable !== false);
+      for (const obj of others) {
+        const pts = getSnapPoints(obj);
+        [pts.left, pts.centerX, pts.right].forEach((x) => {
+          var _a2, _b2, _c, _d, _e, _f, _g;
+          if (Math.abs(movingPoints.left - x) < SNAP_THRESHOLD) {
+            snapX = x;
+            snappedX = true;
+            const line = new fabric.Line([x, 0, x, (_a2 = canvas.height) != null ? _a2 : 1e3], {
+              stroke: "rgba(0,0,255,0.5)",
+              selectable: false,
+              evented: false,
+              strokeDashArray: [4, 4],
+              excludeFromExport: true
+            });
+            canvas.add(line);
+            guideLines.current.push(line);
+          }
+          if (Math.abs(movingPoints.centerX - x) < SNAP_THRESHOLD) {
+            snapX = x - ((_b2 = moving.width) != null ? _b2 : 0) * ((_c = moving.scaleX) != null ? _c : 1) / 2;
+            snappedX = true;
+            const line = new fabric.Line([x, 0, x, (_d = canvas.height) != null ? _d : 1e3], {
+              stroke: "rgba(0,0,255,0.5)",
+              selectable: false,
+              evented: false,
+              strokeDashArray: [4, 4],
+              excludeFromExport: true
+            });
+            canvas.add(line);
+            guideLines.current.push(line);
+          }
+          if (Math.abs(movingPoints.right - x) < SNAP_THRESHOLD) {
+            snapX = x - ((_e = moving.width) != null ? _e : 0) * ((_f = moving.scaleX) != null ? _f : 1);
+            snappedX = true;
+            const line = new fabric.Line([x, 0, x, (_g = canvas.height) != null ? _g : 1e3], {
+              stroke: "rgba(0,0,255,0.5)",
+              selectable: false,
+              evented: false,
+              strokeDashArray: [4, 4],
+              excludeFromExport: true
+            });
+            canvas.add(line);
+            guideLines.current.push(line);
+          }
+        });
+        [pts.top, pts.centerY, pts.bottom].forEach((y) => {
+          var _a2, _b2, _c, _d, _e, _f, _g;
+          if (Math.abs(movingPoints.top - y) < SNAP_THRESHOLD) {
+            snapY = y;
+            snappedY = true;
+            const line = new fabric.Line([0, y, (_a2 = canvas.width) != null ? _a2 : 1e3, y], {
+              stroke: "rgba(0,0,255,0.5)",
+              selectable: false,
+              evented: false,
+              strokeDashArray: [4, 4],
+              excludeFromExport: true
+            });
+            canvas.add(line);
+            guideLines.current.push(line);
+          }
+          if (Math.abs(movingPoints.centerY - y) < SNAP_THRESHOLD) {
+            snapY = y - ((_b2 = moving.height) != null ? _b2 : 0) * ((_c = moving.scaleY) != null ? _c : 1) / 2;
+            snappedY = true;
+            const line = new fabric.Line([0, y, (_d = canvas.width) != null ? _d : 1e3, y], {
+              stroke: "rgba(0,0,255,0.5)",
+              selectable: false,
+              evented: false,
+              strokeDashArray: [4, 4],
+              excludeFromExport: true
+            });
+            canvas.add(line);
+            guideLines.current.push(line);
+          }
+          if (Math.abs(movingPoints.bottom - y) < SNAP_THRESHOLD) {
+            snapY = y - ((_e = moving.height) != null ? _e : 0) * ((_f = moving.scaleY) != null ? _f : 1);
+            snappedY = true;
+            const line = new fabric.Line([0, y, (_g = canvas.width) != null ? _g : 1e3, y], {
+              stroke: "rgba(0,0,255,0.5)",
+              selectable: false,
+              evented: false,
+              strokeDashArray: [4, 4],
+              excludeFromExport: true
+            });
+            canvas.add(line);
+            guideLines.current.push(line);
+          }
+        });
+      }
+      if (snappedX) moving.set({ left: snapX });
+      if (snappedY) moving.set({ top: snapY });
+      canvas.requestRenderAll();
+    };
+    const handleModified = () => {
+      clearGuides();
+      canvas.requestRenderAll();
+    };
+    canvas.on("object:moving", handleMoving);
+    canvas.on("object:modified", handleModified);
+    canvas.on("mouse:up", handleModified);
+    return () => {
+      canvas.off("object:moving", handleMoving);
+      canvas.off("object:modified", handleModified);
+      canvas.off("mouse:up", handleModified);
+      clearGuides();
+    };
+  }, [canvas, snapEnabled]);
+}
 var SeatCanvas = ({ className }) => {
   const canvasRef = useRef(null);
   const canvasParent = useRef(null);
-  const { canvas, setCanvas, toolMode, setToolMode, toolAction } = useEventGuiStore();
+  const { canvas, setCanvas, toolMode, setToolMode, toolAction, snapEnabled } = useEventGuiStore();
   useCanvasSetup_default(canvasRef, canvasParent, setCanvas);
   useSelectionHandler_default(canvas);
   useMultipleSeatCreator_default(canvas, toolMode, setToolMode);
@@ -2022,6 +2294,7 @@ var SeatCanvas = ({ className }) => {
   useObjectCreator_default(canvas, toolMode, setToolMode);
   useUndoRedo_default();
   useKeyboardShortcuts_default();
+  useSmartSnap(canvas, snapEnabled);
   return /* @__PURE__ */ jsxs("div", { className: `relative size-full bg-gray-200 ${className}`, children: [
     /* @__PURE__ */ jsx(toolbar_default, {}),
     /* @__PURE__ */ jsxs("div", { className: "flex w-full justify-between", children: [

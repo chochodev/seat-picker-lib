@@ -58,18 +58,18 @@ const TextProperties: React.FC<TextPropertiesProps> = ({
         type="text"
         value={properties.text}
         onChange={(e) => updateObject({ text: e.target.value })}
-        className="mt-1 w-full rounded-md border px-2 py-1"
+        className="mt-1 w-full rounded-md border border-solid border-gray-300 px-2 py-1"
       />
     </div>
     <div>
       <label className="block text-sm font-medium text-gray-700">
         Font Size
       </label>
-      <div className="mt-1 flex items-center">
+      <div className="mt-1 flex gap-1 items-center">
         <button
-          className="rounded-l-md bg-gray-200 px-2 py-1"
+          className="flex h-6 w-6 items-center justify-center rounded border border-solid border-gray-200 text-xs transition-colors hover:bg-gray-100"
           onClick={() =>
-            updateObject({ fontSize: toFloat(properties.fontSize) - 1 })
+            updateObject({ fontSize: Number(toFloat(properties.fontSize)) - 1 })
           }
         >
           -
@@ -78,12 +78,12 @@ const TextProperties: React.FC<TextPropertiesProps> = ({
           type="number"
           value={toFloat(properties.fontSize)}
           onChange={(e) => updateObject({ fontSize: Number(e.target.value) })}
-          className="w-full border-b border-t px-2 py-1 text-center shadow-sm"
+          className="w-12 rounded border border-solid border-gray-200 bg-white px-1 py-0.5 text-center text-xs [appearance:textfield] focus:outline-none focus:ring-1 focus:ring-gray-500 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
         />
         <button
-          className="rounded-r-md bg-gray-200 px-2 py-1"
+          className="flex h-6 w-6 items-center justify-center rounded border border-solid border-gray-200 text-xs transition-colors hover:bg-gray-100"
           onClick={() =>
-            updateObject({ fontSize: toFloat(properties.fontSize) + 1 })
+            updateObject({ fontSize: Number(toFloat(properties.fontSize)) + 1 })
           }
         >
           +
