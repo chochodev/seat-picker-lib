@@ -13,6 +13,7 @@ A flexible and customizable seating arrangement GUI component for React applicat
 - TypeScript support
 - Fully customizable styling
 - **Customer-facing seat viewer with drag & drop upload and purchase modal**
+- **Reusable SeatLayoutRenderer component for programmatic read-only rendering**
 
 ## Installation
 
@@ -48,7 +49,7 @@ function App() {
 - Use the toolbar in the editor to **export** your seat layout as a JSON file.
 - You can later **import** this file to restore or edit the layout.
 
-## Customer-Facing Seat Viewer
+## Customer-Facing Seat Viewer (with Upload)
 
 A dedicated, safe page for customers to view and purchase seats. This page is read-only and does not allow editing.
 
@@ -79,29 +80,32 @@ A dedicated, safe page for customers to view and purchase seats. This page is re
 
 ## Rendering a Saved Layout (Read-Only)
 
-You can render a saved seat layout in read-only mode using the provided `CustomerSeatCanvas` component. This is ideal for customer-facing pages where you want to display a seat map and allow seat selection/purchase, but prevent editing.
+You can render a saved seat layout in read-only mode using the provided `SeatLayoutRenderer` component. This is ideal for customer-facing pages or embeddable widgets where you want to display a seat map and allow seat selection/purchase, but prevent editing or uploading.
 
 ### Example
 
 ```tsx
-import CustomerSeatCanvas from './pages/CustomerSeatCanvas';
+import { SeatLayoutRenderer } from 'seat-picker';
 
-// Optionally, you can pass a JSON layout directly (see below)
-function CustomerView() {
-  return <CustomerSeatCanvas />;
+// seatLayoutJson is the JSON object exported from the editor
+function CustomerView({ seatLayoutJson }) {
+  return (
+    <SeatLayoutRenderer layout={seatLayoutJson} width={800} height={600} />
+  );
 }
 ```
 
-- By default, the component allows users to upload a seat layout JSON file via drag & drop or file picker.
-- If you want to render a layout programmatically (without upload), you can extend the component to accept a `layout` prop and load it automatically.
+- The `layout` prop is required and should be the JSON object exported from the admin/editor.
+- The `width` and `height` props are optional (default: 800x600).
+- The component is fully read-only: seats and objects are not editable or selectable, but clicking a seat opens a modal with details and purchase options.
 
 ### Features
 
 - **Read-only:** Seats and objects are not editable or selectable.
 - **Seat details modal:** Clicking a seat opens a modal with details and purchase options.
-- **Drag & drop or file picker:** Users can upload a layout file exported from the admin/editor.
+- **No upload UI:** Use this component when you want to render a layout programmatically.
 
-## Props
+## Props (SeatPicker)
 
 | Prop         | Type                    | Default   | Description                      |
 | ------------ | ----------------------- | --------- | -------------------------------- |
@@ -113,6 +117,14 @@ function CustomerView() {
 | onZoneChange | (zones: Zone[]) => void | undefined | Callback when zones change       |
 | className    | string                  | undefined | Additional CSS class name        |
 | style        | React.CSSProperties     | undefined | Additional inline styles         |
+
+## Props (SeatLayoutRenderer)
+
+| Prop   | Type   | Default | Description                                   |
+| ------ | ------ | ------- | --------------------------------------------- |
+| layout | object | —       | The seat layout JSON exported from the editor |
+| width  | number | 800     | Canvas width in pixels                        |
+| height | number | 600     | Canvas height in pixels                       |
 
 ## Contributing
 
