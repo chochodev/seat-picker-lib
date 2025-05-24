@@ -1,4 +1,3 @@
-// import '../fabricCustomRegistration';
 import { useEffect } from 'react';
 import { fabric } from 'fabric';
 import { createSeat } from '../components/createObject';
@@ -8,7 +7,9 @@ const useCanvasSetup = (
   canvasParent: React.RefObject<HTMLDivElement>,
   setCanvas: (c: fabric.Canvas) => void,
   width: number = 1000,
-  height: number = 1000
+  height: number = 1000,
+  backgroundColor: string = '#f8fafc',
+  allowSelection: boolean = true
 ) => {
   useEffect(() => {
     if (!canvasRef.current || !canvasParent.current) return;
@@ -16,8 +17,8 @@ const useCanvasSetup = (
     const c = new fabric.Canvas(canvasRef.current, {
       width,
       height,
-      backgroundColor: '#f8fafc',
-      selection: false,
+      backgroundColor,
+      selection: allowSelection,
     });
     setCanvas(c);
 
