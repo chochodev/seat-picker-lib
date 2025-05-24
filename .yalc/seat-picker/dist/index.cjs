@@ -2209,17 +2209,22 @@ function getNextSeatNumber(canvas) {
 }
 
 // src/hooks/useCanvasSetup.ts
-var useCanvasSetup = (canvasRef, canvasParent, setCanvas) => {
+var useCanvasSetup = (canvasRef, canvasParent, setCanvas, width, height) => {
   React.useEffect(() => {
     if (!canvasRef.current || !canvasParent.current) return;
-    const newCanvas = new fabric.fabric.Canvas(canvasRef.current);
-    setCanvas(newCanvas);
+    const c = new fabric.fabric.Canvas(canvasRef.current, {
+      width,
+      height,
+      backgroundColor: "#f8fafc",
+      selection: false
+    });
+    setCanvas(c);
     const resizeCanvas = () => {
       if (canvasParent.current) {
         const parent = canvasParent.current;
         if (parent) {
-          const { width, height } = parent.getBoundingClientRect();
-          newCanvas.setDimensions({ width, height }, { cssOnly: false });
+          const { width: width2, height: height2 } = parent.getBoundingClientRect();
+          c.setDimensions({ width: width2, height: height2 }, { cssOnly: false });
         }
       }
     };
@@ -2227,10 +2232,10 @@ var useCanvasSetup = (canvasRef, canvasParent, setCanvas) => {
     window.addEventListener("resize", resizeCanvas);
     const seat = createSeat(100, 100);
     seat.angle = 45;
-    newCanvas.on("object:moving", (event) => {
+    c.on("object:moving", (event) => {
       var _a, _b;
       const obj = event.target;
-      const { width: canvasWidth, height: canvasHeight } = newCanvas;
+      const { width: canvasWidth, height: canvasHeight } = c;
       if (obj) {
         obj.setCoords();
         const rect = obj.getBoundingRect();
@@ -2252,7 +2257,7 @@ var useCanvasSetup = (canvasRef, canvasParent, setCanvas) => {
         }
       }
     });
-    newCanvas.on("selection:created", (event) => {
+    c.on("selection:created", (event) => {
       const objs = event.selected || (event.target ? [event.target] : []);
       objs.forEach((obj) => {
         if (typeof obj.type === "string" && ["rect", "circle", "i-text"].includes(obj.type)) {
@@ -2260,8 +2265,8 @@ var useCanvasSetup = (canvasRef, canvasParent, setCanvas) => {
         }
       });
     });
-    newCanvas.on("after:render", () => {
-      newCanvas.getObjects().forEach((obj) => {
+    c.on("after:render", () => {
+      c.getObjects().forEach((obj) => {
         if (typeof obj.type === "string" && ["rect", "circle", "i-text"].includes(obj.type)) {
           obj.strokeUniform = true;
         }
@@ -2269,9 +2274,9 @@ var useCanvasSetup = (canvasRef, canvasParent, setCanvas) => {
     });
     return () => {
       window.removeEventListener("resize", resizeCanvas);
-      newCanvas.dispose();
+      c.dispose();
     };
-  }, [canvasRef, canvasParent, setCanvas]);
+  }, [canvasRef, canvasParent, setCanvas, width, height]);
 };
 var useCanvasSetup_default = useCanvasSetup;
 var useSelectionHandler = (canvas) => {
@@ -2644,54 +2649,111 @@ function useSmartSnap(canvas, snapEnabled) {
     };
   }, [canvas, snapEnabled]);
 }
-var SeatCanvas = ({
-  className,
+var defaultStyle = {
+  width: 800,
+  height: 600,
+  backgroundColor: "#f8fafc",
+  showSeatNumbers: true,
+  seatNumberStyle: {
+    fontSize: 14,
+    fill: "#222",
+    fontWeight: "bold",
+    fontFamily: "Arial"
+  },
+  seatStyle: {
+    fill: "transparent",
+    stroke: "black",
+    strokeWidth: 1,
+    radius: 10
+  }
+};
+var defaultLabels = {
+  buyButton: "Buy Seat",
+  cancelButton: "Cancel",
+  seatNumber: "Seat Number",
+  category: "Category",
+  price: "Price",
+  status: "Status"
+};
+var SeatPicker = ({
+  className = "",
   onChange,
   onSave,
   layout,
-  readOnly = false
+  readOnly = false,
+  style = {},
+  renderToolbar,
+  renderSidebar,
+  renderSeatDetails,
+  onSeatClick,
+  onSeatAction,
+  labels = {}
 }) => {
   const canvasRef = React.useRef(null);
   const canvasParent = React.useRef(null);
   const { canvas, setCanvas, toolMode, setToolMode, toolAction, snapEnabled } = useEventGuiStore();
   const [selectedSeat, setSelectedSeat] = React.useState(null);
-  useCanvasSetup_default(canvasRef, canvasParent, setCanvas);
+  const mergedStyle = {
+    ...defaultStyle,
+    ...style,
+    seatNumberStyle: {
+      ...defaultStyle.seatNumberStyle,
+      ...style.seatNumberStyle
+    },
+    seatStyle: {
+      ...defaultStyle.seatStyle,
+      ...style.seatStyle
+    }
+  };
+  const mergedLabels = {
+    ...defaultLabels,
+    ...labels
+  };
+  useCanvasSetup_default(
+    canvasRef,
+    canvasParent,
+    setCanvas,
+    mergedStyle.width,
+    mergedStyle.height
+  );
   useSelectionHandler_default(canvas);
   useMultipleSeatCreator_default(canvas, toolMode, setToolMode);
   useObjectDeletion_default(canvas, toolAction);
   useObjectCreator_default(canvas, toolMode, setToolMode);
-  useUndoRedo_default();
-  useKeyboardShortcuts_default(onSave);
-  useSmartSnap(canvas, snapEnabled);
+  if (!readOnly) {
+    useUndoRedo_default();
+    useKeyboardShortcuts_default(onSave);
+    useSmartSnap(canvas, snapEnabled);
+  }
   React.useEffect(() => {
     if (!canvas || !layout) return;
     canvas.clear();
     canvas.loadFromJSON(layout, () => {
       if (readOnly) {
-        canvas.getObjects("circle").forEach((seat) => {
-          var _a, _b, _c, _d, _e, _f, _g;
-          if (seat.labelObj) {
-            canvas.remove(seat.labelObj);
-            seat.labelObj = null;
-          }
-          const label = new fabric.fabric.Text(
-            ((_b = (_a = seat.attributes) == null ? void 0 : _a.number) == null ? void 0 : _b.toString()) || ((_c = seat.seatNumber) == null ? void 0 : _c.toString()) || "",
-            {
-              left: ((_d = seat.left) != null ? _d : 0) + ((_e = seat.radius) != null ? _e : 0),
-              top: ((_f = seat.top) != null ? _f : 0) + ((_g = seat.radius) != null ? _g : 0),
-              fontSize: 14,
-              fill: "#222",
-              originX: "center",
-              originY: "center",
-              selectable: false,
-              evented: false,
-              fontWeight: "bold"
+        if (mergedStyle.showSeatNumbers) {
+          canvas.getObjects("circle").forEach((seat) => {
+            var _a, _b, _c, _d, _e, _f, _g;
+            if (seat.labelObj) {
+              canvas.remove(seat.labelObj);
+              seat.labelObj = null;
             }
-          );
-          seat.labelObj = label;
-          canvas.add(label);
-          canvas.bringToFront(label);
-        });
+            const label = new fabric.fabric.Text(
+              ((_b = (_a = seat.attributes) == null ? void 0 : _a.number) == null ? void 0 : _b.toString()) || ((_c = seat.seatNumber) == null ? void 0 : _c.toString()) || "",
+              {
+                left: ((_d = seat.left) != null ? _d : 0) + ((_e = seat.radius) != null ? _e : mergedStyle.seatStyle.radius),
+                top: ((_f = seat.top) != null ? _f : 0) + ((_g = seat.radius) != null ? _g : mergedStyle.seatStyle.radius),
+                ...mergedStyle.seatNumberStyle,
+                originX: "center",
+                originY: "center",
+                selectable: false,
+                evented: false
+              }
+            );
+            seat.labelObj = label;
+            canvas.add(label);
+            canvas.bringToFront(label);
+          });
+        }
         canvas.getObjects().forEach((obj) => {
           obj.selectable = false;
           obj.evented = obj.type === "circle";
@@ -2701,7 +2763,7 @@ var SeatCanvas = ({
           var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k, _l, _m, _n, _o, _p, _q, _r, _s, _t, _u;
           if (!options.target || options.target.type !== "circle") return;
           const seat = options.target;
-          setSelectedSeat({
+          const seatData = {
             number: (_c = (_b = (_a = seat.attributes) == null ? void 0 : _a.number) != null ? _b : seat.seatNumber) != null ? _c : "",
             price: (_f = (_e = (_d = seat.attributes) == null ? void 0 : _d.price) != null ? _e : seat.price) != null ? _f : "",
             category: (_i = (_h = (_g = seat.attributes) == null ? void 0 : _g.category) != null ? _h : seat.category) != null ? _i : "",
@@ -2709,12 +2771,17 @@ var SeatCanvas = ({
             currencySymbol: (_o = (_n = (_m = seat.attributes) == null ? void 0 : _m.currencySymbol) != null ? _n : seat.currencySymbol) != null ? _o : "",
             currencyCode: (_r = (_q = (_p = seat.attributes) == null ? void 0 : _p.currencyCode) != null ? _q : seat.currencyCode) != null ? _r : "",
             currencyCountry: (_u = (_t = (_s = seat.attributes) == null ? void 0 : _s.currencyCountry) != null ? _t : seat.currencyCountry) != null ? _u : ""
-          });
+          };
+          if (onSeatClick) {
+            onSeatClick(seatData);
+          } else {
+            setSelectedSeat(seatData);
+          }
         });
       }
       canvas.renderAll();
     });
-  }, [canvas, layout, readOnly]);
+  }, [canvas, layout, readOnly, mergedStyle, onSeatClick]);
   React.useEffect(() => {
     if (!canvas || readOnly) return;
     const handleCanvasChange = () => {
@@ -2748,80 +2815,93 @@ var SeatCanvas = ({
       });
     };
   }, [canvas, onChange, readOnly]);
-  const handleBuy = () => {
-    setSelectedSeat(null);
+  const handleSeatAction = (action) => {
+    if (selectedSeat) {
+      if (onSeatAction) {
+        onSeatAction(action, selectedSeat);
+      }
+      setSelectedSeat(null);
+    }
   };
-  return /* @__PURE__ */ jsxRuntime.jsxs("div", { className: `relative size-full bg-gray-200 ${className}`, children: [
-    !readOnly && /* @__PURE__ */ jsxRuntime.jsx(toolbar_default, { onSave }),
-    /* @__PURE__ */ jsxRuntime.jsxs("div", { className: "flex w-full justify-between", children: [
+  const defaultSeatDetails = /* @__PURE__ */ jsxRuntime.jsx(
+    Modal_default,
+    {
+      open: !!selectedSeat,
+      onClose: () => setSelectedSeat(null),
+      title: "Seat Details",
+      children: selectedSeat && /* @__PURE__ */ jsxRuntime.jsxs("div", { className: "space-y-4", children: [
+        /* @__PURE__ */ jsxRuntime.jsxs("div", { className: "grid grid-cols-2 gap-4", children: [
+          /* @__PURE__ */ jsxRuntime.jsxs("div", { children: [
+            /* @__PURE__ */ jsxRuntime.jsx("label", { className: "text-sm font-medium text-gray-600", children: mergedLabels.seatNumber }),
+            /* @__PURE__ */ jsxRuntime.jsx("p", { className: "text-lg font-semibold", children: selectedSeat.number })
+          ] }),
+          /* @__PURE__ */ jsxRuntime.jsxs("div", { children: [
+            /* @__PURE__ */ jsxRuntime.jsx("label", { className: "text-sm font-medium text-gray-600", children: mergedLabels.category }),
+            /* @__PURE__ */ jsxRuntime.jsx("p", { className: "text-lg font-semibold", children: selectedSeat.category })
+          ] }),
+          /* @__PURE__ */ jsxRuntime.jsxs("div", { children: [
+            /* @__PURE__ */ jsxRuntime.jsx("label", { className: "text-sm font-medium text-gray-600", children: mergedLabels.price }),
+            /* @__PURE__ */ jsxRuntime.jsxs("p", { className: "text-lg font-semibold", children: [
+              selectedSeat.currencySymbol,
+              selectedSeat.price,
+              " ",
+              /* @__PURE__ */ jsxRuntime.jsxs("span", { className: "text-sm text-gray-500", children: [
+                "(",
+                selectedSeat.currencyCode,
+                ")"
+              ] })
+            ] })
+          ] }),
+          /* @__PURE__ */ jsxRuntime.jsxs("div", { children: [
+            /* @__PURE__ */ jsxRuntime.jsx("label", { className: "text-sm font-medium text-gray-600", children: mergedLabels.status }),
+            /* @__PURE__ */ jsxRuntime.jsx("p", { className: "text-lg font-semibold", children: selectedSeat.status })
+          ] })
+        ] }),
+        /* @__PURE__ */ jsxRuntime.jsxs("div", { className: "mt-6 flex gap-3", children: [
+          /* @__PURE__ */ jsxRuntime.jsx(
+            "button",
+            {
+              onClick: () => handleSeatAction("buy"),
+              className: "flex-1 rounded-md bg-gray-700 px-4 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-gray-400",
+              children: mergedLabels.buyButton
+            }
+          ),
+          /* @__PURE__ */ jsxRuntime.jsx(
+            "button",
+            {
+              onClick: () => setSelectedSeat(null),
+              className: "flex-1 rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700 shadow-sm transition-colors hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-400",
+              children: mergedLabels.cancelButton
+            }
+          )
+        ] })
+      ] })
+    }
+  );
+  return /* @__PURE__ */ jsxRuntime.jsxs("div", { className: `relative h-full w-full bg-gray-200 ${className}`, children: [
+    !readOnly && (renderToolbar ? renderToolbar({ onSave: onSave || (() => {
+    }) }) : /* @__PURE__ */ jsxRuntime.jsx(toolbar_default, { onSave: onSave || (() => {
+    }) })),
+    /* @__PURE__ */ jsxRuntime.jsxs("div", { className: "flex h-full w-full justify-between", children: [
       /* @__PURE__ */ jsxRuntime.jsx(
         "div",
         {
-          className: "mx-auto w-full max-w-[45rem] bg-gray-100",
+          className: "mx-auto h-full w-full max-w-[45rem] bg-gray-100",
           ref: canvasParent,
+          style: { width: mergedStyle.width, height: mergedStyle.height },
           children: /* @__PURE__ */ jsxRuntime.jsx("canvas", { ref: canvasRef })
         }
       ),
-      !readOnly && /* @__PURE__ */ jsxRuntime.jsx(sidebar_default, {})
+      !readOnly && (renderSidebar ? renderSidebar() : /* @__PURE__ */ jsxRuntime.jsx(sidebar_default, {}))
     ] }),
-    /* @__PURE__ */ jsxRuntime.jsx(
-      Modal_default,
-      {
-        open: !!selectedSeat,
-        onClose: () => setSelectedSeat(null),
-        title: "Seat Details",
-        children: selectedSeat && /* @__PURE__ */ jsxRuntime.jsxs("div", { className: "space-y-4", children: [
-          /* @__PURE__ */ jsxRuntime.jsxs("div", { className: "grid grid-cols-2 gap-4", children: [
-            /* @__PURE__ */ jsxRuntime.jsxs("div", { children: [
-              /* @__PURE__ */ jsxRuntime.jsx("label", { className: "text-sm font-medium text-gray-600", children: "Seat Number" }),
-              /* @__PURE__ */ jsxRuntime.jsx("p", { className: "text-lg font-semibold", children: selectedSeat.number })
-            ] }),
-            /* @__PURE__ */ jsxRuntime.jsxs("div", { children: [
-              /* @__PURE__ */ jsxRuntime.jsx("label", { className: "text-sm font-medium text-gray-600", children: "Category" }),
-              /* @__PURE__ */ jsxRuntime.jsx("p", { className: "text-lg font-semibold", children: selectedSeat.category })
-            ] }),
-            /* @__PURE__ */ jsxRuntime.jsxs("div", { children: [
-              /* @__PURE__ */ jsxRuntime.jsx("label", { className: "text-sm font-medium text-gray-600", children: "Price" }),
-              /* @__PURE__ */ jsxRuntime.jsxs("p", { className: "text-lg font-semibold", children: [
-                selectedSeat.currencySymbol,
-                selectedSeat.price,
-                " ",
-                /* @__PURE__ */ jsxRuntime.jsxs("span", { className: "text-sm text-gray-500", children: [
-                  "(",
-                  selectedSeat.currencyCode,
-                  ")"
-                ] })
-              ] })
-            ] }),
-            /* @__PURE__ */ jsxRuntime.jsxs("div", { children: [
-              /* @__PURE__ */ jsxRuntime.jsx("label", { className: "text-sm font-medium text-gray-600", children: "Status" }),
-              /* @__PURE__ */ jsxRuntime.jsx("p", { className: "text-lg font-semibold", children: selectedSeat.status })
-            ] })
-          ] }),
-          /* @__PURE__ */ jsxRuntime.jsxs("div", { className: "mt-6 flex gap-3", children: [
-            /* @__PURE__ */ jsxRuntime.jsx(
-              "button",
-              {
-                onClick: handleBuy,
-                className: "flex-1 rounded-md bg-gray-700 px-4 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-gray-400",
-                children: "Buy Seat"
-              }
-            ),
-            /* @__PURE__ */ jsxRuntime.jsx(
-              "button",
-              {
-                onClick: () => setSelectedSeat(null),
-                className: "flex-1 rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700 shadow-sm transition-colors hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-400",
-                children: "Cancel"
-              }
-            )
-          ] })
-        ] })
-      }
-    )
+    renderSeatDetails ? renderSeatDetails({
+      seat: selectedSeat,
+      onClose: () => setSelectedSeat(null),
+      onAction: handleSeatAction
+    }) : defaultSeatDetails
   ] });
 };
-var components_default = SeatCanvas;
+var components_default = SeatPicker;
 var SeatLayoutRenderer = ({
   layout,
   style = { width: 800, height: 600, backgroundColor: "#f8fafc" }

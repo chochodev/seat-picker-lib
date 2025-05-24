@@ -50,6 +50,7 @@
     "bundle": "npm run build && npm publish --access=public",
     "localbundleinit": "yalc run build && yalc add seat-picker",
     "localbundle": "npm run build && yalc push",
+    "update": "yalc update seat-picker",
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",

@@ -20,8 +20,8 @@ export default function Home() {
           element={
             <main className="min-h-screen w-full flex-col items-center ">
               <SeatPicker
-                onChange={handleChange}
-                onSave={handleSave}
+                // onChange={handleChange}
+                // onSave={handleSave}
                 className="w-full"
               />
             </main>

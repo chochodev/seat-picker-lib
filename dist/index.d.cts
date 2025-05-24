@@ -28,6 +28,7 @@ interface CanvasObject {
     background?: string;
     width?: number;
     height?: number;
+    [key: string]: any;
 }
 interface ObjectProperties {
     type: 'circle' | 'rect' | 'i-text' | 'path' | 'group';
@@ -95,12 +96,63 @@ type CanvasJsonCallback = (json: CanvasObject) => void;
 interface SeatCanvasProps {
     className?: string;
     onChange?: CanvasJsonCallback;
-    onSave?: CanvasJsonCallback;
+    onSave?: (json: CanvasObject) => void;
     layout?: CanvasObject;
     readOnly?: boolean;
+    style?: {
+        width?: number;
+        height?: number;
+        backgroundColor?: string;
+        showSeatNumbers?: boolean;
+        seatNumberStyle?: {
+            fontSize?: number;
+            fill?: string;
+            fontWeight?: string;
+            fontFamily?: string;
+        };
+        seatStyle?: {
+            fill?: string;
+            stroke?: string;
+            strokeWidth?: number;
+            radius?: number;
+        };
+    };
+    renderToolbar?: (props: {
+        onSave: (json: CanvasObject) => void;
+    }) => React.ReactNode;
+    renderSidebar?: () => React.ReactNode;
+    renderSeatDetails?: (props: {
+        seat: SeatData;
+        onClose: () => void;
+        onAction: (action: string) => void;
+    }) => React.ReactNode;
+    onSeatClick?: (seat: SeatData) => void;
+    onSeatAction?: (action: string, seat: SeatData) => void;
+    labels?: {
+        buyButton?: string;
+        cancelButton?: string;
+        seatNumber?: string;
+        category?: string;
+        price?: string;
+        status?: string;
+    };
+}
+interface SeatData {
+    number: string | number;
+    price: string | number;
+    category: string;
+    status: string;
+    currencySymbol: string;
+    currencyCode: string;
+    currencyCountry: string;
+}
+interface ZoneData {
+    name?: string;
+    description?: string;
+    [key: string]: any;
 }
 
-declare const SeatCanvas: React.FC<SeatCanvasProps>;
+declare const SeatPicker: React.FC<SeatCanvasProps>;
 
 interface SeatLayoutRendererProps {
     layout: any;
@@ -112,4 +164,4 @@ interface SeatLayoutRendererProps {
 }
 declare const SeatLayoutRenderer: React$1.FC<SeatLayoutRendererProps>;
 
-export { type CanvasJsonCallback, type CanvasObject, type CanvasObjectData, type SeatCanvasProps, SeatLayoutRenderer, SeatCanvas as SeatPicker };
+export { type CanvasJsonCallback, type CanvasObject, type CanvasObjectData, type CircleObject, type ObjectProperties, type RectangleObject, type SeatCanvasProps, type SeatData, SeatLayoutRenderer, SeatPicker, type TextObject, type ZoneData };

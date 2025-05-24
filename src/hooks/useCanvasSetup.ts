@@ -6,20 +6,27 @@ import { createSeat } from '../components/createObject';
 const useCanvasSetup = (
   canvasRef: React.RefObject<HTMLCanvasElement>,
   canvasParent: React.RefObject<HTMLDivElement>,
-  setCanvas: (canvas: fabric.Canvas) => void
+  setCanvas: (c: fabric.Canvas) => void,
+  width: number = 1000,
+  height: number = 1000
 ) => {
   useEffect(() => {
     if (!canvasRef.current || !canvasParent.current) return;
 
-    const newCanvas = new fabric.Canvas(canvasRef.current);
-    setCanvas(newCanvas);
+    const c = new fabric.Canvas(canvasRef.current, {
+      width,
+      height,
+      backgroundColor: '#f8fafc',
+      selection: false,
+    });
+    setCanvas(c);
 
     const resizeCanvas = () => {
       if (canvasParent.current) {
         const parent = canvasParent.current;
         if (parent) {
           const { width, height } = parent.getBoundingClientRect();
-          newCanvas.setDimensions({ width, height }, { cssOnly: false });
+          c.setDimensions({ width, height }, { cssOnly: false });
         }
       }
     };
@@ -29,11 +36,11 @@ const useCanvasSetup = (
 
     const seat = createSeat(100, 100);
     seat.angle = 45;
-    // newCanvas.add(seat);
+    // c.add(seat);
 
-    newCanvas.on('object:moving', (event) => {
+    c.on('object:moving', (event) => {
       const obj = event.target;
-      const { width: canvasWidth, height: canvasHeight } = newCanvas;
+      const { width: canvasWidth, height: canvasHeight } = c;
 
       if (obj) {
         obj.setCoords(); // Ensure bounding box is up to date
@@ -61,7 +68,7 @@ const useCanvasSetup = (
     });
 
     // Enforce strokeUniform: true for all supported objects on selection
-    newCanvas.on('selection:created', (event) => {
+    c.on('selection:created', (event) => {
       const objs = event.selected || (event.target ? [event.target] : []);
       objs.forEach((obj) => {
         if (
@@ -73,8 +80,8 @@ const useCanvasSetup = (
       });
     });
     // Also enforce after loading from JSON (if needed)
-    newCanvas.on('after:render', () => {
-      newCanvas.getObjects().forEach((obj) => {
+    c.on('after:render', () => {
+      c.getObjects().forEach((obj) => {
         if (
           typeof obj.type === 'string' &&
           ['rect', 'circle', 'i-text'].includes(obj.type)
@@ -86,9 +93,9 @@ const useCanvasSetup = (
 
     return () => {
       window.removeEventListener('resize', resizeCanvas);
-      newCanvas.dispose();
+      c.dispose();
     };
-  }, [canvasRef, canvasParent, setCanvas]);
+  }, [canvasRef, canvasParent, setCanvas, width, height]);
 };
 
 export default useCanvasSetup;

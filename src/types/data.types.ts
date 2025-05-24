@@ -8,6 +8,7 @@ export interface CanvasObject {
   background?: string;
   width?: number;
   height?: number;
+  [key: string]: any;
 }
 
 // Types for different object properties
@@ -89,10 +90,9 @@ export type CanvasJsonCallback = (json: CanvasObject) => void;
 export interface SeatCanvasProps {
   className?: string;
   onChange?: CanvasJsonCallback;
-  onSave?: CanvasJsonCallback;
+  onSave?: (json: CanvasObject) => void;
   layout?: CanvasObject;
   readOnly?: boolean;
-  // Customization props
   style?: {
     width?: number;
     height?: number;
@@ -101,7 +101,7 @@ export interface SeatCanvasProps {
     seatNumberStyle?: {
       fontSize?: number;
       fill?: string;
-      fontWeight?: string | number;
+      fontWeight?: string;
       fontFamily?: string;
     };
     seatStyle?: {
@@ -111,18 +111,17 @@ export interface SeatCanvasProps {
       radius?: number;
     };
   };
-  // Custom components
-  renderToolbar?: (props: { onSave?: CanvasJsonCallback }) => React.ReactNode;
+  renderToolbar?: (props: {
+    onSave: (json: CanvasObject) => void;
+  }) => React.ReactNode;
   renderSidebar?: () => React.ReactNode;
   renderSeatDetails?: (props: {
     seat: SeatData;
     onClose: () => void;
     onAction: (action: string) => void;
   }) => React.ReactNode;
-  // Custom handlers
   onSeatClick?: (seat: SeatData) => void;
   onSeatAction?: (action: string, seat: SeatData) => void;
-  // Custom labels
   labels?: {
     buyButton?: string;
     cancelButton?: string;
@@ -134,14 +133,13 @@ export interface SeatCanvasProps {
 }
 
 export interface SeatData {
-  number?: string;
-  price?: number;
-  category?: string;
-  status?: string;
-  currencySymbol?: string;
-  currencyCode?: string;
-  currencyCountry?: string;
-  [key: string]: any; // Allow custom properties
+  number: string | number;
+  price: string | number;
+  category: string;
+  status: string;
+  currencySymbol: string;
+  currencyCode: string;
+  currencyCountry: string;
 }
 
 export interface ZoneData {

@@ -1,41 +1,14 @@
-import React, { useRef, useState } from 'react';
-import { fabric } from 'fabric';
-import Modal from '@/components/ui/Modal';
-
-interface SeatDetails {
-  number: string | number;
-  price: string | number;
-  category: string;
-  status: string;
-  currencySymbol: string;
-  currencyCode: string;
-  currencyCountry: string;
-}
+import React from 'react';
+import { SeatPicker } from 'seat-picker';
+import type { CanvasObject, SeatData } from 'seat-picker';
 
 const CustomerSeatCanvas: React.FC = () => {
-  const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  const [canvas, setCanvas] = useState<fabric.Canvas | null>(null);
-  const [error, setError] = useState('');
-  const [fileName, setFileName] = useState('');
-  const [selectedSeat, setSelectedSeat] = useState<SeatDetails | null>(null);
-  const [isDragging, setIsDragging] = useState(false);
+  const [layout, setLayout] = React.useState<CanvasObject | null>(null);
+  const [error, setError] = React.useState('');
+  const [fileName, setFileName] = React.useState('');
+  const [isDragging, setIsDragging] = React.useState(false);
 
-  // Initialize Fabric canvas
-  React.useEffect(() => {
-    if (!canvasRef.current) return;
-    const c = new fabric.Canvas(canvasRef.current, {
-      width: 800,
-      height: 600,
-      backgroundColor: '#f8fafc',
-      selection: false,
-    });
-    setCanvas(c);
-    return () => {
-      c.dispose();
-    };
-  }, []);
-
-  // Handle file upload and render seats
+  // Handle file upload
   const handleFile = async (file: File) => {
     setError('');
     if (!file) return;
@@ -43,66 +16,13 @@ const CustomerSeatCanvas: React.FC = () => {
     try {
       const text = await file.text();
       const json = JSON.parse(text);
-      if (!canvas) return;
-      canvas.clear();
-      canvas.loadFromJSON(json, () => {
-        // Label each seat by number
-        canvas.getObjects('circle').forEach((seat: any) => {
-          // Remove any previous label
-          if (seat.labelObj) {
-            canvas.remove(seat.labelObj);
-            seat.labelObj = null;
-          }
-          const label = new fabric.Text(
-            seat.attributes?.number?.toString() ||
-              seat.seatNumber?.toString() ||
-              '',
-            {
-              left: (seat.left ?? 0) + (seat.radius ?? 0),
-              top: (seat.top ?? 0) + (seat.radius ?? 0),
-              fontSize: 14,
-              fill: '#222',
-              originX: 'center',
-              originY: 'center',
-              selectable: false,
-              evented: false,
-              fontWeight: 'bold',
-            }
-          );
-          seat.labelObj = label;
-          canvas.add(label);
-          canvas.bringToFront(label);
-        });
-
-        // Make all objects not selectable/editable, only seats (circles) are clickable
-        canvas.getObjects().forEach((obj: any) => {
-          obj.selectable = false;
-          obj.evented = obj.type === 'circle';
-        });
-        canvas.selection = false;
-
-        // Add click handler for seats
-        canvas.on('mouse:down', (options) => {
-          if (!options.target || options.target.type !== 'circle') return;
-
-          const seat = options.target as any;
-          setSelectedSeat({
-            number: seat.attributes?.number ?? seat.seatNumber ?? '',
-            price: seat.attributes?.price ?? seat.price ?? '',
-            category: seat.attributes?.category ?? seat.category ?? '',
-            status: seat.attributes?.status ?? seat.status ?? '',
-            currencySymbol:
-              seat.attributes?.currencySymbol ?? seat.currencySymbol ?? '',
-            currencyCode:
-              seat.attributes?.currencyCode ?? seat.currencyCode ?? '',
-            currencyCountry:
-              seat.attributes?.currencyCountry ?? seat.currencyCountry ?? '',
-          });
-        });
-
-        canvas.renderAll();
-      });
+      console.log('Loaded layout:', json);
+      if (!json.objects || !Array.isArray(json.objects)) {
+        throw new Error('Invalid seat layout format');
+      }
+      setLayout(json);
     } catch (err) {
+      console.error('Error loading file:', err);
       setError('Invalid or corrupt seat file.');
     }
   };
@@ -129,9 +49,9 @@ const CustomerSeatCanvas: React.FC = () => {
     if (file) handleFile(file);
   };
 
-  const handleBuy = () => {
-    // TODO: Implement buy functionality
-    setSelectedSeat(null);
+  const handleSeatAction = (action: string, seat: SeatData) => {
+    console.log('Action:', action, 'on seat:', seat);
+    // Implement your buy functionality here
   };
 
   return (
@@ -172,67 +92,46 @@ const CustomerSeatCanvas: React.FC = () => {
         </div>
         {error && <div className="mt-2 text-red-500">{error}</div>}
       </div>
-      <div className="rounded-lg border bg-white p-4 shadow">
-        <canvas ref={canvasRef} />
-      </div>
 
-      {/* Seat Details Modal */}
-      <Modal
-        open={!!selectedSeat}
-        onClose={() => setSelectedSeat(null)}
-        title="Seat Details"
-      >
-        {selectedSeat && (
-          <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="text-sm font-medium text-gray-600">
-                  Seat Number
-                </label>
-                <p className="text-lg font-semibold">{selectedSeat.number}</p>
-              </div>
-              <div>
-                <label className="text-sm font-medium text-gray-600">
-                  Category
-                </label>
-                <p className="text-lg font-semibold">{selectedSeat.category}</p>
-              </div>
-              <div>
-                <label className="text-sm font-medium text-gray-600">
-                  Price
-                </label>
-                <p className="text-lg font-semibold">
-                  {selectedSeat.currencySymbol}
-                  {selectedSeat.price}{' '}
-                  <span className="text-sm text-gray-500">
-                    ({selectedSeat.currencyCode})
-                  </span>
-                </p>
-              </div>
-              <div>
-                <label className="text-sm font-medium text-gray-600">
-                  Status
-                </label>
-                <p className="text-lg font-semibold">{selectedSeat.status}</p>
-              </div>
-            </div>
-            <div className="mt-6 flex gap-3">
-              <button
-                onClick={handleBuy}
-                className="flex-1 rounded-md bg-gray-700 px-4 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-gray-400"
-              >
-                Buy Seat
-              </button>
-              <button
-                onClick={() => setSelectedSeat(null)}
-                className="flex-1 rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700 shadow-sm transition-colors hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-400"
-              >
-                Cancel
-              </button>
-            </div>
+      {layout ? (
+        <SeatPicker
+          layout={layout}
+          readOnly
+          style={{
+            width: 800,
+            height: 600,
+            backgroundColor: '#f8fafc',
+            showSeatNumbers: true,
+            seatNumberStyle: {
+              fontSize: 14,
+              fill: '#222',
+              fontWeight: 'bold',
+            },
+            seatStyle: {
+              fill: 'transparent',
+              stroke: 'black',
+              strokeWidth: 1,
+              radius: 10,
+            },
+          }}
+          labels={{
+            buyButton: 'Buy Seat',
+            cancelButton: 'Cancel',
+            seatNumber: 'Seat Number',
+            category: 'Category',
+            price: 'Price',
+            status: 'Status',
+          }}
+          onSeatAction={handleSeatAction}
+          onChange={(json) => console.log('Layout changed:', json)}
+        />
+      ) : (
+        <div className="rounded-lg border bg-white p-4 shadow">
+          <div className="flex h-[600px] items-center justify-center text-gray-500">
+            Please upload a seat layout file
           </div>
-        )}
-      </Modal>
+        </div>
+      )}
     </div>
   );
 };
