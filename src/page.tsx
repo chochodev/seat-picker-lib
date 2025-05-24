@@ -6,7 +6,6 @@ export default function Home() {
   return (
     <Router>
       <Routes>
-        {/* ...other routes */}
         <Route
           index
           element={

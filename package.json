@@ -1,7 +1,7 @@
 {
   "name": "seat-picker",
   "private": false,
-  "version": "0.0.5",
+  "version": "0.0.7",
   "main": "./dist/index.js",
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -48,7 +48,7 @@
     "preview": "vite preview",
     "publish": "npm publish --access=public",
     "bundle": "npm run build && npm publish --access=public",
-    "localbundleinit": "yalc publish && yalc add seat-picker",
+    "localbundleinit": "yalc run build && yalc add seat-picker",
     "localbundle": "npm run build && yalc push",
     "test": "jest",
     "test:watch": "jest --watch",

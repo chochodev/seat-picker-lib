@@ -1,8 +1,8 @@
-import React, { useRef, useEffect, useCallback, useState } from 'react';
+import React, { useRef, useEffect, useState, useCallback } from 'react';
 import { create } from 'zustand';
 import { fabric } from 'fabric';
 import { v4 } from 'uuid';
-import { LuFile, LuFolderOpen, LuSave, LuMousePointer, LuGrid2X2, LuLayoutDashboard, LuPlus, LuUndo, LuRedo, LuScissors, LuCopy, LuClipboardCheck, LuTrash2, LuZoomOut, LuZoomIn, LuLock } from 'react-icons/lu';
+import { LuFolderOpen, LuSave, LuDownload, LuMousePointer, LuGrid2X2, LuLayoutDashboard, LuPlus, LuUndo, LuRedo, LuScissors, LuCopy, LuClipboardCheck, LuTrash2, LuZoomOut, LuZoomIn, LuLock, LuX } from 'react-icons/lu';
 import { RiText, RiShapeLine, RiApps2AddLine, RiLockUnlockLine } from 'react-icons/ri';
 import { jsxs, jsx, Fragment } from 'react/jsx-runtime';
 
@@ -317,7 +317,142 @@ function useLockSelection(canvas) {
   }, [canvas]);
   return { isSelectionLocked, toggleLockSelection, selectionVersion };
 }
-var Toolbar = () => {
+var Modal = ({ open, onClose, title, children }) => {
+  if (!open) return null;
+  return /* @__PURE__ */ jsx("div", { className: "fixed inset-0 z-50 flex items-center justify-center bg-black/30", children: /* @__PURE__ */ jsxs("div", { className: "min-w-[320px] max-w-[90vw] rounded-lg bg-white p-6 shadow-lg", children: [
+    title && /* @__PURE__ */ jsx("h2", { className: "mb-4 text-lg font-semibold", children: title }),
+    children,
+    /* @__PURE__ */ jsx(
+      "button",
+      {
+        className: "mt-4 rounded border border-solid border-gray-300 w-full bg-gray-200 px-4 py-1 text-sm hover:bg-gray-300",
+        onClick: onClose,
+        children: "Cancel"
+      }
+    )
+  ] }) });
+};
+var Modal_default = Modal;
+var ExportModal = ({ open, onClose, fileName, setFileName, onExport }) => /* @__PURE__ */ jsx(Modal_default, { open, onClose, title: "Export as JSON", children: /* @__PURE__ */ jsxs("form", { onSubmit: onExport, className: "flex flex-col gap-4", children: [
+  /* @__PURE__ */ jsx("label", { className: "text-sm font-medium text-gray-700", children: "File Name" }),
+  /* @__PURE__ */ jsx(
+    "input",
+    {
+      type: "text",
+      value: fileName,
+      onChange: (e) => setFileName(e.target.value),
+      className: "rounded-md border border-gray-300 border-solid bg-gray-100 px-3 py-2 text-sm text-gray-800 focus:border-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-300",
+      placeholder: "seats.json",
+      required: true
+    }
+  ),
+  /* @__PURE__ */ jsx(
+    "button",
+    {
+      type: "submit",
+      className: "rounded-md bg-gray-700 px-4 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-gray-400",
+      children: "Export"
+    }
+  )
+] }) });
+var OpenFileModal = ({
+  open,
+  onClose,
+  file,
+  setFile,
+  error,
+  onFileChange,
+  onDrop,
+  onDragOver,
+  onSubmit
+}) => /* @__PURE__ */ jsx(
+  Modal_default,
+  {
+    open,
+    onClose: () => {
+      onClose();
+      setFile(null);
+    },
+    title: "Open Seating Arrangement",
+    children: /* @__PURE__ */ jsxs("form", { onSubmit, className: "flex flex-col gap-4", children: [
+      /* @__PURE__ */ jsx("label", { className: "text-sm font-medium text-gray-700", children: "Select or drag a JSON file" }),
+      /* @__PURE__ */ jsxs(
+        "div",
+        {
+          className: `flex flex-col items-center justify-center rounded-lg border-2 border-dashed ${error ? "border-red-400" : "border-gray-300"} bg-gray-100 px-6 py-8 transition-colors hover:bg-gray-200`,
+          onDrop,
+          onDragOver,
+          children: [
+            /* @__PURE__ */ jsx(
+              "input",
+              {
+                type: "file",
+                accept: "application/json,.json",
+                onChange: onFileChange,
+                className: "hidden",
+                id: "open-file-input"
+              }
+            ),
+            /* @__PURE__ */ jsx(
+              "label",
+              {
+                htmlFor: "open-file-input",
+                className: "cursor-pointer text-sm rounded-md bg-gray-700 px-4 py-2 text-white shadow-sm transition-colors hover:bg-gray-800",
+                children: file ? "Change File" : "Choose File"
+              }
+            ),
+            /* @__PURE__ */ jsx("span", { className: "mt-2 text-xs text-gray-500", children: "or drag and drop here" }),
+            file && /* @__PURE__ */ jsx("span", { className: "mt-2 text-sm font-medium text-gray-700", children: file.name }),
+            error && /* @__PURE__ */ jsx("span", { className: "mt-2 text-xs text-red-500", children: error })
+          ]
+        }
+      ),
+      /* @__PURE__ */ jsx(
+        "button",
+        {
+          type: "submit",
+          className: "rounded-md bg-gray-700 px-4 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-gray-800 disabled:bg-gray-300",
+          disabled: !file,
+          children: "Open"
+        }
+      )
+    ] })
+  }
+);
+var typeStyles = {
+  success: "bg-green-500/50 border-green-600",
+  error: "bg-red-600 text-white",
+  info: "bg-blue-600 text-white"
+};
+var Toast = ({
+  open,
+  message,
+  type = "info",
+  onClose
+}) => {
+  if (!open) return null;
+  return /* @__PURE__ */ jsxs(
+    "div",
+    {
+      className: `fixed bottom-6 left-1/2 z-[100] flex h-12 -translate-x-1/2 transform items-center justify-center rounded-md px-6 shadow-lg backdrop-blur-sm ${typeStyles[type]} border border-solid`,
+      role: "alert",
+      onClick: onClose,
+      children: [
+        /* @__PURE__ */ jsx("span", { children: message }),
+        /* @__PURE__ */ jsx(
+          "button",
+          {
+            className: "ease-250 ml-2 -mr-2 rounded border border-solid border-black/20 p-1 text-black/40 hover:border-black/40 hover:text-black/80 active:scale-110",
+            onClick: onClose,
+            children: /* @__PURE__ */ jsx(LuX, {})
+          }
+        )
+      ]
+    }
+  );
+};
+var Toast_default = Toast;
+var Toolbar = ({ onSave }) => {
   const {
     zoomLevel,
     setZoomLevel,
@@ -332,107 +467,188 @@ var Toolbar = () => {
   const { copySelectedObjects, cutSelectedObjects, pasteObjects } = useClipboardActions_default();
   const { undo, redo } = useUndoRedo_default();
   const { isSelectionLocked, toggleLockSelection } = useLockSelection(canvas);
+  const [showExportModal, setShowExportModal] = useState(false);
+  const [exportFileName, setExportFileName] = useState("seats.json");
+  const [showOpenModal, setShowOpenModal] = useState(false);
+  const [openFile, setOpenFile] = useState(null);
+  const [openFileError, setOpenFileError] = useState("");
+  const [showToast, setShowToast] = useState(false);
+  const [toastMsg, setToastMsg] = useState("");
+  const [toastType, setToastType] = useState(
+    "info"
+  );
+  const handleExport = (e) => {
+    e.preventDefault();
+    if (!canvas) return;
+    const json = JSON.stringify(canvas.toJSON());
+    const blob = new Blob([json], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = exportFileName.endsWith(".json") ? exportFileName : exportFileName + ".json";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    setShowExportModal(false);
+  };
   const toggleMultipleSeatMode = () => {
     setToolMode(toolMode === "multiple-seat" ? "select" : "multiple-seat");
   };
-  const buttonGroups = [
-    { icon: LuFile, tooltip: "New File", onClick: () => {
-    }, state: false },
-    {
-      icon: LuFolderOpen,
-      tooltip: "Open File",
-      onClick: () => {
-      },
-      state: false
-    },
-    { icon: LuSave, tooltip: "Save File", onClick: () => {
-    }, state: false },
-    {
-      icon: LuMousePointer,
-      tooltip: "Select",
-      onClick: () => {
-        setToolMode("select");
-      },
-      state: toolMode === "select"
-    },
-    {
-      icon: LuGrid2X2,
-      tooltip: snapEnabled ? "Smart Snap On" : "Smart Snap Off",
-      onClick: () => setSnapEnabled(!snapEnabled),
-      state: snapEnabled
-    },
-    {
-      icon: LuLayoutDashboard,
-      tooltip: "Layout View",
-      onClick: () => {
-      },
-      state: false
-    },
-    {
-      icon: RiText,
-      tooltip: "Add Text",
-      onClick: () => {
-        setToolMode("text");
-      },
-      state: toolMode === "text"
-    },
-    {
-      icon: RiShapeLine,
-      tooltip: "Add Square",
-      onClick: () => {
-        setToolMode("shape-square");
-      },
-      state: toolMode === "shape-square"
-    },
-    {
-      icon: LuPlus,
-      tooltip: "Add Seat",
-      onClick: () => {
-        setToolMode("one-seat");
-      },
-      state: toolMode === "one-seat"
-    },
-    {
-      icon: RiApps2AddLine,
-      tooltip: "Add Rows",
-      onClick: toggleMultipleSeatMode,
-      state: toolMode === "multiple-seat"
-    },
-    { icon: LuUndo, tooltip: "Undo", onClick: undo, state: false },
-    { icon: LuRedo, tooltip: "Redo", onClick: redo, state: false },
-    {
-      icon: LuScissors,
-      tooltip: "Cut",
-      onClick: cutSelectedObjects,
-      state: toolAction === "cut"
-    },
-    {
-      icon: LuCopy,
-      tooltip: "Copy",
-      onClick: copySelectedObjects,
-      state: toolAction === "copy"
-    },
-    {
-      icon: LuClipboardCheck,
-      tooltip: "Paste",
-      onClick: pasteObjects,
-      state: toolAction === "paste"
-    },
-    {
-      icon: LuTrash2,
-      tooltip: "Delete",
-      onClick: () => {
-        setToolAction("delete");
-      },
-      state: false
-      // toolAction === 'delete'
+  const handleFileChange = (e) => {
+    var _a;
+    const file = (_a = e.target.files) == null ? void 0 : _a[0];
+    if (file) setOpenFile(file);
+  };
+  const handleDrop = (e) => {
+    e.preventDefault();
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      setOpenFile(e.dataTransfer.files[0]);
     }
+  };
+  const handleDragOver = (e) => {
+    e.preventDefault();
+  };
+  const handleOpenFile = async (e) => {
+    e.preventDefault();
+    if (!canvas || !openFile) return;
+    try {
+      const text = await openFile.text();
+      const json = JSON.parse(text);
+      canvas.loadFromJSON(json, () => {
+        canvas.getObjects().forEach((obj) => {
+          if (obj.type === "circle" || obj.type === "rect" || obj.type === "i-text") {
+            applyCustomStyles(obj);
+          }
+        });
+        canvas.renderAll();
+        setShowOpenModal(false);
+        setOpenFile(null);
+        setToastMsg("Seating arrangement loaded!");
+        setToastType("success");
+        setShowToast(true);
+      });
+    } catch (err) {
+      setOpenFileError(
+        "Invalid JSON file. Please select a valid seating arrangement file."
+      );
+      setToastMsg("Invalid JSON file.");
+      setToastType("error");
+      setShowToast(true);
+    }
+  };
+  const buttonGroups = [
+    [
+      {
+        icon: LuFolderOpen,
+        tooltip: "Open File",
+        onClick: () => setShowOpenModal(true),
+        state: false
+      },
+      {
+        icon: LuSave,
+        tooltip: "Save",
+        onClick: () => {
+          if (canvas && onSave) {
+            const json = {
+              type: "canvas",
+              ...canvas.toJSON(["customType", "seatData", "zoneData"])
+            };
+            onSave(json);
+          }
+        },
+        state: false
+      },
+      {
+        icon: LuDownload,
+        tooltip: "Download",
+        onClick: () => setShowExportModal(true),
+        state: false
+      }
+    ],
+    [
+      {
+        icon: LuMousePointer,
+        tooltip: "Select",
+        onClick: () => setToolMode("select"),
+        state: toolMode === "select"
+      },
+      {
+        icon: LuGrid2X2,
+        tooltip: snapEnabled ? "Smart Grid" : "Smart Grid",
+        onClick: () => setSnapEnabled(!snapEnabled),
+        state: snapEnabled
+      },
+      {
+        icon: LuLayoutDashboard,
+        tooltip: "Layout View",
+        onClick: () => {
+        },
+        state: false
+      }
+    ],
+    [
+      {
+        icon: RiText,
+        tooltip: "Add Text",
+        onClick: () => setToolMode("text"),
+        state: toolMode === "text"
+      },
+      {
+        icon: RiShapeLine,
+        tooltip: "Add Square",
+        onClick: () => setToolMode("shape-square"),
+        state: toolMode === "shape-square"
+      },
+      {
+        icon: LuPlus,
+        tooltip: "Add Seat",
+        onClick: () => setToolMode("one-seat"),
+        state: toolMode === "one-seat"
+      },
+      {
+        icon: RiApps2AddLine,
+        tooltip: "Add Rows",
+        onClick: toggleMultipleSeatMode,
+        state: toolMode === "multiple-seat"
+      }
+    ],
+    [
+      { icon: LuUndo, tooltip: "Undo", onClick: undo, state: false },
+      { icon: LuRedo, tooltip: "Redo", onClick: redo, state: false }
+    ],
+    [
+      {
+        icon: LuScissors,
+        tooltip: "Cut",
+        onClick: cutSelectedObjects,
+        state: toolAction === "cut"
+      },
+      {
+        icon: LuCopy,
+        tooltip: "Copy",
+        onClick: copySelectedObjects,
+        state: toolAction === "copy"
+      },
+      {
+        icon: LuClipboardCheck,
+        tooltip: "Paste",
+        onClick: pasteObjects,
+        state: toolAction === "paste"
+      },
+      {
+        icon: LuTrash2,
+        tooltip: "Delete",
+        onClick: () => setToolAction("delete"),
+        state: false
+      }
+    ]
   ];
-  return /* @__PURE__ */ jsxs("div", { className: "sticky left-0 top-0 z-[200] flex w-full items-center gap-1 bg-white px-[1rem] py-[0.5rem] shadow", children: [
-    buttonGroups.map((item, index) => /* @__PURE__ */ jsxs(React.Fragment, { children: [
-      [6, 10, 12].includes(index) && /* @__PURE__ */ jsx(Separator, {}, `seperator-${index}`),
-      3 === index && /* @__PURE__ */ jsx("div", { className: "flex-1" }, `space-${index}`),
-      /* @__PURE__ */ jsx(
+  return /* @__PURE__ */ jsxs("div", { className: "sticky left-0 top-0 z-[200] flex w-full items-center justify-center gap-1 bg-white px-[1rem] py-[0.5rem] shadow", children: [
+    /* @__PURE__ */ jsx("div", { className: "flex-1" }),
+    buttonGroups.map((group, groupIdx) => /* @__PURE__ */ jsxs(React.Fragment, { children: [
+      groupIdx > 0 && /* @__PURE__ */ jsx(Separator, {}),
+      group.map((item, idx) => /* @__PURE__ */ jsx(
         Button,
         {
           icon: /* @__PURE__ */ jsx(item.icon, { className: "h-4 w-4" }),
@@ -440,9 +656,9 @@ var Toolbar = () => {
           onClick: item.onClick,
           state: item.state
         },
-        `button-${index}`
-      )
-    ] }, index)),
+        `button-${groupIdx}-${idx}`
+      ))
+    ] }, groupIdx)),
     /* @__PURE__ */ jsx(Separator, {}),
     /* @__PURE__ */ jsx(
       Button,
@@ -471,6 +687,43 @@ var Toolbar = () => {
         icon: isSelectionLocked() ? /* @__PURE__ */ jsx(LuLock, { className: "h-4 w-4" }) : /* @__PURE__ */ jsx(RiLockUnlockLine, { className: "h-4 w-4" }),
         tooltip: isSelectionLocked() ? "Unlock Selection" : "Lock Selection",
         onClick: toggleLockSelection
+      }
+    ),
+    /* @__PURE__ */ jsx(
+      ExportModal,
+      {
+        open: showExportModal,
+        onClose: () => setShowExportModal(false),
+        fileName: exportFileName,
+        setFileName: setExportFileName,
+        onExport: handleExport
+      }
+    ),
+    /* @__PURE__ */ jsx(
+      OpenFileModal,
+      {
+        open: showOpenModal,
+        onClose: () => {
+          setShowOpenModal(false);
+          setOpenFile(null);
+          setOpenFileError("");
+        },
+        file: openFile,
+        setFile: setOpenFile,
+        error: openFileError,
+        onFileChange: handleFileChange,
+        onDrop: handleDrop,
+        onDragOver: handleDragOver,
+        onSubmit: handleOpenFile
+      }
+    ),
+    /* @__PURE__ */ jsx(
+      Toast_default,
+      {
+        open: showToast,
+        message: toastMsg,
+        type: toastType,
+        onClose: () => setShowToast(false)
       }
     )
   ] });
@@ -649,7 +902,10 @@ var useObjectProperties = (canvas, selectedObjects) => {
       seatNumber: getMergedValue(objs, "seatNumber"),
       category: getMergedValue(objs, "category"),
       price: getMergedValue(objs, "price"),
-      status: getMergedValue(objs, "status")
+      status: getMergedValue(objs, "status"),
+      currencySymbol: getMergedValue(objs, "currencySymbol"),
+      currencyCode: getMergedValue(objs, "currencyCode"),
+      currencyCountry: getMergedValue(objs, "currencyCountry")
     });
   }, [selectedObjects]);
   return { properties, setProperties };
@@ -1343,18 +1599,18 @@ var TextProperties = ({
           type: "text",
           value: properties.text,
           onChange: (e) => updateObject({ text: e.target.value }),
-          className: "mt-1 w-full rounded-md border px-2 py-1"
+          className: "mt-1 w-full rounded-md border border-solid border-gray-300 px-2 py-1"
         }
       )
     ] }),
     /* @__PURE__ */ jsxs("div", { children: [
       /* @__PURE__ */ jsx("label", { className: "block text-sm font-medium text-gray-700", children: "Font Size" }),
-      /* @__PURE__ */ jsxs("div", { className: "mt-1 flex items-center", children: [
+      /* @__PURE__ */ jsxs("div", { className: "mt-1 flex gap-1 items-center", children: [
         /* @__PURE__ */ jsx(
           "button",
           {
-            className: "rounded-l-md bg-gray-200 px-2 py-1",
-            onClick: () => updateObject({ fontSize: toFloat(properties.fontSize) - 1 }),
+            className: "flex h-6 w-6 items-center justify-center rounded border border-solid border-gray-200 text-xs transition-colors hover:bg-gray-100",
+            onClick: () => updateObject({ fontSize: Number(toFloat(properties.fontSize)) - 1 }),
             children: "-"
           }
         ),
@@ -1364,14 +1620,14 @@ var TextProperties = ({
             type: "number",
             value: toFloat(properties.fontSize),
             onChange: (e) => updateObject({ fontSize: Number(e.target.value) }),
-            className: "w-full border-b border-t px-2 py-1 text-center shadow-sm"
+            className: "w-12 rounded border border-solid border-gray-200 bg-white px-1 py-0.5 text-center text-xs [appearance:textfield] focus:outline-none focus:ring-1 focus:ring-gray-500 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
           }
         ),
         /* @__PURE__ */ jsx(
           "button",
           {
-            className: "rounded-r-md bg-gray-200 px-2 py-1",
-            onClick: () => updateObject({ fontSize: toFloat(properties.fontSize) + 1 }),
+            className: "flex h-6 w-6 items-center justify-center rounded border border-solid border-gray-200 text-xs transition-colors hover:bg-gray-100",
+            onClick: () => updateObject({ fontSize: Number(toFloat(properties.fontSize)) + 1 }),
             children: "+"
           }
         )
@@ -1503,6 +1759,80 @@ var ColorProperties = ({
   ] });
 };
 var colorProperties_default = ColorProperties;
+var CurrencySelect = ({ value, onChange }) => {
+  const [options, setOptions] = useState([]);
+  const [input, setInput] = useState("");
+  const [show, setShow] = useState(false);
+  useEffect(() => {
+    fetch("https://restcountries.com/v3.1/all").then((res) => res.json()).then((data) => {
+      const opts = [];
+      data.forEach((country) => {
+        if (country.currencies) {
+          Object.entries(country.currencies).forEach(([code, cur]) => {
+            opts.push({
+              label: `${cur.name} (${cur.symbol || code}) - ${country.name.common}`,
+              value: cur.symbol || code,
+              country: country.name.common,
+              code,
+              symbol: cur.symbol || code
+            });
+          });
+        }
+      });
+      const unique = Array.from(
+        new Map(opts.map((o) => [o.code + o.country, o])).values()
+      );
+      setOptions(unique);
+    });
+  }, []);
+  const filtered = input ? options.filter(
+    (o) => o.label.toLowerCase().includes(input.toLowerCase()) || o.code.toLowerCase().includes(input.toLowerCase()) || o.symbol.toLowerCase().includes(input.toLowerCase())
+  ) : options;
+  const showClear = !!(value || input);
+  return /* @__PURE__ */ jsxs("div", { className: "relative", children: [
+    /* @__PURE__ */ jsx(
+      "input",
+      {
+        type: "text",
+        value: input || value,
+        onChange: (e) => setInput(e.target.value),
+        onFocus: () => setShow(true),
+        placeholder: "Search currency...",
+        className: "w-full rounded border border-solid border-gray-300 bg-white px-2 py-2 pr-8 text-sm focus:outline-none focus:ring-2 focus:ring-gray-400"
+      }
+    ),
+    showClear && /* @__PURE__ */ jsx(
+      "button",
+      {
+        type: "button",
+        className: "absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-700",
+        onClick: () => {
+          setInput("");
+          onChange("", "", "");
+        },
+        tabIndex: -1,
+        children: /* @__PURE__ */ jsx(LuX, { size: 16 })
+      }
+    ),
+    show && /* @__PURE__ */ jsxs("div", { className: "absolute z-10 mt-1 max-h-48 w-full overflow-auto rounded border border-solid border-gray-200 bg-white shadow-lg", children: [
+      filtered.length === 0 && /* @__PURE__ */ jsx("div", { className: "px-3 py-2 text-sm text-gray-500", children: "No results" }),
+      filtered.slice(0, 30).map((opt) => /* @__PURE__ */ jsx(
+        "div",
+        {
+          className: "cursor-pointer px-3 py-2 text-sm hover:bg-gray-100",
+          onClick: () => {
+            onChange(opt.symbol, opt.code, opt.country);
+            setInput(`${opt.symbol} - ${opt.country}`);
+            setShow(false);
+          },
+          children: opt.label
+        },
+        opt.code + opt.country
+      ))
+    ] })
+  ] });
+};
+var CurrencySelect_default = CurrencySelect;
 var statusOptions = [
   { value: "available", label: "Available" },
   { value: "reserved", label: "Reserved" },
@@ -1583,6 +1913,20 @@ var SeatAttributes = ({
           options: statusOptions,
           value: properties.status === "mixed" ? "" : properties.status || "available",
           onChange: (value) => updateObject({ status: value })
+        }
+      )
+    ] }),
+    /* @__PURE__ */ jsxs("div", { children: [
+      /* @__PURE__ */ jsx("label", { className: "mb-2 block text-sm font-medium text-gray-700", children: "Currency" }),
+      /* @__PURE__ */ jsx(
+        CurrencySelect_default,
+        {
+          value: properties.currencySymbol || "",
+          onChange: (symbol, code, country) => updateObject({
+            currencySymbol: symbol,
+            currencyCode: code,
+            currencyCountry: country
+          })
         }
       )
     ] })
@@ -2086,7 +2430,7 @@ var useObjectCreator = (canvas, toolMode, setToolMode) => {
   }, [canvas, toolMode, setToolMode]);
 };
 var useObjectCreator_default = useObjectCreator;
-var useKeyboardShortcuts = () => {
+var useKeyboardShortcuts = (onSave) => {
   const { canvas, setLastClickedPoint, undo, redo } = useEventGuiStore();
   const { copySelectedObjects, cutSelectedObjects, pasteObjects } = useClipboardActions_default();
   useEffect(() => {
@@ -2118,6 +2462,16 @@ var useKeyboardShortcuts = () => {
             e.preventDefault();
             redo();
             break;
+          case "s":
+            e.preventDefault();
+            if (onSave) {
+              const json = {
+                type: "canvas",
+                ...canvas.toJSON(["customType", "seatData", "zoneData"])
+              };
+              onSave(json);
+            }
+            break;
         }
       }
     };
@@ -2138,7 +2492,8 @@ var useKeyboardShortcuts = () => {
     pasteObjects,
     setLastClickedPoint,
     undo,
-    redo
+    redo,
+    onSave
   ]);
 };
 var useKeyboardShortcuts_default = useKeyboardShortcuts;
@@ -2283,7 +2638,13 @@ function useSmartSnap(canvas, snapEnabled) {
     };
   }, [canvas, snapEnabled]);
 }
-var SeatCanvas = ({ className }) => {
+var SeatCanvas = ({
+  className,
+  onChange,
+  onSave,
+  layout,
+  readOnly = false
+}) => {
   const canvasRef = useRef(null);
   const canvasParent = useRef(null);
   const { canvas, setCanvas, toolMode, setToolMode, toolAction, snapEnabled } = useEventGuiStore();
@@ -2293,10 +2654,30 @@ var SeatCanvas = ({ className }) => {
   useObjectDeletion_default(canvas, toolAction);
   useObjectCreator_default(canvas, toolMode, setToolMode);
   useUndoRedo_default();
-  useKeyboardShortcuts_default();
+  useKeyboardShortcuts_default(onSave);
   useSmartSnap(canvas, snapEnabled);
+  useEffect(() => {
+    if (!canvas) return;
+    const handleCanvasChange = () => {
+      if (onChange) {
+        const json = {
+          type: "canvas",
+          ...canvas.toJSON(["customType", "seatData", "zoneData"])
+        };
+        onChange(json);
+      }
+    };
+    canvas.on("object:modified", handleCanvasChange);
+    canvas.on("object:added", handleCanvasChange);
+    canvas.on("object:removed", handleCanvasChange);
+    return () => {
+      canvas.off("object:modified", handleCanvasChange);
+      canvas.off("object:added", handleCanvasChange);
+      canvas.off("object:removed", handleCanvasChange);
+    };
+  }, [canvas, onChange]);
   return /* @__PURE__ */ jsxs("div", { className: `relative size-full bg-gray-200 ${className}`, children: [
-    /* @__PURE__ */ jsx(toolbar_default, {}),
+    /* @__PURE__ */ jsx(toolbar_default, { onSave }),
     /* @__PURE__ */ jsxs("div", { className: "flex w-full justify-between", children: [
       /* @__PURE__ */ jsx(
         "div",
@@ -2311,7 +2692,140 @@ var SeatCanvas = ({ className }) => {
   ] });
 };
 var components_default = SeatCanvas;
+var SeatLayoutRenderer = ({
+  layout,
+  style = { width: 800, height: 600, backgroundColor: "#f8fafc" }
+}) => {
+  const canvasRef = useRef(null);
+  const [canvas, setCanvas] = useState(null);
+  const [selectedSeat, setSelectedSeat] = useState(null);
+  useEffect(() => {
+    if (!canvasRef.current) return;
+    const c = new fabric.Canvas(canvasRef.current, {
+      width: style.width,
+      height: style.height,
+      backgroundColor: style.backgroundColor,
+      selection: false
+    });
+    setCanvas(c);
+    return () => {
+      c.dispose();
+    };
+  }, [style]);
+  useEffect(() => {
+    if (!canvas || !layout) return;
+    canvas.clear();
+    canvas.loadFromJSON(layout, () => {
+      canvas.getObjects("circle").forEach((seat) => {
+        var _a, _b, _c, _d, _e, _f, _g;
+        if (seat.labelObj) {
+          canvas.remove(seat.labelObj);
+          seat.labelObj = null;
+        }
+        const label = new fabric.Text(
+          ((_b = (_a = seat.attributes) == null ? void 0 : _a.number) == null ? void 0 : _b.toString()) || ((_c = seat.seatNumber) == null ? void 0 : _c.toString()) || "",
+          {
+            left: ((_d = seat.left) != null ? _d : 0) + ((_e = seat.radius) != null ? _e : 0),
+            top: ((_f = seat.top) != null ? _f : 0) + ((_g = seat.radius) != null ? _g : 0),
+            fontSize: 14,
+            fill: "#222",
+            originX: "center",
+            originY: "center",
+            selectable: false,
+            evented: false,
+            fontWeight: "bold"
+          }
+        );
+        seat.labelObj = label;
+        canvas.add(label);
+        canvas.bringToFront(label);
+      });
+      canvas.getObjects().forEach((obj) => {
+        obj.selectable = false;
+        obj.evented = obj.type === "circle";
+      });
+      canvas.selection = false;
+      canvas.on("mouse:down", (options) => {
+        var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k, _l, _m, _n, _o, _p, _q, _r, _s, _t, _u;
+        if (!options.target || options.target.type !== "circle") return;
+        const seat = options.target;
+        setSelectedSeat({
+          number: (_c = (_b = (_a = seat.attributes) == null ? void 0 : _a.number) != null ? _b : seat.seatNumber) != null ? _c : "",
+          price: (_f = (_e = (_d = seat.attributes) == null ? void 0 : _d.price) != null ? _e : seat.price) != null ? _f : "",
+          category: (_i = (_h = (_g = seat.attributes) == null ? void 0 : _g.category) != null ? _h : seat.category) != null ? _i : "",
+          status: (_l = (_k = (_j = seat.attributes) == null ? void 0 : _j.status) != null ? _k : seat.status) != null ? _l : "",
+          currencySymbol: (_o = (_n = (_m = seat.attributes) == null ? void 0 : _m.currencySymbol) != null ? _n : seat.currencySymbol) != null ? _o : "",
+          currencyCode: (_r = (_q = (_p = seat.attributes) == null ? void 0 : _p.currencyCode) != null ? _q : seat.currencyCode) != null ? _r : "",
+          currencyCountry: (_u = (_t = (_s = seat.attributes) == null ? void 0 : _s.currencyCountry) != null ? _t : seat.currencyCountry) != null ? _u : ""
+        });
+      });
+      canvas.renderAll();
+    });
+  }, [canvas, layout]);
+  const handleBuy = () => {
+    setSelectedSeat(null);
+  };
+  return /* @__PURE__ */ jsxs("div", { className: "rounded-lg border bg-white p-4 shadow", children: [
+    /* @__PURE__ */ jsx("canvas", { ref: canvasRef }),
+    /* @__PURE__ */ jsx(
+      Modal_default,
+      {
+        open: !!selectedSeat,
+        onClose: () => setSelectedSeat(null),
+        title: "Seat Details",
+        children: selectedSeat && /* @__PURE__ */ jsxs("div", { className: "space-y-4", children: [
+          /* @__PURE__ */ jsxs("div", { className: "grid grid-cols-2 gap-4", children: [
+            /* @__PURE__ */ jsxs("div", { children: [
+              /* @__PURE__ */ jsx("label", { className: "text-sm font-medium text-gray-600", children: "Seat Number" }),
+              /* @__PURE__ */ jsx("p", { className: "text-lg font-semibold", children: selectedSeat.number })
+            ] }),
+            /* @__PURE__ */ jsxs("div", { children: [
+              /* @__PURE__ */ jsx("label", { className: "text-sm font-medium text-gray-600", children: "Category" }),
+              /* @__PURE__ */ jsx("p", { className: "text-lg font-semibold", children: selectedSeat.category })
+            ] }),
+            /* @__PURE__ */ jsxs("div", { children: [
+              /* @__PURE__ */ jsx("label", { className: "text-sm font-medium text-gray-600", children: "Price" }),
+              /* @__PURE__ */ jsxs("p", { className: "text-lg font-semibold", children: [
+                selectedSeat.currencySymbol,
+                selectedSeat.price,
+                " ",
+                /* @__PURE__ */ jsxs("span", { className: "text-sm text-gray-500", children: [
+                  "(",
+                  selectedSeat.currencyCode,
+                  ")"
+                ] })
+              ] })
+            ] }),
+            /* @__PURE__ */ jsxs("div", { children: [
+              /* @__PURE__ */ jsx("label", { className: "text-sm font-medium text-gray-600", children: "Status" }),
+              /* @__PURE__ */ jsx("p", { className: "text-lg font-semibold", children: selectedSeat.status })
+            ] })
+          ] }),
+          /* @__PURE__ */ jsxs("div", { className: "mt-6 flex gap-3", children: [
+            /* @__PURE__ */ jsx(
+              "button",
+              {
+                onClick: handleBuy,
+                className: "flex-1 rounded-md bg-gray-700 px-4 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-gray-400",
+                children: "Buy Seat"
+              }
+            ),
+            /* @__PURE__ */ jsx(
+              "button",
+              {
+                onClick: () => setSelectedSeat(null),
+                className: "flex-1 rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700 shadow-sm transition-colors hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-400",
+                children: "Cancel"
+              }
+            )
+          ] })
+        ] })
+      }
+    )
+  ] });
+};
+var SeatLayoutRenderer_default = SeatLayoutRenderer;
 
-export { components_default as SeatPicker };
+export { SeatLayoutRenderer_default as SeatLayoutRenderer, components_default as SeatPicker };
 //# sourceMappingURL=index.js.map
 //# sourceMappingURL=index.js.map

@@ -20,6 +20,7 @@ import {
   LuZoomIn,
   LuZoomOut,
   LuLock,
+  LuDownload,
 } from 'react-icons/lu';
 import {
   RiText,
@@ -30,8 +31,9 @@ import {
 import { ExportModal, OpenFileModal } from '@/components/modals';
 import Toast from '@/components/ui/Toast';
 import { applyCustomStyles } from '@/components/createObject/applyCustomStyles';
+import { CanvasObject } from '@/types/data.types';
 
-const Toolbar: React.FC = () => {
+const Toolbar: React.FC<{ onSave?: (json: any) => void }> = ({ onSave }) => {
   const {
     zoomLevel,
     setZoomLevel,
@@ -147,7 +149,21 @@ const Toolbar: React.FC = () => {
       },
       {
         icon: LuSave,
-        tooltip: 'Export File',
+        tooltip: 'Save',
+        onClick: () => {
+          if (canvas && onSave) {
+            const json = {
+              type: 'canvas',
+              ...canvas.toJSON(['customType', 'seatData', 'zoneData']),
+            } as unknown as CanvasObject;
+            onSave(json);
+          }
+        },
+        state: false,
+      },
+      {
+        icon: LuDownload,
+        tooltip: 'Download',
         onClick: () => setShowExportModal(true),
         state: false,
       },

@@ -1,8 +1,9 @@
 import { useEffect } from 'react';
 import { useEventGuiStore } from '@/zustand';
 import useClipboardActions from './useClipboardActions';
+import { CanvasObject } from '@/types/data.types';
 
-const useKeyboardShortcuts = () => {
+const useKeyboardShortcuts = (onSave?: (json: any) => void) => {
   const { canvas, setLastClickedPoint, undo, redo } = useEventGuiStore();
   const { copySelectedObjects, cutSelectedObjects, pasteObjects } =
     useClipboardActions();
@@ -37,6 +38,16 @@ const useKeyboardShortcuts = () => {
             e.preventDefault();
             redo();
             break;
+          case 's':
+            e.preventDefault();
+            if (onSave) {
+              const json = {
+                type: 'canvas',
+                ...canvas.toJSON(['customType', 'seatData', 'zoneData']),
+              } as unknown as CanvasObject;
+              onSave(json);
+            }
+            break;
         }
       }
     };
@@ -61,6 +72,7 @@ const useKeyboardShortcuts = () => {
     setLastClickedPoint,
     undo,
     redo,
+    onSave,
   ]);
 };
 

@@ -14,14 +14,12 @@ interface SeatDetails {
 
 interface SeatLayoutRendererProps {
   layout: any; // JSON object exported from the editor
-  width?: number;
-  height?: number;
+  style?: { width?: number; height?: number; backgroundColor?: string };
 }
 
 const SeatLayoutRenderer: React.FC<SeatLayoutRendererProps> = ({
   layout,
-  width = 800,
-  height = 600,
+  style = { width: 800, height: 600, backgroundColor: '#f8fafc' },
 }) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const [canvas, setCanvas] = useState<fabric.Canvas | null>(null);
@@ -30,9 +28,9 @@ const SeatLayoutRenderer: React.FC<SeatLayoutRendererProps> = ({
   useEffect(() => {
     if (!canvasRef.current) return;
     const c = new fabric.Canvas(canvasRef.current, {
-      width,
-      height,
-      backgroundColor: '#f8fafc',
+      width: style.width,
+      height: style.height,
+      backgroundColor: style.backgroundColor,
       selection: false,
     });
     setCanvas(c);
@@ -40,7 +38,7 @@ const SeatLayoutRenderer: React.FC<SeatLayoutRendererProps> = ({
       c.dispose();
     };
     // eslint-disable-next-line
-  }, [width, height]);
+  }, [style]);
 
   useEffect(() => {
     if (!canvas || !layout) return;
