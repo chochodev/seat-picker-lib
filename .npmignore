@@ -10,3 +10,5 @@ tailwind.config.js
 *.test.*
 *.spec.*
 __tests__/ 
+node_modules/
+dist/

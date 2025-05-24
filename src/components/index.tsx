@@ -1,4 +1,5 @@
-import { useRef, useEffect } from 'react';
+import { useRef, useEffect, useState } from 'react';
+import { fabric } from 'fabric';
 import Toolbar from './toolbar';
 import Sidebar from './sidebar';
 import { useEventGuiStore } from '@/zustand';
@@ -16,7 +17,37 @@ import {
   CanvasObject,
   CanvasJsonCallback,
   SeatCanvasProps,
+  SeatData,
 } from '@/types/data.types';
+import Modal from './ui/Modal';
+
+const defaultStyle = {
+  width: 800,
+  height: 600,
+  backgroundColor: '#f8fafc',
+  showSeatNumbers: true,
+  seatNumberStyle: {
+    fontSize: 14,
+    fill: '#222',
+    fontWeight: 'bold',
+    fontFamily: 'Arial',
+  },
+  seatStyle: {
+    fill: 'transparent',
+    stroke: 'black',
+    strokeWidth: 1,
+    radius: 10,
+  },
+};
+
+const defaultLabels = {
+  buyButton: 'Buy Seat',
+  cancelButton: 'Cancel',
+  seatNumber: 'Seat Number',
+  category: 'Category',
+  price: 'Price',
+  status: 'Status',
+};
 
 const SeatCanvas: React.FC<SeatCanvasProps> = ({
   className,
@@ -24,11 +55,39 @@ const SeatCanvas: React.FC<SeatCanvasProps> = ({
   onSave,
   layout,
   readOnly = false,
+  style = {},
+  renderToolbar,
+  renderSidebar,
+  renderSeatDetails,
+  onSeatClick,
+  onSeatAction,
+  labels = {},
 }) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const canvasParent = useRef<HTMLDivElement>(null);
   const { canvas, setCanvas, toolMode, setToolMode, toolAction, snapEnabled } =
     useEventGuiStore();
+  const [selectedSeat, setSelectedSeat] = useState<SeatData | null>(null);
+
+  // Merge default styles with custom styles
+  const mergedStyle = {
+    ...defaultStyle,
+    ...style,
+    seatNumberStyle: {
+      ...defaultStyle.seatNumberStyle,
+      ...style.seatNumberStyle,
+    },
+    seatStyle: {
+      ...defaultStyle.seatStyle,
+      ...style.seatStyle,
+    },
+  };
+
+  // Merge default labels with custom labels
+  const mergedLabels = {
+    ...defaultLabels,
+    ...labels,
+  };
 
   useCanvasSetup(canvasRef, canvasParent, setCanvas);
   useSelectionHandler(canvas);
@@ -39,8 +98,82 @@ const SeatCanvas: React.FC<SeatCanvasProps> = ({
   useKeyboardShortcuts(onSave);
   useSmartSnap(canvas, snapEnabled);
 
+  // Load layout if provided
   useEffect(() => {
-    if (!canvas) return;
+    if (!canvas || !layout) return;
+    canvas.clear();
+    canvas.loadFromJSON(layout, () => {
+      if (readOnly) {
+        // Label each seat by number if enabled
+        if (mergedStyle.showSeatNumbers) {
+          canvas.getObjects('circle').forEach((seat: any) => {
+            // Remove any previous label
+            if (seat.labelObj) {
+              canvas.remove(seat.labelObj);
+              seat.labelObj = null;
+            }
+            const label = new fabric.Text(
+              seat.attributes?.number?.toString() ||
+                seat.seatNumber?.toString() ||
+                '',
+              {
+                left:
+                  (seat.left ?? 0) +
+                  (seat.radius ?? mergedStyle.seatStyle.radius),
+                top:
+                  (seat.top ?? 0) +
+                  (seat.radius ?? mergedStyle.seatStyle.radius),
+                ...mergedStyle.seatNumberStyle,
+                originX: 'center',
+                originY: 'center',
+                selectable: false,
+                evented: false,
+              }
+            );
+            seat.labelObj = label;
+            canvas.add(label);
+            canvas.bringToFront(label);
+          });
+        }
+
+        // Make all objects not selectable/editable, only seats (circles) are clickable
+        canvas.getObjects().forEach((obj: any) => {
+          obj.selectable = false;
+          obj.evented = obj.type === 'circle';
+        });
+        canvas.selection = false;
+
+        // Add click handler for seats
+        canvas.on('mouse:down', (options) => {
+          if (!options.target || options.target.type !== 'circle') return;
+
+          const seat = options.target as any;
+          const seatData: SeatData = {
+            number: seat.attributes?.number ?? seat.seatNumber ?? '',
+            price: seat.attributes?.price ?? seat.price ?? '',
+            category: seat.attributes?.category ?? seat.category ?? '',
+            status: seat.attributes?.status ?? seat.status ?? '',
+            currencySymbol:
+              seat.attributes?.currencySymbol ?? seat.currencySymbol ?? '',
+            currencyCode:
+              seat.attributes?.currencyCode ?? seat.currencyCode ?? '',
+            currencyCountry:
+              seat.attributes?.currencyCountry ?? seat.currencyCountry ?? '',
+          };
+
+          if (onSeatClick) {
+            onSeatClick(seatData);
+          } else {
+            setSelectedSeat(seatData);
+          }
+        });
+      }
+      canvas.renderAll();
+    });
+  }, [canvas, layout, readOnly, mergedStyle, onSeatClick]);
+
+  useEffect(() => {
+    if (!canvas || readOnly) return;
 
     const handleCanvasChange = () => {
       if (onChange) {
@@ -76,11 +209,85 @@ const SeatCanvas: React.FC<SeatCanvasProps> = ({
         canvas.off(event, handleCanvasChange);
       });
     };
-  }, [canvas, onChange]);
+  }, [canvas, onChange, readOnly]);
+
+  const handleSeatAction = (action: string) => {
+    if (selectedSeat) {
+      if (onSeatAction) {
+        onSeatAction(action, selectedSeat);
+      }
+      setSelectedSeat(null);
+    }
+  };
+
+  // Default seat details modal
+  const defaultSeatDetails = (
+    <Modal
+      open={!!selectedSeat}
+      onClose={() => setSelectedSeat(null)}
+      title="Seat Details"
+    >
+      {selectedSeat && (
+        <div className="space-y-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="text-sm font-medium text-gray-600">
+                {mergedLabels.seatNumber}
+              </label>
+              <p className="text-lg font-semibold">{selectedSeat.number}</p>
+            </div>
+            <div>
+              <label className="text-sm font-medium text-gray-600">
+                {mergedLabels.category}
+              </label>
+              <p className="text-lg font-semibold">{selectedSeat.category}</p>
+            </div>
+            <div>
+              <label className="text-sm font-medium text-gray-600">
+                {mergedLabels.price}
+              </label>
+              <p className="text-lg font-semibold">
+                {selectedSeat.currencySymbol}
+                {selectedSeat.price}{' '}
+                <span className="text-sm text-gray-500">
+                  ({selectedSeat.currencyCode})
+                </span>
+              </p>
+            </div>
+            <div>
+              <label className="text-sm font-medium text-gray-600">
+                {mergedLabels.status}
+              </label>
+              <p className="text-lg font-semibold">{selectedSeat.status}</p>
+            </div>
+          </div>
+          <div className="mt-6 flex gap-3">
+            <button
+              onClick={() => handleSeatAction('buy')}
+              className="flex-1 rounded-md bg-gray-700 px-4 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-gray-400"
+            >
+              {mergedLabels.buyButton}
+            </button>
+            <button
+              onClick={() => setSelectedSeat(null)}
+              className="flex-1 rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700 shadow-sm transition-colors hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-400"
+            >
+              {mergedLabels.cancelButton}
+            </button>
+          </div>
+        </div>
+      )}
+    </Modal>
+  );
 
   return (
     <div className={`relative size-full bg-gray-200 ${className}`}>
-      <Toolbar onSave={onSave} />
+      {!readOnly &&
+        (renderToolbar ? (
+          renderToolbar({ onSave })
+        ) : (
+          <Toolbar onSave={onSave} />
+        ))}
       <div className="flex w-full justify-between">
         <div
           className="mx-auto w-full max-w-[45rem] bg-gray-100"
@@ -88,8 +295,16 @@ const SeatCanvas: React.FC<SeatCanvasProps> = ({
         >
           <canvas ref={canvasRef} />
         </div>
-        <Sidebar />
+        {!readOnly && (renderSidebar ? renderSidebar() : <Sidebar />)}
       </div>
+
+      {renderSeatDetails
+        ? renderSeatDetails({
+            seat: selectedSeat!,
+            onClose: () => setSelectedSeat(null),
+            onAction: handleSeatAction,
+          })
+        : defaultSeatDetails}
     </div>
   );
 };

@@ -1,6 +1,6 @@
-import React, { useRef, useEffect, useState, useCallback } from 'react';
-import { create } from 'zustand';
+import React, { useRef, useState, useEffect, useCallback } from 'react';
 import { fabric } from 'fabric';
+import { create } from 'zustand';
 import { v4 } from 'uuid';
 import { LuFolderOpen, LuSave, LuDownload, LuMousePointer, LuGrid2X2, LuLayoutDashboard, LuPlus, LuUndo, LuRedo, LuScissors, LuCopy, LuClipboardCheck, LuTrash2, LuZoomOut, LuZoomIn, LuLock, LuX } from 'react-icons/lu';
 import { RiText, RiShapeLine, RiApps2AddLine, RiLockUnlockLine } from 'react-icons/ri';
@@ -2648,6 +2648,7 @@ var SeatCanvas = ({
   const canvasRef = useRef(null);
   const canvasParent = useRef(null);
   const { canvas, setCanvas, toolMode, setToolMode, toolAction, snapEnabled } = useEventGuiStore();
+  const [selectedSeat, setSelectedSeat] = useState(null);
   useCanvasSetup_default(canvasRef, canvasParent, setCanvas);
   useSelectionHandler_default(canvas);
   useMultipleSeatCreator_default(canvas, toolMode, setToolMode);
@@ -2657,7 +2658,59 @@ var SeatCanvas = ({
   useKeyboardShortcuts_default(onSave);
   useSmartSnap(canvas, snapEnabled);
   useEffect(() => {
-    if (!canvas) return;
+    if (!canvas || !layout) return;
+    canvas.clear();
+    canvas.loadFromJSON(layout, () => {
+      if (readOnly) {
+        canvas.getObjects("circle").forEach((seat) => {
+          var _a, _b, _c, _d, _e, _f, _g;
+          if (seat.labelObj) {
+            canvas.remove(seat.labelObj);
+            seat.labelObj = null;
+          }
+          const label = new fabric.Text(
+            ((_b = (_a = seat.attributes) == null ? void 0 : _a.number) == null ? void 0 : _b.toString()) || ((_c = seat.seatNumber) == null ? void 0 : _c.toString()) || "",
+            {
+              left: ((_d = seat.left) != null ? _d : 0) + ((_e = seat.radius) != null ? _e : 0),
+              top: ((_f = seat.top) != null ? _f : 0) + ((_g = seat.radius) != null ? _g : 0),
+              fontSize: 14,
+              fill: "#222",
+              originX: "center",
+              originY: "center",
+              selectable: false,
+              evented: false,
+              fontWeight: "bold"
+            }
+          );
+          seat.labelObj = label;
+          canvas.add(label);
+          canvas.bringToFront(label);
+        });
+        canvas.getObjects().forEach((obj) => {
+          obj.selectable = false;
+          obj.evented = obj.type === "circle";
+        });
+        canvas.selection = false;
+        canvas.on("mouse:down", (options) => {
+          var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k, _l, _m, _n, _o, _p, _q, _r, _s, _t, _u;
+          if (!options.target || options.target.type !== "circle") return;
+          const seat = options.target;
+          setSelectedSeat({
+            number: (_c = (_b = (_a = seat.attributes) == null ? void 0 : _a.number) != null ? _b : seat.seatNumber) != null ? _c : "",
+            price: (_f = (_e = (_d = seat.attributes) == null ? void 0 : _d.price) != null ? _e : seat.price) != null ? _f : "",
+            category: (_i = (_h = (_g = seat.attributes) == null ? void 0 : _g.category) != null ? _h : seat.category) != null ? _i : "",
+            status: (_l = (_k = (_j = seat.attributes) == null ? void 0 : _j.status) != null ? _k : seat.status) != null ? _l : "",
+            currencySymbol: (_o = (_n = (_m = seat.attributes) == null ? void 0 : _m.currencySymbol) != null ? _n : seat.currencySymbol) != null ? _o : "",
+            currencyCode: (_r = (_q = (_p = seat.attributes) == null ? void 0 : _p.currencyCode) != null ? _q : seat.currencyCode) != null ? _r : "",
+            currencyCountry: (_u = (_t = (_s = seat.attributes) == null ? void 0 : _s.currencyCountry) != null ? _t : seat.currencyCountry) != null ? _u : ""
+          });
+        });
+      }
+      canvas.renderAll();
+    });
+  }, [canvas, layout, readOnly]);
+  useEffect(() => {
+    if (!canvas || readOnly) return;
     const handleCanvasChange = () => {
       if (onChange) {
         const json = {
@@ -2667,17 +2720,33 @@ var SeatCanvas = ({
         onChange(json);
       }
     };
-    canvas.on("object:modified", handleCanvasChange);
-    canvas.on("object:added", handleCanvasChange);
-    canvas.on("object:removed", handleCanvasChange);
+    const events = [
+      "object:modified",
+      "object:added",
+      "object:removed",
+      "object:moving",
+      "object:scaling",
+      "object:rotating",
+      "object:skewing",
+      "path:created",
+      "selection:created",
+      "selection:updated",
+      "selection:cleared"
+    ];
+    events.forEach((event) => {
+      canvas.on(event, handleCanvasChange);
+    });
     return () => {
-      canvas.off("object:modified", handleCanvasChange);
-      canvas.off("object:added", handleCanvasChange);
-      canvas.off("object:removed", handleCanvasChange);
+      events.forEach((event) => {
+        canvas.off(event, handleCanvasChange);
+      });
     };
-  }, [canvas, onChange]);
+  }, [canvas, onChange, readOnly]);
+  const handleBuy = () => {
+    setSelectedSeat(null);
+  };
   return /* @__PURE__ */ jsxs("div", { className: `relative size-full bg-gray-200 ${className}`, children: [
-    /* @__PURE__ */ jsx(toolbar_default, { onSave }),
+    !readOnly && /* @__PURE__ */ jsx(toolbar_default, { onSave }),
     /* @__PURE__ */ jsxs("div", { className: "flex w-full justify-between", children: [
       /* @__PURE__ */ jsx(
         "div",
@@ -2687,8 +2756,63 @@ var SeatCanvas = ({
           children: /* @__PURE__ */ jsx("canvas", { ref: canvasRef })
         }
       ),
-      /* @__PURE__ */ jsx(sidebar_default, {})
-    ] })
+      !readOnly && /* @__PURE__ */ jsx(sidebar_default, {})
+    ] }),
+    /* @__PURE__ */ jsx(
+      Modal_default,
+      {
+        open: !!selectedSeat,
+        onClose: () => setSelectedSeat(null),
+        title: "Seat Details",
+        children: selectedSeat && /* @__PURE__ */ jsxs("div", { className: "space-y-4", children: [
+          /* @__PURE__ */ jsxs("div", { className: "grid grid-cols-2 gap-4", children: [
+            /* @__PURE__ */ jsxs("div", { children: [
+              /* @__PURE__ */ jsx("label", { className: "text-sm font-medium text-gray-600", children: "Seat Number" }),
+              /* @__PURE__ */ jsx("p", { className: "text-lg font-semibold", children: selectedSeat.number })
+            ] }),
+            /* @__PURE__ */ jsxs("div", { children: [
+              /* @__PURE__ */ jsx("label", { className: "text-sm font-medium text-gray-600", children: "Category" }),
+              /* @__PURE__ */ jsx("p", { className: "text-lg font-semibold", children: selectedSeat.category })
+            ] }),
+            /* @__PURE__ */ jsxs("div", { children: [
+              /* @__PURE__ */ jsx("label", { className: "text-sm font-medium text-gray-600", children: "Price" }),
+              /* @__PURE__ */ jsxs("p", { className: "text-lg font-semibold", children: [
+                selectedSeat.currencySymbol,
+                selectedSeat.price,
+                " ",
+                /* @__PURE__ */ jsxs("span", { className: "text-sm text-gray-500", children: [
+                  "(",
+                  selectedSeat.currencyCode,
+                  ")"
+                ] })
+              ] })
+            ] }),
+            /* @__PURE__ */ jsxs("div", { children: [
+              /* @__PURE__ */ jsx("label", { className: "text-sm font-medium text-gray-600", children: "Status" }),
+              /* @__PURE__ */ jsx("p", { className: "text-lg font-semibold", children: selectedSeat.status })
+            ] })
+          ] }),
+          /* @__PURE__ */ jsxs("div", { className: "mt-6 flex gap-3", children: [
+            /* @__PURE__ */ jsx(
+              "button",
+              {
+                onClick: handleBuy,
+                className: "flex-1 rounded-md bg-gray-700 px-4 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-gray-400",
+                children: "Buy Seat"
+              }
+            ),
+            /* @__PURE__ */ jsx(
+              "button",
+              {
+                onClick: () => setSelectedSeat(null),
+                className: "flex-1 rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700 shadow-sm transition-colors hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-400",
+                children: "Cancel"
+              }
+            )
+          ] })
+        ] })
+      }
+    )
   ] });
 };
 var components_default = SeatCanvas;

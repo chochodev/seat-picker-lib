@@ -92,4 +92,60 @@ export interface SeatCanvasProps {
   onSave?: CanvasJsonCallback;
   layout?: CanvasObject;
   readOnly?: boolean;
+  // Customization props
+  style?: {
+    width?: number;
+    height?: number;
+    backgroundColor?: string;
+    showSeatNumbers?: boolean;
+    seatNumberStyle?: {
+      fontSize?: number;
+      fill?: string;
+      fontWeight?: string | number;
+      fontFamily?: string;
+    };
+    seatStyle?: {
+      fill?: string;
+      stroke?: string;
+      strokeWidth?: number;
+      radius?: number;
+    };
+  };
+  // Custom components
+  renderToolbar?: (props: { onSave?: CanvasJsonCallback }) => React.ReactNode;
+  renderSidebar?: () => React.ReactNode;
+  renderSeatDetails?: (props: {
+    seat: SeatData;
+    onClose: () => void;
+    onAction: (action: string) => void;
+  }) => React.ReactNode;
+  // Custom handlers
+  onSeatClick?: (seat: SeatData) => void;
+  onSeatAction?: (action: string, seat: SeatData) => void;
+  // Custom labels
+  labels?: {
+    buyButton?: string;
+    cancelButton?: string;
+    seatNumber?: string;
+    category?: string;
+    price?: string;
+    status?: string;
+  };
+}
+
+export interface SeatData {
+  number?: string;
+  price?: number;
+  category?: string;
+  status?: string;
+  currencySymbol?: string;
+  currencyCode?: string;
+  currencyCountry?: string;
+  [key: string]: any; // Allow custom properties
+}
+
+export interface ZoneData {
+  name?: string;
+  description?: string;
+  [key: string]: any; // Allow custom properties
 }
