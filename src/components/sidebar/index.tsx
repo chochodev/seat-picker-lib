@@ -45,6 +45,7 @@ const Sidebar: React.FC = () => {
 
     const updateSelectedObjects = () => {
       const activeObjects = canvas.getActiveObjects() as CustomFabricObject[];
+      const activeObject = canvas.getActiveObject();
       setSelectedObjects(activeObjects);
       setSelectedObject(activeObjects[0] || null);
       setObjectType(
@@ -59,8 +60,28 @@ const Sidebar: React.FC = () => {
           )
         )
       );
-      // --- Sync sidebar properties with first active object ---
-      if (activeObjects[0]) {
+      // --- Sync sidebar properties with group if group is selected ---
+      if (activeObject && activeObject.type === 'activeSelection') {
+        setProperties((prev) => ({
+          ...prev,
+          angle: activeObject.angle ?? prev.angle,
+          radius: (activeObject as any).radius ?? prev.radius,
+          width:
+            (activeObject.width ?? prev.width) * (activeObject.scaleX ?? 1),
+          height:
+            (activeObject.height ?? prev.height) * (activeObject.scaleY ?? 1),
+          fill: activeObject.fill ?? prev.fill,
+          stroke: activeObject.stroke ?? prev.stroke,
+          text: (activeObject as any).text ?? prev.text,
+          fontSize: (activeObject as any).fontSize ?? prev.fontSize,
+          fontWeight: (activeObject as any).fontWeight ?? prev.fontWeight,
+          fontFamily: (activeObject as any).fontFamily ?? prev.fontFamily,
+          left: activeObject.left ?? prev.left,
+          top: activeObject.top ?? prev.top,
+          rx: (activeObject as any).rx ?? prev.rx,
+          ry: (activeObject as any).ry ?? prev.ry,
+        }));
+      } else if (activeObjects[0]) {
         setProperties((prev) => ({
           ...prev,
           angle: activeObjects[0].angle ?? prev.angle,
@@ -85,6 +106,18 @@ const Sidebar: React.FC = () => {
       }
     };
 
+    const handleGroupTransform = (e: fabric.IEvent) => {
+      const obj = e.target;
+      if (obj && obj.type === 'activeSelection') {
+        setProperties((prev) => ({
+          ...prev,
+          left: obj.left ?? prev.left,
+          top: obj.top ?? prev.top,
+          angle: obj.angle ?? prev.angle,
+        }));
+      }
+    };
+
     const eventsToListen = [
       'selection:created',
       'selection:updated',
@@ -98,6 +131,9 @@ const Sidebar: React.FC = () => {
       canvas.on(event, updateSelectedObjects);
     });
 
+    canvas.on('object:moving', handleGroupTransform);
+    canvas.on('object:rotating', handleGroupTransform);
+
     canvas.on('selection:cleared', () => {
       setSelectedObjects([]);
       setSelectedObject(null);
@@ -109,13 +145,15 @@ const Sidebar: React.FC = () => {
       eventsToListen.forEach((event) => {
         canvas.off(event, updateSelectedObjects);
       });
+      canvas.off('object:moving', handleGroupTransform);
+      canvas.off('object:rotating', handleGroupTransform);
       canvas.off('selection:cleared');
     };
   }, [canvas]);
 
   return (
     <div className="min-h-screen w-[20rem] space-y-4 bg-gray-50 p-4">
-      <div className="rounded-md bg-white shadow">
+      {/* <div className="rounded-md bg-white shadow">
         <div className="flex items-center justify-between rounded-t-md bg-gray-200 p-2">
           <span className="font-semibold">Zones</span>
           <button className="text-gray-600 hover:text-gray-800">
@@ -130,7 +168,7 @@ const Sidebar: React.FC = () => {
           />
           <label htmlFor="ground-floor">Ground floor</label>
         </div>
-      </div>
+      </div> */}
 
       {selectedObjects.length > 1 &&
         objectTypes.length === 1 &&

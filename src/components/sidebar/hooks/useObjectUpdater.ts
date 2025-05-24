@@ -67,8 +67,51 @@ export const useObjectUpdater = (
   const updateObject = (updates: Partial<Properties>) => {
     if (!canvas) return;
 
+    const activeObject = canvas.getActiveObject();
     const activeObjects = canvas.getActiveObjects() as CustomFabricObject[];
     if (activeObjects.length === 0) return;
+
+    // Handle group move and rotation
+    if (activeObject && activeObject.type === 'activeSelection') {
+      const group = activeObject as fabric.ActiveSelection;
+      // Handle group move
+      if ('left' in updates || 'top' in updates) {
+        const deltaX =
+          'left' in updates && typeof updates.left === 'number'
+            ? updates.left - (group.left ?? 0)
+            : 0;
+        const deltaY =
+          'top' in updates && typeof updates.top === 'number'
+            ? updates.top - (group.top ?? 0)
+            : 0;
+        group.getObjects().forEach((obj: fabric.Object) => {
+          obj.set({
+            left: (obj.left ?? 0) + deltaX,
+            top: (obj.top ?? 0) + deltaY,
+          });
+          obj.setCoords();
+        });
+        group.setCoords();
+        canvas.renderAll();
+        setProperties((prev) => ({
+          ...prev,
+          left: updates.left ?? prev.left,
+          top: updates.top ?? prev.top,
+        }));
+        return;
+      }
+      // Handle group rotation
+      if ('angle' in updates && typeof updates.angle === 'number') {
+        group.set('angle', updates.angle);
+        group.setCoords();
+        canvas.renderAll();
+        setProperties((prev) => ({
+          ...prev,
+          angle: updates.angle ?? prev.angle,
+        }));
+        return;
+      }
+    }
 
     activeObjects.forEach((selectedObject) => {
       const updatedProperties: Partial<CustomFabricObject> = {};

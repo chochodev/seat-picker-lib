@@ -133,7 +133,7 @@ const CircleProperties: React.FC<CirclePropertiesProps> = ({
             className={`flex h-6 w-6 items-center justify-center rounded border border-solid border-gray-200 ${
               properties.radius === 0 ? 'bg-gray-200' : 'bg-white'
             } transition-colors`}
-            onClick={() => updateObject({ radius: 0 })}
+            onClick={() => updateObject({ radius: 6 })}
             title="None"
           >
             <svg
@@ -151,7 +151,7 @@ const CircleProperties: React.FC<CirclePropertiesProps> = ({
             className={`flex h-6 w-6 items-center justify-center rounded border border-solid border-gray-200 ${
               properties.radius === 4 ? 'bg-gray-200' : 'bg-white'
             } text-xs transition-colors`}
-            onClick={() => updateObject({ radius: 4 })}
+            onClick={() => updateObject({ radius: 8 })}
             title="Small"
           >
             sm
@@ -169,7 +169,7 @@ const CircleProperties: React.FC<CirclePropertiesProps> = ({
             className={`flex h-6 w-6 items-center justify-center rounded border border-solid border-gray-200 ${
               properties.radius === 20 ? 'bg-gray-200' : 'bg-white'
             } text-xs transition-colors`}
-            onClick={() => updateObject({ radius: 20 })}
+            onClick={() => updateObject({ radius: 16 })}
             title="Large"
           >
             lg
