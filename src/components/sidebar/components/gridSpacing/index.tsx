@@ -110,7 +110,7 @@ const GridSpacing: React.FC<GridSpacingProps> = ({
                     handleGridLayoutChange('rows', gridLayout.rows - 1)
                   }
                   disabled={gridLayout.rows <= 1}
-                  title="Decrease row spacing"
+                  title="Decrease rows"
                 >
                   -
                 </button>
@@ -124,7 +124,7 @@ const GridSpacing: React.FC<GridSpacingProps> = ({
                   min="1"
                   max={selectedObjects.length}
                   step="1"
-                  title="Enter row spacing (5-200)"
+                  title={`Enter number of rows (1-${selectedObjects.length})`}
                 />
                 <button
                   className="flex h-6 w-6 items-center justify-center rounded border border-solid border-gray-200 text-xs transition-colors hover:bg-gray-100 disabled:opacity-50"
@@ -132,7 +132,7 @@ const GridSpacing: React.FC<GridSpacingProps> = ({
                     handleGridLayoutChange('rows', gridLayout.rows + 1)
                   }
                   disabled={gridLayout.rows >= selectedObjects.length}
-                  title="Increase row spacing"
+                  title="Increase rows"
                 >
                   +
                 </button>
@@ -154,7 +154,7 @@ const GridSpacing: React.FC<GridSpacingProps> = ({
                     handleGridLayoutChange('columns', gridLayout.columns - 1)
                   }
                   disabled={gridLayout.columns <= 1}
-                  title="Decrease row spacing"
+                  title="Decrease columns"
                 >
                   -
                 </button>
@@ -165,10 +165,10 @@ const GridSpacing: React.FC<GridSpacingProps> = ({
                     handleGridLayoutChange('columns', Number(e.target.value))
                   }
                   className="w-12 rounded border border-solid border-gray-200 bg-white px-1 py-0.5 text-center text-xs [appearance:textfield] focus:outline-none focus:ring-1 focus:ring-gray-500 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
-                  min="5"
-                  max="200"
-                  step="5"
-                  title="Enter row spacing (5-200)"
+                  min="1"
+                  max={selectedObjects.length}
+                  step="1"
+                  title={`Enter number of columns (1-${selectedObjects.length})`}
                 />
                 <button
                   className="flex h-6 w-6 items-center justify-center rounded border border-solid border-gray-200 text-xs transition-colors hover:bg-gray-100 disabled:opacity-50"
@@ -176,7 +176,7 @@ const GridSpacing: React.FC<GridSpacingProps> = ({
                     handleGridLayoutChange('columns', gridLayout.columns + 1)
                   }
                   disabled={gridLayout.columns >= selectedObjects.length}
-                  title="Increase row spacing"
+                  title="Increase columns"
                 >
                   +
                 </button>

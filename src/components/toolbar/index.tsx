@@ -40,8 +40,6 @@ interface ToolbarProps {
 
 const Toolbar: React.FC<ToolbarProps> = ({ onSave, onBgLayout }) => {
   const {
-    zoomLevel,
-    setZoomLevel,
     toolMode,
     setToolMode,
     toolAction,
@@ -50,6 +48,8 @@ const Toolbar: React.FC<ToolbarProps> = ({ onSave, onBgLayout }) => {
     snapEnabled,
     setSnapEnabled,
   } = useEventGuiStore();
+
+  const [zoomLevel, setZoomLevel] = useState(100);
 
   const { copySelectedObjects, cutSelectedObjects, pasteObjects } =
     useClipboardActions();
@@ -67,6 +67,27 @@ const Toolbar: React.FC<ToolbarProps> = ({ onSave, onBgLayout }) => {
   const [toastType, setToastType] = useState<'success' | 'error' | 'info'>(
     'info'
   );
+
+  // Update canvas zoom when zoomLevel changes
+  useEffect(() => {
+    if (!canvas) return;
+
+    const zoom = zoomLevel / 100;
+    canvas.setZoom(zoom);
+
+    // Always center the canvas content in the viewport after zoom
+    const viewportWidth = canvas.getWidth();
+    const viewportHeight = canvas.getHeight();
+    const contentWidth = canvas.width! * zoom;
+    const contentHeight = canvas.height! * zoom;
+
+    canvas.absolutePan({
+      x: (viewportWidth - contentWidth) / 2,
+      y: (viewportHeight - contentHeight) / 2,
+    });
+
+    canvas.renderAll();
+  }, [zoomLevel, canvas]);
 
   // Export handler
   const handleExport = (e: React.FormEvent) => {
@@ -141,6 +162,14 @@ const Toolbar: React.FC<ToolbarProps> = ({ onSave, onBgLayout }) => {
       setToastType('error');
       setShowToast(true);
     }
+  };
+
+  const handleZoomIn = () => {
+    setZoomLevel(Math.min(zoomLevel + 10, 120)); // Max zoom 120%
+  };
+
+  const handleZoomOut = () => {
+    setZoomLevel(Math.max(zoomLevel - 10, 80)); // Min zoom 80%
   };
 
   // ::::::::::::::::::: Buttons data
@@ -278,7 +307,7 @@ const Toolbar: React.FC<ToolbarProps> = ({ onSave, onBgLayout }) => {
       <Button
         icon={<LuZoomOut className="h-4 w-4" />}
         tooltip="Zoom Out"
-        onClick={() => setZoomLevel(zoomLevel - 10)}
+        onClick={handleZoomOut}
       />
       <div className="flex h-8 w-12 items-center justify-center text-sm font-medium">
         {zoomLevel}%
@@ -286,7 +315,7 @@ const Toolbar: React.FC<ToolbarProps> = ({ onSave, onBgLayout }) => {
       <Button
         icon={<LuZoomIn className="h-4 w-4" />}
         tooltip="Zoom In"
-        onClick={() => setZoomLevel(zoomLevel + 10)}
+        onClick={handleZoomIn}
       />
 
       {/* ::::::::::::::: add space */}
