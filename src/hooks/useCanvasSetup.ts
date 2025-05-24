@@ -6,8 +6,8 @@ const useCanvasSetup = (
   canvasRef: React.RefObject<HTMLCanvasElement>,
   canvasParent: React.RefObject<HTMLDivElement>,
   setCanvas: (c: fabric.Canvas) => void,
-  width: number = 1000,
-  height: number = 1000,
+  width: number = 800,
+  height: number = 600,
   backgroundColor: string = '#f8fafc',
   allowSelection: boolean = true
 ) => {

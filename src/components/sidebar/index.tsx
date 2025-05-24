@@ -1,5 +1,10 @@
 import { useEffect, useState } from 'react';
-import { LuPlus } from 'react-icons/lu';
+import {
+  LuCircleFadingPlus,
+  LuCirclePlus,
+  LuCommand,
+  LuPlus,
+} from 'react-icons/lu';
 import { useEventGuiStore } from '@/zustand';
 import { CustomFabricObject } from '@/types/fabric-types';
 import { Select } from '@/components/ui';
@@ -9,8 +14,8 @@ import CircleProperties from './components/circleProperties';
 import RectangleProperties from './components/rectangleProperties';
 import TextProperties from './components/textProperties';
 import ColorProperties from './components/colorProperties';
-import { Pattern, Gradient } from 'fabric/fabric-impl';
 import SeatAttributes from './components/seatAttributes';
+import GridSpacing from './components/gridSpacing';
 
 export type Mode =
   | 'select'
@@ -39,7 +44,7 @@ const Sidebar: React.FC = () => {
   const [lockAspect, setLockAspect] = useState(true);
   const { updateObject } = useObjectUpdater(canvas, setProperties, lockAspect);
 
-  // ::::::::::::::::::::::: Listen for object selection
+  // Listen for object selection
   useEffect(() => {
     if (!canvas) return;
 
@@ -152,31 +157,58 @@ const Sidebar: React.FC = () => {
   }, [canvas]);
 
   return (
-    <div className="min-h-screen w-[20rem] space-y-4 bg-gray-50 p-4">
-      {/* <div className="rounded-md bg-white shadow">
-        <div className="flex items-center justify-between rounded-t-md bg-gray-200 p-2">
-          <span className="font-semibold">Zones</span>
-          <button className="text-gray-600 hover:text-gray-800">
-            <LuPlus size={20} />
-          </button>
-        </div>
-        <div className="flex items-center space-x-2 p-2">
-          <input
-            type="checkbox"
-            id="ground-floor"
-            className="rounded text-gray-600"
-          />
-          <label htmlFor="ground-floor">Ground floor</label>
-        </div>
-      </div> */}
-
+    <div className="h-full w-[20rem] space-y-4 bg-gray-50 p-4 border-0 border-l border-solid border-gray-200">
       {selectedObjects.length > 1 &&
         objectTypes.length === 1 &&
         objectTypes[0] === 'circle' && (
-          <div className="mb-2 text-xs font-semibold text-gray-500">
-            Editing {selectedObjects.length} seats
-          </div>
+          <GridSpacing canvas={canvas} selectedObjects={selectedObjects} />
         )}
+
+      {/* Show placeholder when nothing is selected */}
+      {selectedObjects.length === 0 && !selectedObject && (
+        <div className="flex h-full select-none flex-col items-center py-8 text-gray-400">
+          <LuCircleFadingPlus className="h-10 w-10 text-gray-400" />
+          <div className="text-center">
+            <div className="mb-1 font-semibold text-gray-500">No selection</div>
+            <div className="text-sm">
+              Select a seat or shape to edit its properties.
+            </div>
+            <div className="mt-2 text-xs text-gray-400">
+              Tip: Use the toolbar above to add new items.
+            </div>
+          </div>
+          <div className="mt-8 w-full max-w-xs rounded-lg border border-solid border-gray-200 bg-white/80 p-4">
+            <div className="mb-2 flex items-center gap-2 text-sm font-semibold text-gray-700">
+              <LuCommand className="" />
+              Command Palette
+            </div>
+            <ul className="mt-2 grid grid-cols-2 space-y-1 text-xs text-gray-500">
+              <li className="flex items-center">
+                <span className="flex font-semibold text-gray-700">
+                  <LuCommand className="text-[0.875rem]" /> + Z
+                </span>{' '}
+                — Undo
+              </li>
+              <li className="flex items-center">
+                <span className="flex font-semibold text-gray-700">
+                  <LuCommand className="text-[0.875rem]" /> + Y
+                </span>{' '}
+                — Redo
+              </li>
+              <li className="flex items-center">
+                <span className="font-semibold text-gray-700">Delete</span> —
+                Remove
+              </li>
+              <li className="flex items-center">
+                <span className="flex font-semibold text-gray-700">
+                  <LuCommand className="text-[0.875rem]" /> + S
+                </span>{' '}
+                — Save
+              </li>
+            </ul>
+          </div>
+        </div>
+      )}
 
       {selectedObject && (
         <div className="space-y-4 rounded-md bg-white p-4 shadow">

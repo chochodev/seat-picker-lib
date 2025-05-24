@@ -33,7 +33,12 @@ import Toast from '@/components/ui/Toast';
 import { applyCustomStyles } from '@/components/createObject/applyCustomStyles';
 import { CanvasObject } from '@/types/data.types';
 
-const Toolbar: React.FC<{ onSave?: (json: any) => void }> = ({ onSave }) => {
+interface ToolbarProps {
+  onSave?: (json: any) => void;
+  onBgLayout?: () => void;
+}
+
+const Toolbar: React.FC<ToolbarProps> = ({ onSave, onBgLayout }) => {
   const {
     zoomLevel,
     setZoomLevel,
@@ -177,14 +182,14 @@ const Toolbar: React.FC<{ onSave?: (json: any) => void }> = ({ onSave }) => {
       },
       {
         icon: LuGrid2X2,
-        tooltip: snapEnabled ? 'Smart Grid' : 'Smart Grid',
+        tooltip: snapEnabled ? 'Remove Grid' : 'Smart Grid',
         onClick: () => setSnapEnabled(!snapEnabled),
         state: snapEnabled,
       },
       {
         icon: LuLayoutDashboard,
         tooltip: 'Layout View',
-        onClick: () => {},
+        onClick: onBgLayout,
         state: false,
       },
     ],
@@ -247,7 +252,7 @@ const Toolbar: React.FC<{ onSave?: (json: any) => void }> = ({ onSave }) => {
   ];
 
   return (
-    <div className="sticky left-0 top-0 z-[200] flex w-full items-center justify-center gap-1 bg-white px-[1rem] py-[0.5rem] shadow">
+    <div className="fixed left-0 top-0 z-[200] flex w-full items-center justify-center gap-1 bg-white px-[1rem] py-[0.5rem] shadow">
       {/* :::::::::::::::: add space */}
       <div className="flex-1" />
 

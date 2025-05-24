@@ -18,10 +18,10 @@ export default function Home() {
         <Route
           index
           element={
-            <main className="min-h-screen w-full flex-col items-center ">
+            <main className="h-screen w-full ">
               <SeatPicker
-                // onChange={handleChange}
-                // onSave={handleSave}
+                onChange={handleChange}
+                onSave={handleSave}
                 className="w-full"
               />
             </main>

@@ -14,7 +14,7 @@ import { useSmartSnap } from '@/hooks/useSmartSnap';
 import '@/index.css';
 import '../fabricCustomRegistration';
 import { CanvasObject, SeatCanvasProps, SeatData } from '@/types/data.types';
-import Modal from './ui/Modal';
+import Modal, { DefaultSeatModal } from './ui/Modal';
 
 const defaultStyle = {
   width: 800,
@@ -60,9 +60,12 @@ const SeatPicker: React.FC<SeatCanvasProps> = ({
 }) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const canvasParent = useRef<HTMLDivElement>(null);
+  const bgInputRef = useRef<HTMLInputElement>(null);
   const { canvas, setCanvas, toolMode, setToolMode, toolAction, snapEnabled } =
     useEventGuiStore();
   const [selectedSeat, setSelectedSeat] = useState<SeatData | null>(null);
+  const [bgImage, setBgImage] = useState<string | null>(null);
+  const [bgOpacity] = useState(0.3);
 
   // Merge default styles with custom styles
   const mergedStyle = {
@@ -83,6 +86,72 @@ const SeatPicker: React.FC<SeatCanvasProps> = ({
     ...defaultLabels,
     ...labels,
   };
+
+  // Handle background image upload
+  const handleBgImageUpload = (file: File) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      setBgImage(e.target?.result as string);
+      if (canvas && canvas.getElement && canvas.getElement()) {
+        fabric.Image.fromURL(e.target?.result as string, (img) => {
+          img.set({ opacity: bgOpacity });
+
+          // Calculate scale to fit while maintaining aspect ratio
+          const canvasRatio = canvas.width! / canvas.height!;
+          const imgRatio = img.width! / img.height!;
+
+          let scaleX, scaleY;
+          if (imgRatio > canvasRatio) {
+            // Image is wider than canvas
+            scaleX = canvas.width! / img.width!;
+            scaleY = scaleX;
+          } else {
+            // Image is taller than canvas
+            scaleY = canvas.height! / img.height!;
+            scaleX = scaleY;
+          }
+
+          // Center the image
+          const scaledWidth = img.width! * scaleX;
+          const scaledHeight = img.height! * scaleY;
+          const left = (canvas.width! - scaledWidth) / 2;
+          const top = (canvas.height! - scaledHeight) / 2;
+
+          canvas.setBackgroundImage(img, canvas.renderAll.bind(canvas), {
+            scaleX,
+            scaleY,
+            left,
+            top,
+          });
+        });
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
+  // Remove background image
+  const handleRemoveBgImage = () => {
+    setBgImage(null);
+    if (canvas && canvas.getElement && canvas.getElement()) {
+      canvas.setBackgroundImage(null as any, canvas.renderAll.bind(canvas));
+    }
+  };
+
+  // Keep background image in sync with canvas
+  useEffect(() => {
+    if (bgImage && canvas && canvas.getElement && canvas.getElement()) {
+      fabric.Image.fromURL(bgImage, (img) => {
+        img.set({ opacity: bgOpacity });
+        canvas.setBackgroundImage(img, canvas.renderAll.bind(canvas), {
+          scaleX: canvas.width! / img.width!,
+          scaleY: canvas.height! / img.height!,
+        });
+      });
+    }
+    if (!bgImage && canvas && canvas.getElement && canvas.getElement()) {
+      canvas.setBackgroundImage(null as any, canvas.renderAll.bind(canvas));
+    }
+  }, [bgImage, canvas, bgOpacity]);
 
   useCanvasSetup(
     canvasRef,
@@ -106,6 +175,10 @@ const SeatPicker: React.FC<SeatCanvasProps> = ({
   // Load layout if provided
   useEffect(() => {
     if (!canvas || !layout) return;
+
+    // Remove background image if present when layout changes
+    setBgImage(null);
+    canvas.setBackgroundImage(null as any, canvas.renderAll.bind(canvas));
     canvas.clear();
 
     // Store handler reference so we can remove it
@@ -257,97 +330,89 @@ const SeatPicker: React.FC<SeatCanvasProps> = ({
     }
   };
 
+  // Save handler that excludes background image from saved file
+  const handleSave = () => {
+    if (!canvas || !onSave) return;
+    // Temporarily remove background image
+    const currentBg = canvas.backgroundImage;
+    canvas.setBackgroundImage(null as any, canvas.renderAll.bind(canvas), {
+      dirty: false,
+    });
+    const json = {
+      type: 'canvas',
+      ...canvas.toJSON(['customType', 'seatData', 'zoneData']),
+    } as unknown as CanvasObject;
+    // Restore background image
+    if (currentBg) {
+      canvas.setBackgroundImage(currentBg, canvas.renderAll.bind(canvas));
+    }
+    onSave(json);
+  };
+
   // Default seat details modal
   const defaultSeatDetails = (
-    <Modal
-      open={!!selectedSeat}
-      onClose={() => setSelectedSeat(null)}
-      title="Seat Details"
-    >
-      {selectedSeat && (
-        <div className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="text-sm font-medium text-gray-600">
-                {mergedLabels.seatNumber}
-              </label>
-              <p className="text-lg font-semibold">{selectedSeat.number}</p>
-            </div>
-            <div>
-              <label className="text-sm font-medium text-gray-600">
-                {mergedLabels.category}
-              </label>
-              <p className="text-lg font-semibold">{selectedSeat.category}</p>
-            </div>
-            <div>
-              <label className="text-sm font-medium text-gray-600">
-                {mergedLabels.price}
-              </label>
-              <p className="text-lg font-semibold">
-                {selectedSeat.currencySymbol}
-                {selectedSeat.price}{' '}
-                <span className="text-sm text-gray-500">
-                  ({selectedSeat.currencyCode})
-                </span>
-              </p>
-            </div>
-            <div>
-              <label className="text-sm font-medium text-gray-600">
-                {mergedLabels.status}
-              </label>
-              <p className="text-lg font-semibold">{selectedSeat.status}</p>
-            </div>
-          </div>
-          <div className="mt-6 flex gap-3">
-            <button
-              onClick={() => handleSeatAction('buy')}
-              className="flex-1 rounded-md bg-gray-700 px-4 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-gray-400"
-            >
-              {mergedLabels.buyButton}
-            </button>
-            <button
-              onClick={() => setSelectedSeat(null)}
-              className="flex-1 rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700 shadow-sm transition-colors hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-400"
-            >
-              {mergedLabels.cancelButton}
-            </button>
-          </div>
-        </div>
-      )}
-    </Modal>
+    <DefaultSeatModal
+      selectedSeat={selectedSeat}
+      setSelectedSeat={setSelectedSeat}
+      mergedLabels={mergedLabels}
+      handleSeatAction={handleSeatAction}
+    />
   );
 
-  /**
-   * Custom render function for the seat details modal.
-   * If provided, this will be used instead of the default modal.
-   * To disable the default modal, provide your own renderSeatDetails function.
-   *
-   * Example usage:
-   * <SeatPicker
-   *   renderSeatDetails={({ seat, onClose, onAction }) => (
-   *     <MyCustomModal seat={seat} onClose={onClose} onAction={onAction} />
-   *   )}
-   * />
-   */
   return (
-    <div className={`relative h-full w-full bg-gray-200 ${className}`}>
+    <div
+      className={`relative flex h-full w-full flex-col bg-gray-200 ${className}`}
+    >
+      <input
+        type="file"
+        accept="image/*"
+        style={{ display: 'none' }}
+        ref={bgInputRef}
+        onChange={(e) => {
+          if (e.target.files && e.target.files[0]) {
+            handleBgImageUpload(e.target.files[0]);
+          }
+        }}
+      />
       {!readOnly &&
         (renderToolbar ? (
-          renderToolbar({ onSave: onSave || (() => {}) })
+          renderToolbar({
+            onSave: handleSave,
+            onBgLayout: () => {
+              if (bgImage) {
+                handleRemoveBgImage();
+              } else {
+                bgInputRef.current?.click();
+              }
+            },
+          })
         ) : (
-          <Toolbar onSave={onSave || (() => {})} />
+          <Toolbar
+            onSave={handleSave}
+            onBgLayout={() => {
+              if (bgImage) {
+                handleRemoveBgImage();
+              } else {
+                bgInputRef.current?.click();
+              }
+            }}
+          />
         ))}
-      <div className="flex h-full w-full justify-between">
+      <div className="flex h-0 w-full flex-1 overflow-hidden pt-12">
         <div
-          className="mx-auto h-full w-full max-w-[45rem] bg-gray-100"
+          className="m-auto flex flex-1 items-center justify-center overflow-auto bg-gray-100"
           ref={canvasParent}
-          style={{ width: mergedStyle.width, height: mergedStyle.height }}
+          style={{
+            width: '100%',
+            height: '100%',
+            maxWidth: mergedStyle.width,
+            maxHeight: mergedStyle.height,
+          }}
         >
           <canvas ref={canvasRef} />
         </div>
         {!readOnly && (renderSidebar ? renderSidebar() : <Sidebar />)}
       </div>
-
       {/* Only show the default modal if renderSeatDetails is not provided */}
       {renderSeatDetails
         ? renderSeatDetails({

@@ -112,7 +112,8 @@ export interface SeatCanvasProps {
     };
   };
   renderToolbar?: (props: {
-    onSave: (json: CanvasObject) => void;
+    onSave?: (json: CanvasObject) => void;
+    onBgLayout?: () => void;
   }) => React.ReactNode;
   renderSidebar?: () => React.ReactNode;
   renderSeatDetails?: (props: {
