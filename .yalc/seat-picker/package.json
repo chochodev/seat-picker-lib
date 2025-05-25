@@ -1,7 +1,7 @@
 {
   "name": "seat-picker",
   "private": false,
-  "version": "0.0.7",
+  "version": "0.0.9",
   "main": "./dist/index.js",
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -67,5 +67,5 @@
     "uuid": "^9.0.0",
     "zustand": "^5.0.4"
   },
-  "yalcSig": "e0d3a111441cf281efb40398dcf68629"
+  "yalcSig": "7db6d65e1b5e0e84a0dabfb3ad0ca85a"
 }

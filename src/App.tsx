@@ -2,7 +2,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import SeatPicker from '@/components';
 import CustomerSeatCanvas from './pages/CustomerSeatCanvas';
 import { CanvasObject } from './types/data.types';
-
+import DemoPage from './pages/demo';
 export default function Home() {
   const handleChange = (json: CanvasObject) => {
     // console.log('onChange', json);
@@ -16,7 +16,7 @@ export default function Home() {
     <Router>
       <Routes>
         <Route
-          index
+          path="/dev"
           element={
             <main className="h-screen w-full ">
               <SeatPicker
@@ -28,6 +28,7 @@ export default function Home() {
           }
         />
         <Route path="/seats" element={<CustomerSeatCanvas />} />
+        <Route path="/demo" element={<DemoPage />} />
       </Routes>
     </Router>
   );

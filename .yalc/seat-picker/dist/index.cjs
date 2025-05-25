@@ -331,12 +331,74 @@ var Modal = ({ open, onClose, title, children }) => {
     /* @__PURE__ */ jsxRuntime.jsx(
       "button",
       {
-        className: "mt-4 rounded border border-solid border-gray-300 w-full bg-gray-200 px-4 py-1 text-sm hover:bg-gray-300",
+        className: "mt-4 w-full rounded border border-solid border-gray-300 bg-gray-200 px-4 py-1 text-sm hover:bg-gray-300",
         onClick: onClose,
         children: "Cancel"
       }
     )
   ] }) });
+};
+var DefaultSeatModal = ({
+  selectedSeat,
+  setSelectedSeat,
+  mergedLabels,
+  handleSeatAction
+}) => {
+  return /* @__PURE__ */ jsxRuntime.jsx(
+    Modal,
+    {
+      open: !!selectedSeat,
+      onClose: () => setSelectedSeat(null),
+      title: "Seat Details",
+      children: selectedSeat && /* @__PURE__ */ jsxRuntime.jsxs("div", { className: "space-y-4", children: [
+        /* @__PURE__ */ jsxRuntime.jsxs("div", { className: "grid grid-cols-2 gap-4", children: [
+          /* @__PURE__ */ jsxRuntime.jsxs("div", { children: [
+            /* @__PURE__ */ jsxRuntime.jsx("label", { className: "text-sm font-medium text-gray-600", children: mergedLabels.seatNumber }),
+            /* @__PURE__ */ jsxRuntime.jsx("p", { className: "text-lg font-semibold", children: selectedSeat.number })
+          ] }),
+          /* @__PURE__ */ jsxRuntime.jsxs("div", { children: [
+            /* @__PURE__ */ jsxRuntime.jsx("label", { className: "text-sm font-medium text-gray-600", children: mergedLabels.category }),
+            /* @__PURE__ */ jsxRuntime.jsx("p", { className: "text-lg font-semibold", children: selectedSeat.category })
+          ] }),
+          /* @__PURE__ */ jsxRuntime.jsxs("div", { children: [
+            /* @__PURE__ */ jsxRuntime.jsx("label", { className: "text-sm font-medium text-gray-600", children: mergedLabels.price }),
+            /* @__PURE__ */ jsxRuntime.jsxs("p", { className: "text-lg font-semibold", children: [
+              selectedSeat.currencySymbol,
+              selectedSeat.price,
+              " ",
+              /* @__PURE__ */ jsxRuntime.jsxs("span", { className: "text-sm text-gray-500", children: [
+                "(",
+                selectedSeat.currencyCode,
+                ")"
+              ] })
+            ] })
+          ] }),
+          /* @__PURE__ */ jsxRuntime.jsxs("div", { children: [
+            /* @__PURE__ */ jsxRuntime.jsx("label", { className: "text-sm font-medium text-gray-600", children: mergedLabels.status }),
+            /* @__PURE__ */ jsxRuntime.jsx("p", { className: "text-lg font-semibold", children: selectedSeat.status })
+          ] })
+        ] }),
+        /* @__PURE__ */ jsxRuntime.jsxs("div", { className: "mt-6 flex gap-3", children: [
+          /* @__PURE__ */ jsxRuntime.jsx(
+            "button",
+            {
+              onClick: () => handleSeatAction("buy"),
+              className: "flex-1 rounded-md bg-gray-700 px-4 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-gray-400",
+              children: mergedLabels.buyButton
+            }
+          ),
+          /* @__PURE__ */ jsxRuntime.jsx(
+            "button",
+            {
+              onClick: () => setSelectedSeat(null),
+              className: "flex-1 rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700 shadow-sm transition-colors hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-400",
+              children: mergedLabels.cancelButton
+            }
+          )
+        ] })
+      ] })
+    }
+  );
 };
 var Modal_default = Modal;
 var ExportModal = ({ open, onClose, fileName, setFileName, onExport }) => /* @__PURE__ */ jsxRuntime.jsx(Modal_default, { open, onClose, title: "Export as JSON", children: /* @__PURE__ */ jsxRuntime.jsxs("form", { onSubmit: onExport, className: "flex flex-col gap-4", children: [
@@ -458,10 +520,8 @@ var Toast = ({
   );
 };
 var Toast_default = Toast;
-var Toolbar = ({ onSave }) => {
+var Toolbar = ({ onSave, onBgLayout }) => {
   const {
-    zoomLevel,
-    setZoomLevel,
     toolMode,
     setToolMode,
     toolAction,
@@ -470,6 +530,7 @@ var Toolbar = ({ onSave }) => {
     snapEnabled,
     setSnapEnabled
   } = useEventGuiStore();
+  const [zoomLevel, setZoomLevel] = React.useState(100);
   const { copySelectedObjects, cutSelectedObjects, pasteObjects } = useClipboardActions_default();
   const { undo, redo } = useUndoRedo_default();
   const { isSelectionLocked, toggleLockSelection } = useLockSelection(canvas);
@@ -483,6 +544,20 @@ var Toolbar = ({ onSave }) => {
   const [toastType, setToastType] = React.useState(
     "info"
   );
+  React.useEffect(() => {
+    if (!canvas) return;
+    const zoom = zoomLevel / 100;
+    canvas.setZoom(zoom);
+    const viewportWidth = canvas.getWidth();
+    const viewportHeight = canvas.getHeight();
+    const contentWidth = canvas.width * zoom;
+    const contentHeight = canvas.height * zoom;
+    canvas.absolutePan({
+      x: (viewportWidth - contentWidth) / 2,
+      y: (viewportHeight - contentHeight) / 2
+    });
+    canvas.renderAll();
+  }, [zoomLevel, canvas]);
   const handleExport = (e) => {
     e.preventDefault();
     if (!canvas) return;
@@ -543,6 +618,12 @@ var Toolbar = ({ onSave }) => {
       setShowToast(true);
     }
   };
+  const handleZoomIn = () => {
+    setZoomLevel(Math.min(zoomLevel + 10, 120));
+  };
+  const handleZoomOut = () => {
+    setZoomLevel(Math.max(zoomLevel - 10, 80));
+  };
   const buttonGroups = [
     [
       {
@@ -581,15 +662,14 @@ var Toolbar = ({ onSave }) => {
       },
       {
         icon: lu.LuGrid2X2,
-        tooltip: snapEnabled ? "Smart Grid" : "Smart Grid",
+        tooltip: snapEnabled ? "Remove Grid" : "Smart Grid",
         onClick: () => setSnapEnabled(!snapEnabled),
         state: snapEnabled
       },
       {
         icon: lu.LuLayoutDashboard,
         tooltip: "Layout View",
-        onClick: () => {
-        },
+        onClick: onBgLayout,
         state: false
       }
     ],
@@ -650,7 +730,7 @@ var Toolbar = ({ onSave }) => {
       }
     ]
   ];
-  return /* @__PURE__ */ jsxRuntime.jsxs("div", { className: "sticky left-0 top-0 z-[200] flex w-full items-center justify-center gap-1 bg-white px-[1rem] py-[0.5rem] shadow", children: [
+  return /* @__PURE__ */ jsxRuntime.jsxs("div", { className: "fixed left-0 top-0 z-[200] flex w-full items-center justify-center gap-1 bg-white px-[1rem] py-[0.5rem] shadow", children: [
     /* @__PURE__ */ jsxRuntime.jsx("div", { className: "flex-1" }),
     buttonGroups.map((group, groupIdx) => /* @__PURE__ */ jsxRuntime.jsxs(React__default.default.Fragment, { children: [
       groupIdx > 0 && /* @__PURE__ */ jsxRuntime.jsx(Separator, {}),
@@ -671,7 +751,7 @@ var Toolbar = ({ onSave }) => {
       {
         icon: /* @__PURE__ */ jsxRuntime.jsx(lu.LuZoomOut, { className: "h-4 w-4" }),
         tooltip: "Zoom Out",
-        onClick: () => setZoomLevel(zoomLevel - 10)
+        onClick: handleZoomOut
       }
     ),
     /* @__PURE__ */ jsxRuntime.jsxs("div", { className: "flex h-8 w-12 items-center justify-center text-sm font-medium", children: [
@@ -683,7 +763,7 @@ var Toolbar = ({ onSave }) => {
       {
         icon: /* @__PURE__ */ jsxRuntime.jsx(lu.LuZoomIn, { className: "h-4 w-4" }),
         tooltip: "Zoom In",
-        onClick: () => setZoomLevel(zoomLevel + 10)
+        onClick: handleZoomIn
       }
     ),
     /* @__PURE__ */ jsxRuntime.jsx("div", { className: "flex-1" }),
@@ -966,11 +1046,52 @@ var useObjectUpdater = (canvas, setProperties, lockAspect = false) => {
     };
   }, [canvas, setProperties]);
   const updateObject = (updates) => {
+    var _a, _b;
     if (!canvas) return;
+    const activeObject = canvas.getActiveObject();
     const activeObjects = canvas.getActiveObjects();
     if (activeObjects.length === 0) return;
+    if (activeObject && activeObject.type === "activeSelection") {
+      const group = activeObject;
+      if ("left" in updates || "top" in updates) {
+        const deltaX = "left" in updates && typeof updates.left === "number" ? updates.left - ((_a = group.left) != null ? _a : 0) : 0;
+        const deltaY = "top" in updates && typeof updates.top === "number" ? updates.top - ((_b = group.top) != null ? _b : 0) : 0;
+        group.getObjects().forEach((obj) => {
+          var _a2, _b2;
+          obj.set({
+            left: ((_a2 = obj.left) != null ? _a2 : 0) + deltaX,
+            top: ((_b2 = obj.top) != null ? _b2 : 0) + deltaY
+          });
+          obj.setCoords();
+        });
+        group.setCoords();
+        canvas.renderAll();
+        setProperties((prev) => {
+          var _a2, _b2;
+          return {
+            ...prev,
+            left: (_a2 = updates.left) != null ? _a2 : prev.left,
+            top: (_b2 = updates.top) != null ? _b2 : prev.top
+          };
+        });
+        return;
+      }
+      if ("angle" in updates && typeof updates.angle === "number") {
+        group.set("angle", updates.angle);
+        group.setCoords();
+        canvas.renderAll();
+        setProperties((prev) => {
+          var _a2;
+          return {
+            ...prev,
+            angle: (_a2 = updates.angle) != null ? _a2 : prev.angle
+          };
+        });
+        return;
+      }
+    }
     activeObjects.forEach((selectedObject) => {
-      var _a, _b;
+      var _a2, _b2;
       const updatedProperties = {};
       for (const [key, value] of Object.entries(updates)) {
         if (selectedObject[key] !== value) {
@@ -1043,8 +1164,8 @@ var useObjectUpdater = (canvas, setProperties, lockAspect = false) => {
           const originX = selectedObject.originX || "center";
           const originY = selectedObject.originY || "center";
           const newCenter = new fabric.fabric.Point(
-            ((_a = selectedObject.left) != null ? _a : 0) + dx,
-            ((_b = selectedObject.top) != null ? _b : 0) + dy
+            ((_a2 = selectedObject.left) != null ? _a2 : 0) + dx,
+            ((_b2 = selectedObject.top) != null ? _b2 : 0) + dy
           );
           selectedObject.setPositionByOrigin(newCenter, originX, originY);
           selectedObject.setCoords();
@@ -1366,7 +1487,7 @@ var CircleProperties = ({
           "button",
           {
             className: `flex h-6 w-6 items-center justify-center rounded border border-solid border-gray-200 ${properties.radius === 0 ? "bg-gray-200" : "bg-white"} transition-colors`,
-            onClick: () => updateObject({ radius: 0 }),
+            onClick: () => updateObject({ radius: 6 }),
             title: "None",
             children: /* @__PURE__ */ jsxRuntime.jsx(
               "svg",
@@ -1386,7 +1507,7 @@ var CircleProperties = ({
           "button",
           {
             className: `flex h-6 w-6 items-center justify-center rounded border border-solid border-gray-200 ${properties.radius === 4 ? "bg-gray-200" : "bg-white"} text-xs transition-colors`,
-            onClick: () => updateObject({ radius: 4 }),
+            onClick: () => updateObject({ radius: 8 }),
             title: "Small",
             children: "sm"
           }
@@ -1404,7 +1525,7 @@ var CircleProperties = ({
           "button",
           {
             className: `flex h-6 w-6 items-center justify-center rounded border border-solid border-gray-200 ${properties.radius === 20 ? "bg-gray-200" : "bg-white"} text-xs transition-colors`,
-            onClick: () => updateObject({ radius: 20 }),
+            onClick: () => updateObject({ radius: 16 }),
             title: "Large",
             children: "lg"
           }
@@ -1939,6 +2060,241 @@ var SeatAttributes = ({
   ] });
 };
 var seatAttributes_default = SeatAttributes;
+var GridSpacing = ({
+  canvas,
+  selectedObjects
+}) => {
+  const [gridSpacing, setGridSpacing] = React.useState({ row: 65, column: 65 });
+  const [gridLayout, setGridLayout] = React.useState({ rows: 2, columns: 2 });
+  React.useEffect(() => {
+    if (selectedObjects.length <= 1) return;
+    const total = selectedObjects.length;
+    const sqrt = Math.sqrt(total);
+    const rows = Math.ceil(sqrt);
+    const columns = Math.ceil(total / rows);
+    setGridLayout({ rows, columns });
+  }, [selectedObjects.length]);
+  const updateGridLayout = React.useCallback(() => {
+    if (!canvas || selectedObjects.length <= 1) return;
+    const objects = canvas.getActiveObjects();
+    if (objects.length > 1) {
+      const firstObj = objects[0];
+      const { rows, columns } = gridLayout;
+      const { row: rowSpacing, column: columnSpacing } = gridSpacing;
+      objects.forEach((obj, index) => {
+        if (index === 0) return;
+        const row = Math.floor(index / columns);
+        const col = index % columns;
+        obj.set({
+          left: firstObj.left + col * columnSpacing,
+          top: firstObj.top + row * rowSpacing
+        });
+      });
+      canvas.renderAll();
+    }
+  }, [canvas, selectedObjects, gridLayout, gridSpacing]);
+  const handleGridSpacingChange = React.useCallback(
+    (type, value) => {
+      if (!canvas || selectedObjects.length <= 1) return;
+      const minSpacing = 5;
+      const maxSpacing = 200;
+      const clampedValue = Math.max(minSpacing, Math.min(maxSpacing, value));
+      setGridSpacing((prev) => ({ ...prev, [type]: clampedValue }));
+      updateGridLayout();
+    },
+    [canvas, selectedObjects, updateGridLayout]
+  );
+  const handleGridLayoutChange = React.useCallback(
+    (type, value) => {
+      if (!canvas || selectedObjects.length <= 1) return;
+      const total = selectedObjects.length;
+      let newValue = Math.max(1, Math.min(total, value));
+      if (type === "rows") {
+        const columns = Math.ceil(total / newValue);
+        setGridLayout((prev) => ({ rows: newValue, columns }));
+      } else {
+        const rows = Math.ceil(total / newValue);
+        setGridLayout((prev) => ({ rows, columns: newValue }));
+      }
+      updateGridLayout();
+    },
+    [canvas, selectedObjects, updateGridLayout]
+  );
+  if (selectedObjects.length <= 1) return null;
+  return /* @__PURE__ */ jsxRuntime.jsxs(jsxRuntime.Fragment, { children: [
+    /* @__PURE__ */ jsxRuntime.jsxs("div", { className: "mb-2 text-xs font-semibold text-gray-500", children: [
+      "Editing ",
+      selectedObjects.length,
+      " seats"
+    ] }),
+    /* @__PURE__ */ jsxRuntime.jsxs("div", { className: "rounded-md bg-white p-4 shadow", children: [
+      /* @__PURE__ */ jsxRuntime.jsxs("div", { className: "mb-4 flex items-center gap-2", children: [
+        /* @__PURE__ */ jsxRuntime.jsx(lu.LuGrid2X2, { className: "h-5 w-5 text-gray-500" }),
+        /* @__PURE__ */ jsxRuntime.jsx("h3", { className: "font-semibold", children: "Grid Layout" })
+      ] }),
+      /* @__PURE__ */ jsxRuntime.jsxs("div", { className: "space-y-4", children: [
+        /* @__PURE__ */ jsxRuntime.jsxs("div", { className: "grid grid-cols-2 gap-4", children: [
+          /* @__PURE__ */ jsxRuntime.jsxs("div", { children: [
+            /* @__PURE__ */ jsxRuntime.jsx("label", { className: "mb-1 block text-sm text-gray-600", children: "Rows" }),
+            /* @__PURE__ */ jsxRuntime.jsxs("div", { className: "mt-1 flex items-center gap-1", children: [
+              /* @__PURE__ */ jsxRuntime.jsx(
+                "button",
+                {
+                  className: "flex h-6 w-6 items-center justify-center rounded border border-solid border-gray-200 text-xs transition-colors hover:bg-gray-100 disabled:opacity-50",
+                  onClick: () => handleGridLayoutChange("rows", gridLayout.rows - 1),
+                  disabled: gridLayout.rows <= 1,
+                  title: "Decrease rows",
+                  children: "-"
+                }
+              ),
+              /* @__PURE__ */ jsxRuntime.jsx(
+                "input",
+                {
+                  type: "number",
+                  value: gridLayout.rows,
+                  onChange: (e) => handleGridLayoutChange("rows", Number(e.target.value)),
+                  className: "w-12 rounded border border-solid border-gray-200 bg-white px-1 py-0.5 text-center text-xs [appearance:textfield] focus:outline-none focus:ring-1 focus:ring-gray-500 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none",
+                  min: "1",
+                  max: selectedObjects.length,
+                  step: "1",
+                  title: `Enter number of rows (1-${selectedObjects.length})`
+                }
+              ),
+              /* @__PURE__ */ jsxRuntime.jsx(
+                "button",
+                {
+                  className: "flex h-6 w-6 items-center justify-center rounded border border-solid border-gray-200 text-xs transition-colors hover:bg-gray-100 disabled:opacity-50",
+                  onClick: () => handleGridLayoutChange("rows", gridLayout.rows + 1),
+                  disabled: gridLayout.rows >= selectedObjects.length,
+                  title: "Increase rows",
+                  children: "+"
+                }
+              )
+            ] }),
+            /* @__PURE__ */ jsxRuntime.jsx("div", { className: "mt-1 text-xs text-gray-500", children: gridLayout.rows * gridLayout.columns >= selectedObjects.length ? `${gridLayout.rows} rows \xD7 ${gridLayout.columns} columns` : "Not enough space for all seats" })
+          ] }),
+          /* @__PURE__ */ jsxRuntime.jsxs("div", { children: [
+            /* @__PURE__ */ jsxRuntime.jsx("label", { className: "mb-1 block text-sm text-gray-600", children: "Columns" }),
+            /* @__PURE__ */ jsxRuntime.jsxs("div", { className: "mt-1 flex items-center gap-1", children: [
+              /* @__PURE__ */ jsxRuntime.jsx(
+                "button",
+                {
+                  className: "flex h-6 w-6 items-center justify-center rounded border border-solid border-gray-200 text-xs transition-colors hover:bg-gray-100 disabled:opacity-50",
+                  onClick: () => handleGridLayoutChange("columns", gridLayout.columns - 1),
+                  disabled: gridLayout.columns <= 1,
+                  title: "Decrease columns",
+                  children: "-"
+                }
+              ),
+              /* @__PURE__ */ jsxRuntime.jsx(
+                "input",
+                {
+                  type: "number",
+                  value: gridLayout.columns,
+                  onChange: (e) => handleGridLayoutChange("columns", Number(e.target.value)),
+                  className: "w-12 rounded border border-solid border-gray-200 bg-white px-1 py-0.5 text-center text-xs [appearance:textfield] focus:outline-none focus:ring-1 focus:ring-gray-500 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none",
+                  min: "1",
+                  max: selectedObjects.length,
+                  step: "1",
+                  title: `Enter number of columns (1-${selectedObjects.length})`
+                }
+              ),
+              /* @__PURE__ */ jsxRuntime.jsx(
+                "button",
+                {
+                  className: "flex h-6 w-6 items-center justify-center rounded border border-solid border-gray-200 text-xs transition-colors hover:bg-gray-100 disabled:opacity-50",
+                  onClick: () => handleGridLayoutChange("columns", gridLayout.columns + 1),
+                  disabled: gridLayout.columns >= selectedObjects.length,
+                  title: "Increase columns",
+                  children: "+"
+                }
+              )
+            ] })
+          ] })
+        ] }),
+        /* @__PURE__ */ jsxRuntime.jsxs("div", { className: "grid grid-cols-2 gap-4", children: [
+          /* @__PURE__ */ jsxRuntime.jsxs("div", { children: [
+            /* @__PURE__ */ jsxRuntime.jsx("label", { className: "mb-1 block text-sm text-gray-600", children: "Row Spacing" }),
+            /* @__PURE__ */ jsxRuntime.jsxs("div", { className: "mt-1 flex items-center gap-1", children: [
+              /* @__PURE__ */ jsxRuntime.jsx(
+                "button",
+                {
+                  className: "flex h-6 w-6 items-center justify-center rounded border border-solid border-gray-200 text-xs transition-colors hover:bg-gray-100 disabled:opacity-50",
+                  onClick: () => handleGridSpacingChange("row", gridSpacing.row - 5),
+                  disabled: gridSpacing.row <= 5,
+                  title: "Decrease row spacing",
+                  children: "-"
+                }
+              ),
+              /* @__PURE__ */ jsxRuntime.jsx(
+                "input",
+                {
+                  type: "number",
+                  value: gridSpacing.row,
+                  onChange: (e) => handleGridSpacingChange("row", Number(e.target.value)),
+                  className: "w-12 rounded border border-solid border-gray-200 bg-white px-1 py-0.5 text-center text-xs [appearance:textfield] focus:outline-none focus:ring-1 focus:ring-gray-500 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none",
+                  min: "5",
+                  max: "200",
+                  step: "5",
+                  title: "Enter row spacing (5-200)"
+                }
+              ),
+              /* @__PURE__ */ jsxRuntime.jsx(
+                "button",
+                {
+                  className: "flex h-6 w-6 items-center justify-center rounded border border-solid border-gray-200 text-xs transition-colors hover:bg-gray-100 disabled:opacity-50",
+                  onClick: () => handleGridSpacingChange("row", gridSpacing.row + 5),
+                  disabled: gridSpacing.row >= 200,
+                  title: "Increase row spacing",
+                  children: "+"
+                }
+              )
+            ] })
+          ] }),
+          /* @__PURE__ */ jsxRuntime.jsxs("div", { children: [
+            /* @__PURE__ */ jsxRuntime.jsx("label", { className: "mb-1 block text-sm text-gray-600", children: "Column Spacing" }),
+            /* @__PURE__ */ jsxRuntime.jsxs("div", { className: "mt-1 flex items-center gap-1", children: [
+              /* @__PURE__ */ jsxRuntime.jsx(
+                "button",
+                {
+                  className: "flex h-6 w-6 items-center justify-center rounded border border-solid border-gray-200 text-xs transition-colors hover:bg-gray-100 disabled:opacity-50",
+                  onClick: () => handleGridSpacingChange("column", gridSpacing.column - 5),
+                  disabled: gridSpacing.column <= 5,
+                  title: "Decrease column spacing",
+                  children: "-"
+                }
+              ),
+              /* @__PURE__ */ jsxRuntime.jsx(
+                "input",
+                {
+                  type: "number",
+                  value: gridSpacing.column,
+                  onChange: (e) => handleGridSpacingChange("column", Number(e.target.value)),
+                  className: "w-12 rounded border border-solid border-gray-200 bg-white px-1 py-0.5 text-center text-xs [appearance:textfield] focus:outline-none focus:ring-1 focus:ring-gray-500 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none",
+                  min: "5",
+                  max: "200",
+                  step: "5",
+                  title: "Enter column spacing (5-200)"
+                }
+              ),
+              /* @__PURE__ */ jsxRuntime.jsx(
+                "button",
+                {
+                  className: "flex h-6 w-6 items-center justify-center rounded border border-solid border-gray-200 text-xs transition-colors hover:bg-gray-100 disabled:opacity-50",
+                  onClick: () => handleGridSpacingChange("column", gridSpacing.column + 5),
+                  disabled: gridSpacing.column >= 200,
+                  title: "Increase column spacing",
+                  children: "+"
+                }
+              )
+            ] })
+          ] })
+        ] })
+      ] })
+    ] })
+  ] });
+};
+var gridSpacing_default = GridSpacing;
 var Sidebar = () => {
   const { canvas } = useEventGuiStore();
   const [selectedObjects, setSelectedObjects] = React.useState(
@@ -1959,6 +2315,7 @@ var Sidebar = () => {
     const updateSelectedObjects = () => {
       var _a;
       const activeObjects = canvas.getActiveObjects();
+      const activeObject = canvas.getActiveObject();
       setSelectedObjects(activeObjects);
       setSelectedObject(activeObjects[0] || null);
       setObjectType(
@@ -1971,7 +2328,28 @@ var Sidebar = () => {
           )
         )
       );
-      if (activeObjects[0]) {
+      if (activeObject && activeObject.type === "activeSelection") {
+        setProperties((prev) => {
+          var _a2, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k, _l, _m, _n, _o, _p;
+          return {
+            ...prev,
+            angle: (_a2 = activeObject.angle) != null ? _a2 : prev.angle,
+            radius: (_b = activeObject.radius) != null ? _b : prev.radius,
+            width: ((_c = activeObject.width) != null ? _c : prev.width) * ((_d = activeObject.scaleX) != null ? _d : 1),
+            height: ((_e = activeObject.height) != null ? _e : prev.height) * ((_f = activeObject.scaleY) != null ? _f : 1),
+            fill: (_g = activeObject.fill) != null ? _g : prev.fill,
+            stroke: (_h = activeObject.stroke) != null ? _h : prev.stroke,
+            text: (_i = activeObject.text) != null ? _i : prev.text,
+            fontSize: (_j = activeObject.fontSize) != null ? _j : prev.fontSize,
+            fontWeight: (_k = activeObject.fontWeight) != null ? _k : prev.fontWeight,
+            fontFamily: (_l = activeObject.fontFamily) != null ? _l : prev.fontFamily,
+            left: (_m = activeObject.left) != null ? _m : prev.left,
+            top: (_n = activeObject.top) != null ? _n : prev.top,
+            rx: (_o = activeObject.rx) != null ? _o : prev.rx,
+            ry: (_p = activeObject.ry) != null ? _p : prev.ry
+          };
+        });
+      } else if (activeObjects[0]) {
         setProperties((prev) => {
           var _a2, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k, _l, _m, _n, _o, _p;
           return {
@@ -1994,6 +2372,20 @@ var Sidebar = () => {
         });
       }
     };
+    const handleGroupTransform = (e) => {
+      const obj = e.target;
+      if (obj && obj.type === "activeSelection") {
+        setProperties((prev) => {
+          var _a, _b, _c;
+          return {
+            ...prev,
+            left: (_a = obj.left) != null ? _a : prev.left,
+            top: (_b = obj.top) != null ? _b : prev.top,
+            angle: (_c = obj.angle) != null ? _c : prev.angle
+          };
+        });
+      }
+    };
     const eventsToListen = [
       "selection:created",
       "selection:updated",
@@ -2005,6 +2397,8 @@ var Sidebar = () => {
     eventsToListen.forEach((event) => {
       canvas.on(event, updateSelectedObjects);
     });
+    canvas.on("object:moving", handleGroupTransform);
+    canvas.on("object:rotating", handleGroupTransform);
     canvas.on("selection:cleared", () => {
       setSelectedObjects([]);
       setSelectedObject(null);
@@ -2015,31 +2409,56 @@ var Sidebar = () => {
       eventsToListen.forEach((event) => {
         canvas.off(event, updateSelectedObjects);
       });
+      canvas.off("object:moving", handleGroupTransform);
+      canvas.off("object:rotating", handleGroupTransform);
       canvas.off("selection:cleared");
     };
   }, [canvas]);
-  return /* @__PURE__ */ jsxRuntime.jsxs("div", { className: "min-h-screen w-[20rem] space-y-4 bg-gray-50 p-4", children: [
-    /* @__PURE__ */ jsxRuntime.jsxs("div", { className: "rounded-md bg-white shadow", children: [
-      /* @__PURE__ */ jsxRuntime.jsxs("div", { className: "flex items-center justify-between rounded-t-md bg-gray-200 p-2", children: [
-        /* @__PURE__ */ jsxRuntime.jsx("span", { className: "font-semibold", children: "Zones" }),
-        /* @__PURE__ */ jsxRuntime.jsx("button", { className: "text-gray-600 hover:text-gray-800", children: /* @__PURE__ */ jsxRuntime.jsx(lu.LuPlus, { size: 20 }) })
+  return /* @__PURE__ */ jsxRuntime.jsxs("div", { className: "h-full w-[20rem] space-y-4 bg-gray-50 p-4 border-0 border-l border-solid border-gray-200", children: [
+    selectedObjects.length > 1 && objectTypes.length === 1 && objectTypes[0] === "circle" && /* @__PURE__ */ jsxRuntime.jsx(gridSpacing_default, { canvas, selectedObjects }),
+    selectedObjects.length === 0 && !selectedObject && /* @__PURE__ */ jsxRuntime.jsxs("div", { className: "flex h-full select-none flex-col items-center py-8 text-gray-400", children: [
+      /* @__PURE__ */ jsxRuntime.jsx(lu.LuCircleFadingPlus, { className: "h-10 w-10 text-gray-400" }),
+      /* @__PURE__ */ jsxRuntime.jsxs("div", { className: "text-center", children: [
+        /* @__PURE__ */ jsxRuntime.jsx("div", { className: "mb-1 font-semibold text-gray-500", children: "No selection" }),
+        /* @__PURE__ */ jsxRuntime.jsx("div", { className: "text-sm", children: "Select a seat or shape to edit its properties." }),
+        /* @__PURE__ */ jsxRuntime.jsx("div", { className: "mt-2 text-xs text-gray-400", children: "Tip: Use the toolbar above to add new items." })
       ] }),
-      /* @__PURE__ */ jsxRuntime.jsxs("div", { className: "flex items-center space-x-2 p-2", children: [
-        /* @__PURE__ */ jsxRuntime.jsx(
-          "input",
-          {
-            type: "checkbox",
-            id: "ground-floor",
-            className: "rounded text-gray-600"
-          }
-        ),
-        /* @__PURE__ */ jsxRuntime.jsx("label", { htmlFor: "ground-floor", children: "Ground floor" })
+      /* @__PURE__ */ jsxRuntime.jsxs("div", { className: "mt-8 w-full max-w-xs rounded-lg border border-solid border-gray-200 bg-white/80 p-4", children: [
+        /* @__PURE__ */ jsxRuntime.jsxs("div", { className: "mb-2 flex items-center gap-2 text-sm font-semibold text-gray-700", children: [
+          /* @__PURE__ */ jsxRuntime.jsx(lu.LuCommand, { className: "" }),
+          "Command Palette"
+        ] }),
+        /* @__PURE__ */ jsxRuntime.jsxs("ul", { className: "mt-2 grid grid-cols-2 space-y-1 text-xs text-gray-500", children: [
+          /* @__PURE__ */ jsxRuntime.jsxs("li", { className: "flex items-center", children: [
+            /* @__PURE__ */ jsxRuntime.jsxs("span", { className: "flex font-semibold text-gray-700", children: [
+              /* @__PURE__ */ jsxRuntime.jsx(lu.LuCommand, { className: "text-[0.875rem]" }),
+              " + Z"
+            ] }),
+            " ",
+            "\u2014 Undo"
+          ] }),
+          /* @__PURE__ */ jsxRuntime.jsxs("li", { className: "flex items-center", children: [
+            /* @__PURE__ */ jsxRuntime.jsxs("span", { className: "flex font-semibold text-gray-700", children: [
+              /* @__PURE__ */ jsxRuntime.jsx(lu.LuCommand, { className: "text-[0.875rem]" }),
+              " + Y"
+            ] }),
+            " ",
+            "\u2014 Redo"
+          ] }),
+          /* @__PURE__ */ jsxRuntime.jsxs("li", { className: "flex items-center", children: [
+            /* @__PURE__ */ jsxRuntime.jsx("span", { className: "font-semibold text-gray-700", children: "Delete" }),
+            " \u2014 Remove"
+          ] }),
+          /* @__PURE__ */ jsxRuntime.jsxs("li", { className: "flex items-center", children: [
+            /* @__PURE__ */ jsxRuntime.jsxs("span", { className: "flex font-semibold text-gray-700", children: [
+              /* @__PURE__ */ jsxRuntime.jsx(lu.LuCommand, { className: "text-[0.875rem]" }),
+              " + S"
+            ] }),
+            " ",
+            "\u2014 Save"
+          ] })
+        ] })
       ] })
-    ] }),
-    selectedObjects.length > 1 && objectTypes.length === 1 && objectTypes[0] === "circle" && /* @__PURE__ */ jsxRuntime.jsxs("div", { className: "mb-2 text-xs font-semibold text-gray-500", children: [
-      "Editing ",
-      selectedObjects.length,
-      " seats"
     ] }),
     selectedObject && /* @__PURE__ */ jsxRuntime.jsxs("div", { className: "space-y-4 rounded-md bg-white p-4 shadow", children: [
       objectType === "circle" && /* @__PURE__ */ jsxRuntime.jsxs("div", { className: "mb-4 flex items-center gap-2 border-0 border-b border-solid border-gray-200", children: [
@@ -2209,14 +2628,14 @@ function getNextSeatNumber(canvas) {
 }
 
 // src/hooks/useCanvasSetup.ts
-var useCanvasSetup = (canvasRef, canvasParent, setCanvas, width, height) => {
+var useCanvasSetup = (canvasRef, canvasParent, setCanvas, width = 800, height = 600, backgroundColor = "#f8fafc", allowSelection = true) => {
   React.useEffect(() => {
     if (!canvasRef.current || !canvasParent.current) return;
     const c = new fabric.fabric.Canvas(canvasRef.current, {
       width,
       height,
-      backgroundColor: "#f8fafc",
-      selection: false
+      backgroundColor,
+      selection: allowSelection
     });
     setCanvas(c);
     const resizeCanvas = () => {
@@ -2311,12 +2730,42 @@ var useSelectionHandler = (canvas) => {
 var useSelectionHandler_default = useSelectionHandler;
 var useMultipleSeatCreator = (canvas, toolMode, setToolMode) => {
   const startPointRef = React.useRef(null);
+  const highlightRectRef = React.useRef(null);
   React.useEffect(() => {
     if (!canvas) return;
     const handleMouseDown = (event) => {
       if (toolMode !== "multiple-seat") return;
       const pointer = canvas.getPointer(event.e);
       startPointRef.current = { x: pointer.x, y: pointer.y };
+      const rect = new fabric.fabric.Rect({
+        left: pointer.x,
+        top: pointer.y,
+        width: 1,
+        height: 1,
+        fill: "rgba(0,0,255,0.1)",
+        stroke: "blue",
+        strokeDashArray: [4, 4],
+        selectable: false,
+        evented: false,
+        excludeFromExport: true
+      });
+      highlightRectRef.current = rect;
+      canvas.add(rect);
+      canvas.bringToFront(rect);
+    };
+    const handleMouseMove = (event) => {
+      if (toolMode !== "multiple-seat" || !startPointRef.current || !highlightRectRef.current)
+        return;
+      const pointer = canvas.getPointer(event.e);
+      const rect = highlightRectRef.current;
+      rect.set({
+        width: Math.abs(pointer.x - startPointRef.current.x),
+        height: Math.abs(pointer.y - startPointRef.current.y),
+        left: Math.min(pointer.x, startPointRef.current.x),
+        top: Math.min(pointer.y, startPointRef.current.y)
+      });
+      canvas.requestRenderAll();
+      canvas.bringToFront(rect);
     };
     const handleMouseUp = (event) => {
       if (toolMode !== "multiple-seat" || !startPointRef.current) return;
@@ -2335,13 +2784,19 @@ var useMultipleSeatCreator = (canvas, toolMode, setToolMode) => {
         }
       }
       canvas.renderAll();
+      if (highlightRectRef.current) {
+        canvas.remove(highlightRectRef.current);
+        highlightRectRef.current = null;
+      }
       startPointRef.current = null;
       setToolMode("select");
     };
     canvas.on("mouse:down", handleMouseDown);
+    canvas.on("mouse:move", handleMouseMove);
     canvas.on("mouse:up", handleMouseUp);
     return () => {
       canvas.off("mouse:down", handleMouseDown);
+      canvas.off("mouse:move", handleMouseMove);
       canvas.off("mouse:up", handleMouseUp);
     };
   }, [canvas, toolMode, setToolMode]);
@@ -2691,8 +3146,11 @@ var SeatPicker = ({
 }) => {
   const canvasRef = React.useRef(null);
   const canvasParent = React.useRef(null);
+  const bgInputRef = React.useRef(null);
   const { canvas, setCanvas, toolMode, setToolMode, toolAction, snapEnabled } = useEventGuiStore();
   const [selectedSeat, setSelectedSeat] = React.useState(null);
+  const [bgImage, setBgImage] = React.useState(null);
+  const [bgOpacity] = React.useState(0.3);
   const mergedStyle = {
     ...defaultStyle,
     ...style,
@@ -2709,12 +3167,67 @@ var SeatPicker = ({
     ...defaultLabels,
     ...labels
   };
+  const handleBgImageUpload = (file) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      var _a, _b;
+      setBgImage((_a = e.target) == null ? void 0 : _a.result);
+      if (canvas && canvas.getElement && canvas.getElement()) {
+        fabric.fabric.Image.fromURL((_b = e.target) == null ? void 0 : _b.result, (img) => {
+          img.set({ opacity: bgOpacity });
+          const canvasRatio = canvas.width / canvas.height;
+          const imgRatio = img.width / img.height;
+          let scaleX, scaleY;
+          if (imgRatio > canvasRatio) {
+            scaleX = canvas.width / img.width;
+            scaleY = scaleX;
+          } else {
+            scaleY = canvas.height / img.height;
+            scaleX = scaleY;
+          }
+          const scaledWidth = img.width * scaleX;
+          const scaledHeight = img.height * scaleY;
+          const left = (canvas.width - scaledWidth) / 2;
+          const top = (canvas.height - scaledHeight) / 2;
+          canvas.setBackgroundImage(img, canvas.renderAll.bind(canvas), {
+            scaleX,
+            scaleY,
+            left,
+            top
+          });
+        });
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+  const handleRemoveBgImage = () => {
+    setBgImage(null);
+    if (canvas && canvas.getElement && canvas.getElement()) {
+      canvas.setBackgroundImage(null, canvas.renderAll.bind(canvas));
+    }
+  };
+  React.useEffect(() => {
+    if (bgImage && canvas && canvas.getElement && canvas.getElement()) {
+      fabric.fabric.Image.fromURL(bgImage, (img) => {
+        img.set({ opacity: bgOpacity });
+        canvas.setBackgroundImage(img, canvas.renderAll.bind(canvas), {
+          scaleX: canvas.width / img.width,
+          scaleY: canvas.height / img.height
+        });
+      });
+    }
+    if (!bgImage && canvas && canvas.getElement && canvas.getElement()) {
+      canvas.setBackgroundImage(null, canvas.renderAll.bind(canvas));
+    }
+  }, [bgImage, canvas, bgOpacity]);
   useCanvasSetup_default(
     canvasRef,
     canvasParent,
     setCanvas,
     mergedStyle.width,
-    mergedStyle.height
+    mergedStyle.height,
+    mergedStyle.backgroundColor,
+    !readOnly
   );
   useSelectionHandler_default(canvas);
   useMultipleSeatCreator_default(canvas, toolMode, setToolMode);
@@ -2727,7 +3240,10 @@ var SeatPicker = ({
   }
   React.useEffect(() => {
     if (!canvas || !layout) return;
+    setBgImage(null);
+    canvas.setBackgroundImage(null, canvas.renderAll.bind(canvas));
     canvas.clear();
+    let readOnlyMouseDownHandler = null;
     canvas.loadFromJSON(layout, () => {
       if (readOnly) {
         if (mergedStyle.showSeatNumbers) {
@@ -2759,7 +3275,7 @@ var SeatPicker = ({
           obj.evented = obj.type === "circle";
         });
         canvas.selection = false;
-        canvas.on("mouse:down", (options) => {
+        readOnlyMouseDownHandler = (options) => {
           var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k, _l, _m, _n, _o, _p, _q, _r, _s, _t, _u;
           if (!options.target || options.target.type !== "circle") return;
           const seat = options.target;
@@ -2777,10 +3293,33 @@ var SeatPicker = ({
           } else {
             setSelectedSeat(seatData);
           }
+        };
+        canvas.on("mouse:down", readOnlyMouseDownHandler);
+      } else {
+        if (readOnlyMouseDownHandler) {
+          canvas.off("mouse:down", readOnlyMouseDownHandler);
+        }
+        canvas.selection = true;
+        canvas.getObjects().forEach((obj) => {
+          obj.selectable = true;
+          obj.evented = true;
         });
+        console.log(
+          "Edit mode objects:",
+          canvas.getObjects().map((obj) => ({
+            type: obj.type,
+            selectable: obj.selectable,
+            evented: obj.evented
+          }))
+        );
       }
       canvas.renderAll();
     });
+    return () => {
+      if (readOnlyMouseDownHandler) {
+        canvas.off("mouse:down", readOnlyMouseDownHandler);
+      }
+    };
   }, [canvas, layout, readOnly, mergedStyle, onSeatClick]);
   React.useEffect(() => {
     if (!canvas || readOnly) return;
@@ -2823,83 +3362,98 @@ var SeatPicker = ({
       setSelectedSeat(null);
     }
   };
+  const handleSave = () => {
+    if (!canvas || !onSave) return;
+    const currentBg = canvas.backgroundImage;
+    canvas.setBackgroundImage(null, canvas.renderAll.bind(canvas), {
+      dirty: false
+    });
+    const json = {
+      type: "canvas",
+      ...canvas.toJSON(["customType", "seatData", "zoneData"])
+    };
+    if (currentBg) {
+      canvas.setBackgroundImage(currentBg, canvas.renderAll.bind(canvas));
+    }
+    onSave(json);
+  };
   const defaultSeatDetails = /* @__PURE__ */ jsxRuntime.jsx(
-    Modal_default,
+    DefaultSeatModal,
     {
-      open: !!selectedSeat,
-      onClose: () => setSelectedSeat(null),
-      title: "Seat Details",
-      children: selectedSeat && /* @__PURE__ */ jsxRuntime.jsxs("div", { className: "space-y-4", children: [
-        /* @__PURE__ */ jsxRuntime.jsxs("div", { className: "grid grid-cols-2 gap-4", children: [
-          /* @__PURE__ */ jsxRuntime.jsxs("div", { children: [
-            /* @__PURE__ */ jsxRuntime.jsx("label", { className: "text-sm font-medium text-gray-600", children: mergedLabels.seatNumber }),
-            /* @__PURE__ */ jsxRuntime.jsx("p", { className: "text-lg font-semibold", children: selectedSeat.number })
-          ] }),
-          /* @__PURE__ */ jsxRuntime.jsxs("div", { children: [
-            /* @__PURE__ */ jsxRuntime.jsx("label", { className: "text-sm font-medium text-gray-600", children: mergedLabels.category }),
-            /* @__PURE__ */ jsxRuntime.jsx("p", { className: "text-lg font-semibold", children: selectedSeat.category })
-          ] }),
-          /* @__PURE__ */ jsxRuntime.jsxs("div", { children: [
-            /* @__PURE__ */ jsxRuntime.jsx("label", { className: "text-sm font-medium text-gray-600", children: mergedLabels.price }),
-            /* @__PURE__ */ jsxRuntime.jsxs("p", { className: "text-lg font-semibold", children: [
-              selectedSeat.currencySymbol,
-              selectedSeat.price,
-              " ",
-              /* @__PURE__ */ jsxRuntime.jsxs("span", { className: "text-sm text-gray-500", children: [
-                "(",
-                selectedSeat.currencyCode,
-                ")"
-              ] })
-            ] })
-          ] }),
-          /* @__PURE__ */ jsxRuntime.jsxs("div", { children: [
-            /* @__PURE__ */ jsxRuntime.jsx("label", { className: "text-sm font-medium text-gray-600", children: mergedLabels.status }),
-            /* @__PURE__ */ jsxRuntime.jsx("p", { className: "text-lg font-semibold", children: selectedSeat.status })
-          ] })
-        ] }),
-        /* @__PURE__ */ jsxRuntime.jsxs("div", { className: "mt-6 flex gap-3", children: [
-          /* @__PURE__ */ jsxRuntime.jsx(
-            "button",
-            {
-              onClick: () => handleSeatAction("buy"),
-              className: "flex-1 rounded-md bg-gray-700 px-4 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-gray-400",
-              children: mergedLabels.buyButton
-            }
-          ),
-          /* @__PURE__ */ jsxRuntime.jsx(
-            "button",
-            {
-              onClick: () => setSelectedSeat(null),
-              className: "flex-1 rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700 shadow-sm transition-colors hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-400",
-              children: mergedLabels.cancelButton
-            }
-          )
-        ] })
-      ] })
+      selectedSeat,
+      setSelectedSeat,
+      mergedLabels,
+      handleSeatAction
     }
   );
-  return /* @__PURE__ */ jsxRuntime.jsxs("div", { className: `relative h-full w-full bg-gray-200 ${className}`, children: [
-    !readOnly && (renderToolbar ? renderToolbar({ onSave: onSave || (() => {
-    }) }) : /* @__PURE__ */ jsxRuntime.jsx(toolbar_default, { onSave: onSave || (() => {
-    }) })),
-    /* @__PURE__ */ jsxRuntime.jsxs("div", { className: "flex h-full w-full justify-between", children: [
-      /* @__PURE__ */ jsxRuntime.jsx(
-        "div",
-        {
-          className: "mx-auto h-full w-full max-w-[45rem] bg-gray-100",
-          ref: canvasParent,
-          style: { width: mergedStyle.width, height: mergedStyle.height },
-          children: /* @__PURE__ */ jsxRuntime.jsx("canvas", { ref: canvasRef })
-        }
-      ),
-      !readOnly && (renderSidebar ? renderSidebar() : /* @__PURE__ */ jsxRuntime.jsx(sidebar_default, {}))
-    ] }),
-    renderSeatDetails ? renderSeatDetails({
-      seat: selectedSeat,
-      onClose: () => setSelectedSeat(null),
-      onAction: handleSeatAction
-    }) : defaultSeatDetails
-  ] });
+  return /* @__PURE__ */ jsxRuntime.jsxs(
+    "div",
+    {
+      className: `relative flex h-full w-full flex-col bg-gray-200 ${className}`,
+      children: [
+        /* @__PURE__ */ jsxRuntime.jsx(
+          "input",
+          {
+            type: "file",
+            accept: "image/*",
+            style: { display: "none" },
+            ref: bgInputRef,
+            onChange: (e) => {
+              if (e.target.files && e.target.files[0]) {
+                handleBgImageUpload(e.target.files[0]);
+              }
+            }
+          }
+        ),
+        !readOnly && (renderToolbar ? renderToolbar({
+          onSave: handleSave,
+          onBgLayout: () => {
+            var _a;
+            if (bgImage) {
+              handleRemoveBgImage();
+            } else {
+              (_a = bgInputRef.current) == null ? void 0 : _a.click();
+            }
+          }
+        }) : /* @__PURE__ */ jsxRuntime.jsx(
+          toolbar_default,
+          {
+            onSave: handleSave,
+            onBgLayout: () => {
+              var _a;
+              if (bgImage) {
+                handleRemoveBgImage();
+              } else {
+                (_a = bgInputRef.current) == null ? void 0 : _a.click();
+              }
+            }
+          }
+        )),
+        /* @__PURE__ */ jsxRuntime.jsxs("div", { className: "flex h-0 w-full flex-1 overflow-hidden pt-12", children: [
+          /* @__PURE__ */ jsxRuntime.jsx(
+            "div",
+            {
+              className: "m-auto flex flex-1 items-center justify-center overflow-auto bg-gray-100",
+              ref: canvasParent,
+              style: {
+                width: "100%",
+                height: "100%",
+                maxWidth: mergedStyle.width,
+                maxHeight: mergedStyle.height
+              },
+              children: /* @__PURE__ */ jsxRuntime.jsx("canvas", { ref: canvasRef })
+            }
+          ),
+          !readOnly && (renderSidebar ? renderSidebar() : /* @__PURE__ */ jsxRuntime.jsx(sidebar_default, {}))
+        ] }),
+        renderSeatDetails ? renderSeatDetails({
+          seat: selectedSeat,
+          onClose: () => setSelectedSeat(null),
+          onAction: handleSeatAction
+        }) : defaultSeatDetails
+      ]
+    }
+  );
 };
 var components_default = SeatPicker;
 var SeatLayoutRenderer = ({
