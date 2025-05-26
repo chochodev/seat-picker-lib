@@ -10,7 +10,7 @@ const config: Config = {
   favicon: 'brand-svg.svg',
 
   // Set the production url of your site here
-  url: 'https://seat-picker.vercel.app',
+  url: 'https://seat-picker-six.vercel.app',
   // Set the /<baseUrl>/ pathname under which your site is served
   // For GitHub pages deployment, it is often '/<projectName>/'
   baseUrl: '/',

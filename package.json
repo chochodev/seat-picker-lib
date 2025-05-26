@@ -43,6 +43,7 @@
   "homepage": "https://github.com/chochodev/seat-picker-lib#readme",
   "scripts": {
     "dev": "vite",
+    "build:web": "vite build",
     "build": "tsup src/index.ts --format esm,cjs --dts --external react",
     "lint": "eslint .",
     "preview": "vite preview",
