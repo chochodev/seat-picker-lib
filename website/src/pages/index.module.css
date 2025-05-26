@@ -1,6 +1,7 @@
 /**
- * CSS files with the .module.css suffix will be treated as CSS modules
- * and scoped locally.
+ * CSS files that end with .module.css are treated as CSS modules, which means
+ * their class names are automatically scoped to the component that imports them.
+ * This prevents class name conflicts between different components.
  */
 
 .heroBanner {

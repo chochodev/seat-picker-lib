@@ -157,7 +157,7 @@ const Sidebar: React.FC = () => {
   }, [canvas]);
 
   return (
-    <div className="h-full w-[20rem] space-y-4 bg-gray-50 p-4 border-0 border-l border-solid border-gray-200">
+    <div className="h-full w-[20rem] space-y-4 border-0 border-l border-solid border-gray-200 bg-gray-50 p-4">
       {selectedObjects.length > 1 &&
         objectTypes.length === 1 &&
         objectTypes[0] === 'circle' && (
