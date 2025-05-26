@@ -1,4 +1,9 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+} from 'react-router-dom';
 import SeatPicker from '@/components';
 import CustomerSeatCanvas from './pages/CustomerSeatCanvas';
 import { CanvasObject } from './types/data.types';
@@ -15,6 +20,7 @@ export default function Home() {
   return (
     <Router>
       <Routes>
+        <Route path="/" element={<Navigate to="/dev" replace />} />
         <Route
           path="/dev"
           element={
