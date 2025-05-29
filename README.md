@@ -70,12 +70,40 @@ function App() {
     console.log('Layout updated:', layout);
   };
 
+  const handleSave = (layout) => {
+    console.log('Saving layout:', layout);
+    // Save to your backend or file system
+  };
+
   return (
     <SeatPicker
-      width={800}
-      height={600}
       onChange={handleChange}
-      // ...other props
+      onSave={handleSave}
+      style={{
+        width: 800,
+        height: 600,
+        backgroundColor: '#f8fafc',
+        showSeatNumbers: true,
+        seatNumberStyle: {
+          fontSize: 14,
+          fill: '#222',
+          fontWeight: 'bold',
+        },
+        seatStyle: {
+          fill: 'transparent',
+          stroke: 'black',
+          strokeWidth: 1,
+          radius: 10,
+        },
+      }}
+      labels={{
+        buyButton: 'Buy Seat',
+        cancelButton: 'Cancel',
+        seatNumber: 'Seat Number',
+        category: 'Category',
+        price: 'Price',
+        status: 'Status',
+      }}
     />
   );
 }
@@ -136,6 +164,73 @@ A dedicated, safe page for customers to view and purchase seats. This page is re
 - **Drag & Drop Upload:** Easily upload seat layouts by dragging your JSON file onto the upload area.
 - **Modal Details:** Clicking a seat opens a modal with seat number, category, price, status, and purchase options.
 - **Read-Only:** Customers cannot move, edit, or select seats—only view and purchase.
+
+### Customer View Example
+
+```tsx
+import { SeatPicker } from 'seat-picker';
+
+function CustomerView() {
+  const [layout, setLayout] = useState(null);
+
+  const handleSeatAction = (action, seat) => {
+    console.log('Action:', action, 'on seat:', seat);
+    // Implement your buy functionality here
+  };
+
+  return (
+    <div className="min-h-screen bg-gray-100 p-8">
+      <h1 className="mb-4 text-2xl font-bold">Customer Seat Viewer</h1>
+
+      {/* Upload area for layout JSON */}
+      <div className="mb-6">
+        <div className="rounded-lg border-2 border-dashed border-gray-300 p-6">
+          {/* Your file upload UI here */}
+        </div>
+      </div>
+
+      {layout ? (
+        <SeatPicker
+          layout={layout}
+          readOnly
+          style={{
+            width: 800,
+            height: 600,
+            backgroundColor: '#f8fafc',
+            showSeatNumbers: true,
+            seatNumberStyle: {
+              fontSize: 14,
+              fill: '#222',
+              fontWeight: 'bold',
+            },
+            seatStyle: {
+              fill: 'transparent',
+              stroke: 'black',
+              strokeWidth: 1,
+              radius: 10,
+            },
+          }}
+          labels={{
+            buyButton: 'Buy Seat',
+            cancelButton: 'Cancel',
+            seatNumber: 'Seat Number',
+            category: 'Category',
+            price: 'Price',
+            status: 'Status',
+          }}
+          onSeatAction={handleSeatAction}
+        />
+      ) : (
+        <div className="rounded-lg border bg-white p-4 shadow">
+          <div className="flex h-[600px] items-center justify-center text-gray-500">
+            Please upload a seat layout file
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+```
 
 ---
 
