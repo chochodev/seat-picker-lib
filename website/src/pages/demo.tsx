@@ -1,6 +1,6 @@
 import React from 'react';
 import Layout from '@theme/Layout';
-import { SeatPicker } from 'seat-picker';
+import { SeatPicker } from '../../../src/components';
 
 export default function Demo(): JSX.Element {
   return (

@@ -17,3 +17,18 @@ hola:
   label: Hola
   permalink: /hola
   description: Hola tag description
+
+seat-picker:
+  label: SeatPicker
+  description: Posts about the SeatPicker library
+  permalink: /blog/tags/seat-picker
+
+react:
+  label: React
+  description: Posts about React development
+  permalink: /blog/tags/react
+
+typescript:
+  label: TypeScript
+  description: Posts about TypeScript development
+  permalink: /blog/tags/typescript
