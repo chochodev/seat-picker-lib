@@ -18,7 +18,7 @@ export default function Home() {
         {/* Hero Section */}
         <div style={{ padding: '3rem 0 2rem 0', textAlign: 'center' }}>
           <div className="container">
-            <h1 style={{ fontSize: '2.5rem', fontWeight: 700, color: '#222' }} className='italic'>
+            <h1 className='text-[2.5rem] font-bold text-gray-800'>
               🎟️ Seat Picker
             </h1>
             <p

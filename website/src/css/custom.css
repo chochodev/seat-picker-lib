@@ -3,15 +3,15 @@
  * bundles Infima by default. Infima is a CSS framework designed to
  * work well for content-centric websites.
  */
-@import "tailwindcss";
+@import 'tailwindcss';
 
 :root {
-  --ifm-color-primary: #2e8555;
-  --ifm-color-primary-dark: #29784c;
-  --ifm-color-primary-darker: #277148;
-  --ifm-color-primary-darkest: #205d3b;
-  --ifm-color-primary-light: #33925d;
-  --ifm-color-primary-lighter: #359962;
+  --ifm-color-primary: #FFFFFF;
+  --ifm-color-primary-dark: #555555;
+  --ifm-color-primary-darker: #0e0e0e;
+  --ifm-color-primary-darkest: #0e0e0e;
+  --ifm-color-primary-light: #0e0e0e;
+  --ifm-color-primary-lighter: #222222;
   --ifm-color-primary-lightest: #3cad6e;
   --ifm-code-font-size: 95%;
   --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.1);
@@ -19,7 +19,7 @@
 
 /* For readability concerns, you should choose a lighter palette in dark mode. */
 [data-theme='dark'] {
-  --ifm-color-primary: #25c2a0;
+  --ifm-color-primary: #0e0e0e;
   --ifm-color-primary-dark: #21af90;
   --ifm-color-primary-darker: #1fa588;
   --ifm-color-primary-darkest: #1a8870;
@@ -33,7 +33,7 @@
   /* font-family: var(--font-geist); */
   padding: 0;
   margin: 0;
-  color: #0B0B0B;
+  color: #0b0b0b;
   box-sizing: border-box;
   list-style: none;
   outline: none;
@@ -55,4 +55,81 @@ img {
 html {
   scroll-behavior: smooth;
   font-size: 16px;
+}
+
+/* Navbar customization */
+
+.navbar-sidebar {
+  @apply !bg-white dark:!bg-gray-900;
+}
+
+.navbar__brand {
+  font-weight: 600;
+}
+
+.navbar__item {
+  font-weight: 500;
+}
+
+.navbar__link, .navbar__link * {
+  display: flex;
+  align-items: center;
+  color: var(--ifm-color-primary-dark);
+  transition: color 0.2s ease;
+}
+
+.navbar__link:hover, .navbar__link:hover * {
+  color: var(--ifm-color-primary-darker);
+}
+
+/* Search bar customization */
+.navbar-search-input {
+  background-color: var(--ifm-background-color);
+  border: 1px solid var(--ifm-color-emphasis-200);
+  border-radius: 8px;
+  padding: 8px 12px;
+  transition: all 0.2s ease;
+}
+
+.navbar-search-input:focus {
+  border-color: var(--ifm-color-primary);
+  box-shadow: 0 0 0 2px rgba(var(--ifm-color-primary-rgb), 0.1);
+}
+
+[data-theme='dark'] .navbar-search-input {
+  background-color: var(--ifm-background-color);
+  border-color: var(--ifm-color-emphasis-700);
+}
+
+/* Theme toggle button */
+.theme-toggle {
+  display: flex;
+  align-items: center;
+  margin: 0 1rem;
+}
+
+.theme-toggle button {
+  background: none;
+  border: none;
+  padding: 0.5rem;
+  cursor: pointer;
+  color: var(--ifm-color-emphasis-700);
+  transition: color 0.2s ease;
+}
+
+.theme-toggle button:hover {
+  color: var(--ifm-color-primary);
+}
+
+[data-theme='dark'] .theme-toggle button {
+  color: var(--ifm-color-emphasis-400);
+}
+
+[data-theme='dark'] .theme-toggle button:hover {
+  color: var(--ifm-color-primary);
+}
+
+/* Logo transitions */
+.navbar__logo img {
+  transition: opacity 0.2s ease;
 }
