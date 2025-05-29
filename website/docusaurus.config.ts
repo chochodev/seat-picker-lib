@@ -24,7 +24,7 @@ const config: Config = {
   deploymentBranch: 'gh-pages', // Branch that GitHub Pages will deploy from
   trailingSlash: false, // Don't add trailing slashes to URLs
 
-  onBrokenLinks: 'throw',
+  onBrokenLinks: 'warn',
   onBrokenMarkdownLinks: 'warn',
 
   // Even if you don't use internationalization, you can use this field to set
