@@ -38,3 +38,4 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: website/build
           publish_branch: gh-pages
+          commit_message: 'Deploy docs to GitHub Pages'

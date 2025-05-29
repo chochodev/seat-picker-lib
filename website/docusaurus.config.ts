@@ -7,20 +7,22 @@ import tailwindPlugin from './plugins/tailwind-config.cjs';
 
 const config: Config = {
   title: 'Seat Picker',
-  tagline: 'Flexible, interactive, and beautiful seat layout editor and viewer for React',
+  tagline:
+    'Flexible, interactive, and beautiful seat layout editor and viewer for React',
   favicon: 'brand-svg.svg',
 
   // Set the production url of your site here
   url: 'https://chochodev.github.io',
   // Set the /<baseUrl>/ pathname under which your site is served
   // For GitHub pages deployment, it is often '/<projectName>/'
-  baseUrl: '/seat-picker-lib/',
+  baseUrl: '/seat-picker/',
 
   // GitHub pages deployment config.
   // If you aren't using GitHub pages, you don't need these.
   organizationName: 'chochodev', // Usually your GitHub org/user name.
-  projectName: 'seat-picker-lib', // Usually your repo name.
+  projectName: 'seat-picker', // Usually your repo name.
   deploymentBranch: 'gh-pages', // Branch that GitHub Pages will deploy from
+  trailingSlash: false, // Don't add trailing slashes to URLs
 
   onBrokenLinks: 'throw',
   onBrokenMarkdownLinks: 'warn',
@@ -102,7 +104,8 @@ const config: Config = {
         {
           type: 'html',
           position: 'right',
-          value: '<div class="flex items-center mx-4"><button class="p-2 text-gray-600 hover:text-primary-600 dark:text-gray-400 dark:hover:text-primary-400 transition-colors duration-200"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg></button></div>',
+          value:
+            '<div class="flex items-center mx-4"><button class="p-2 text-gray-600 hover:text-primary-600 dark:text-gray-400 dark:hover:text-primary-400 transition-colors duration-200"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg></button></div>',
         },
         {
           href: 'https://github.com/chochodev/seat-picker-lib',
