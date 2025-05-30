@@ -1,4 +1,6 @@
-# Seat Picker
+# [Seat Picker](https://seat-picker-docs.vercel.app/)
+
+> 📚 [Full Documentation & Live Demo](https://seat-picker-docs.vercel.app/)
 
 A flexible and customizable seating arrangement GUI component for React applications. This library provides an interactive canvas for creating and managing seat layouts, perfect for event venues, theaters, restaurants, and more.
 
@@ -165,7 +167,12 @@ A dedicated, safe page for customers to view and purchase seats. This page is re
 - **Modal Details:** Clicking a seat opens a modal with seat number, category, price, status, and purchase options.
 - **Read-Only:** Customers cannot move, edit, or select seats—only view and purchase.
 
-### Customer View Example
+### 🖼️ Rendering a Saved Layout (Read-Only)
+
+You can render a saved seat layout in read-only mode using the provided `SeatPicker` component with the `readOnly` prop set to `true`. This is ideal for customer-facing pages or embeddable widgets where you want to display a seat map and allow seat selection/purchase, but prevent editing or uploading.
+
+### Example
+
 
 ```tsx
 import { SeatPicker } from 'seat-picker';
@@ -231,29 +238,6 @@ function CustomerView() {
   );
 }
 ```
-
----
-
-## 🖼️ Rendering a Saved Layout (Read-Only)
-
-You can render a saved seat layout in read-only mode using the provided `SeatLayoutRenderer` component. This is ideal for customer-facing pages or embeddable widgets where you want to display a seat map and allow seat selection/purchase, but prevent editing or uploading.
-
-### Example
-
-```tsx
-import { SeatLayoutRenderer } from 'seat-picker';
-
-// seatLayoutJson is the JSON object exported from the editor
-function CustomerView({ seatLayoutJson }) {
-  return (
-    <SeatLayoutRenderer layout={seatLayoutJson} width={800} height={600} />
-  );
-}
-```
-
-- The `layout` prop is required and should be the JSON object exported from the admin/editor.
-- The `width` and `height` props are optional (default: 800x600).
-- The component is fully read-only: seats and objects are not editable or selectable, but clicking a seat opens a modal with details and purchase options.
 
 ---
 
