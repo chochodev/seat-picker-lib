@@ -2414,7 +2414,7 @@ var Sidebar = () => {
       canvas.off("selection:cleared");
     };
   }, [canvas]);
-  return /* @__PURE__ */ jsxRuntime.jsxs("div", { className: "h-full w-[20rem] space-y-4 bg-gray-50 p-4 border-0 border-l border-solid border-gray-200", children: [
+  return /* @__PURE__ */ jsxRuntime.jsxs("div", { className: "h-full w-[20rem] space-y-4 border-0 border-l border-solid border-gray-200 bg-gray-50 p-4", children: [
     selectedObjects.length > 1 && objectTypes.length === 1 && objectTypes[0] === "circle" && /* @__PURE__ */ jsxRuntime.jsx(gridSpacing_default, { canvas, selectedObjects }),
     selectedObjects.length === 0 && !selectedObject && /* @__PURE__ */ jsxRuntime.jsxs("div", { className: "flex h-full select-none flex-col items-center py-8 text-gray-400", children: [
       /* @__PURE__ */ jsxRuntime.jsx(lu.LuCircleFadingPlus, { className: "h-10 w-10 text-gray-400" }),
@@ -3104,6 +3104,38 @@ function useSmartSnap(canvas, snapEnabled) {
     };
   }, [canvas, snapEnabled]);
 }
+fabric.fabric.Circle.prototype.toObject = /* @__PURE__ */ function(toObject) {
+  return function(propertiesToInclude = []) {
+    var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k, _l, _m, _n, _o, _p, _q, _r, _s, _t, _u;
+    return {
+      ...toObject.call(this, propertiesToInclude),
+      attributes: {
+        number: (_c = (_b = (_a = this.attributes) == null ? void 0 : _a.number) != null ? _b : this.seatNumber) != null ? _c : "",
+        price: (_f = (_e = (_d = this.attributes) == null ? void 0 : _d.price) != null ? _e : this.price) != null ? _f : "",
+        category: (_i = (_h = (_g = this.attributes) == null ? void 0 : _g.category) != null ? _h : this.category) != null ? _i : "",
+        status: (_l = (_k = (_j = this.attributes) == null ? void 0 : _j.status) != null ? _k : this.status) != null ? _l : "",
+        currencySymbol: (_o = (_n = (_m = this.attributes) == null ? void 0 : _m.currencySymbol) != null ? _n : this.currencySymbol) != null ? _o : "",
+        currencyCode: (_r = (_q = (_p = this.attributes) == null ? void 0 : _p.currencyCode) != null ? _q : this.currencyCode) != null ? _r : "",
+        currencyCountry: (_u = (_t = (_s = this.attributes) == null ? void 0 : _s.currencyCountry) != null ? _t : this.currencyCountry) != null ? _u : ""
+      }
+    };
+  };
+}(fabric.fabric.Circle.prototype.toObject);
+var origInitialize = fabric.fabric.Circle.prototype.initialize;
+fabric.fabric.Circle.prototype.initialize = function(options) {
+  origInitialize.call(this, options);
+  if (options && options.attributes) {
+    this.attributes = { ...options.attributes };
+    this.seatNumber = options.attributes.number;
+    this.price = options.attributes.price;
+    this.category = options.attributes.category;
+    this.status = options.attributes.status;
+    this.currencySymbol = options.attributes.currencySymbol;
+    this.currencyCode = options.attributes.currencyCode;
+    this.currencyCountry = options.attributes.currencyCountry;
+  }
+  return this;
+};
 var defaultStyle = {
   width: 800,
   height: 600,

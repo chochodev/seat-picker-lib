@@ -1,7 +1,7 @@
 {
   "name": "seat-picker",
   "private": false,
-  "version": "0.0.9",
+  "version": "0.0.11",
   "main": "./dist/index.js",
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -11,7 +11,7 @@
     "README.md",
     "LICENSE"
   ],
-  "sideEffects": false,
+  "sideEffects": true,
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
@@ -67,5 +67,5 @@
     "uuid": "^9.0.0",
     "zustand": "^5.0.4"
   },
-  "yalcSig": "7db6d65e1b5e0e84a0dabfb3ad0ca85a"
+  "yalcSig": "d73981074f88725962a8c35fb2c3d748"
 }

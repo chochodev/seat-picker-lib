@@ -1,4 +1,6 @@
-# Seat Picker
+# [Seat Picker](https://seat-picker-docs.vercel.app/)
+
+> 📚 [Full Documentation & Live Demo](https://seat-picker-docs.vercel.app/)
 
 A flexible and customizable seating arrangement GUI component for React applications. This library provides an interactive canvas for creating and managing seat layouts, perfect for event venues, theaters, restaurants, and more.
 
@@ -70,12 +72,40 @@ function App() {
     console.log('Layout updated:', layout);
   };
 
+  const handleSave = (layout) => {
+    console.log('Saving layout:', layout);
+    // Save to your backend or file system
+  };
+
   return (
     <SeatPicker
-      width={800}
-      height={600}
       onChange={handleChange}
-      // ...other props
+      onSave={handleSave}
+      style={{
+        width: 800,
+        height: 600,
+        backgroundColor: '#f8fafc',
+        showSeatNumbers: true,
+        seatNumberStyle: {
+          fontSize: 14,
+          fill: '#222',
+          fontWeight: 'bold',
+        },
+        seatStyle: {
+          fill: 'transparent',
+          stroke: 'black',
+          strokeWidth: 1,
+          radius: 10,
+        },
+      }}
+      labels={{
+        buyButton: 'Buy Seat',
+        cancelButton: 'Cancel',
+        seatNumber: 'Seat Number',
+        category: 'Category',
+        price: 'Price',
+        status: 'Status',
+      }}
     />
   );
 }
@@ -137,28 +167,77 @@ A dedicated, safe page for customers to view and purchase seats. This page is re
 - **Modal Details:** Clicking a seat opens a modal with seat number, category, price, status, and purchase options.
 - **Read-Only:** Customers cannot move, edit, or select seats—only view and purchase.
 
----
+### 🖼️ Rendering a Saved Layout (Read-Only)
 
-## 🖼️ Rendering a Saved Layout (Read-Only)
-
-You can render a saved seat layout in read-only mode using the provided `SeatLayoutRenderer` component. This is ideal for customer-facing pages or embeddable widgets where you want to display a seat map and allow seat selection/purchase, but prevent editing or uploading.
+You can render a saved seat layout in read-only mode using the provided `SeatPicker` component with the `readOnly` prop set to `true`. This is ideal for customer-facing pages or embeddable widgets where you want to display a seat map and allow seat selection/purchase, but prevent editing or uploading.
 
 ### Example
 
-```tsx
-import { SeatLayoutRenderer } from 'seat-picker';
 
-// seatLayoutJson is the JSON object exported from the editor
-function CustomerView({ seatLayoutJson }) {
+```tsx
+import { SeatPicker } from 'seat-picker';
+
+function CustomerView() {
+  const [layout, setLayout] = useState(null);
+
+  const handleSeatAction = (action, seat) => {
+    console.log('Action:', action, 'on seat:', seat);
+    // Implement your buy functionality here
+  };
+
   return (
-    <SeatLayoutRenderer layout={seatLayoutJson} width={800} height={600} />
+    <div className="min-h-screen bg-gray-100 p-8">
+      <h1 className="mb-4 text-2xl font-bold">Customer Seat Viewer</h1>
+
+      {/* Upload area for layout JSON */}
+      <div className="mb-6">
+        <div className="rounded-lg border-2 border-dashed border-gray-300 p-6">
+          {/* Your file upload UI here */}
+        </div>
+      </div>
+
+      {layout ? (
+        <SeatPicker
+          layout={layout}
+          readOnly
+          style={{
+            width: 800,
+            height: 600,
+            backgroundColor: '#f8fafc',
+            showSeatNumbers: true,
+            seatNumberStyle: {
+              fontSize: 14,
+              fill: '#222',
+              fontWeight: 'bold',
+            },
+            seatStyle: {
+              fill: 'transparent',
+              stroke: 'black',
+              strokeWidth: 1,
+              radius: 10,
+            },
+          }}
+          labels={{
+            buyButton: 'Buy Seat',
+            cancelButton: 'Cancel',
+            seatNumber: 'Seat Number',
+            category: 'Category',
+            price: 'Price',
+            status: 'Status',
+          }}
+          onSeatAction={handleSeatAction}
+        />
+      ) : (
+        <div className="rounded-lg border bg-white p-4 shadow">
+          <div className="flex h-[600px] items-center justify-center text-gray-500">
+            Please upload a seat layout file
+          </div>
+        </div>
+      )}
+    </div>
   );
 }
 ```
-
-- The `layout` prop is required and should be the JSON object exported from the admin/editor.
-- The `width` and `height` props are optional (default: 800x600).
-- The component is fully read-only: seats and objects are not editable or selectable, but clicking a seat opens a modal with details and purchase options.
 
 ---
 

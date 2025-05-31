@@ -1,7 +1,7 @@
 {
   "name": "seat-picker",
   "private": false,
-  "version": "0.0.10",
+  "version": "0.0.12",
   "main": "./dist/index.js",
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -11,7 +11,7 @@
     "README.md",
     "LICENSE"
   ],
-  "sideEffects": false,
+  "sideEffects": true,
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
@@ -43,7 +43,6 @@
   "homepage": "https://github.com/chochodev/seat-picker-lib#readme",
   "scripts": {
     "dev": "vite",
-    "build:web": "vite build",
     "build": "tsup src/index.ts --format esm,cjs --dts --external react",
     "lint": "eslint .",
     "preview": "vite preview",
