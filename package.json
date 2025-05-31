@@ -1,7 +1,7 @@
 {
   "name": "seat-picker",
   "private": false,
-  "version": "0.0.12",
+  "version": "0.0.13",
   "main": "./dist/index.js",
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -79,7 +79,7 @@
   "dependencies": {
     "fabric": "^5.3.0",
     "react-icons": "^5.5.0",
-    "seat-picker": "file:.yalc/seat-picker",
+    "seat-picker": "0.0.9",
     "uuid": "^9.0.0",
     "zustand": "^5.0.4"
   }

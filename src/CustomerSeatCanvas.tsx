@@ -1,29 +1,30 @@
-import React from 'react';
-import { SeatPicker } from 'seat-picker';
-import type { CanvasObject, SeatData } from 'seat-picker';
+import React from "react";
+import SeatPicker from "@/components";
+import type { CanvasObject, SeatData } from "@/types/data.types";
+// import "seat-picker/dist/index.css";
 
 const CustomerSeatCanvas: React.FC = () => {
   const [layout, setLayout] = React.useState<CanvasObject | null>(null);
-  const [error, setError] = React.useState('');
-  const [fileName, setFileName] = React.useState('');
+  const [error, setError] = React.useState("");
+  const [fileName, setFileName] = React.useState("");
   const [isDragging, setIsDragging] = React.useState(false);
 
   // Handle file upload
   const handleFile = async (file: File) => {
-    setError('');
+    setError("");
     if (!file) return;
     setFileName(file.name);
     try {
       const text = await file.text();
       const json = JSON.parse(text);
-      console.log('Loaded layout:', json);
+      console.log("Loaded layout:", json);
       if (!json.objects || !Array.isArray(json.objects)) {
-        throw new Error('Invalid seat layout format');
+        throw new Error("Invalid seat layout format");
       }
       setLayout(json);
     } catch (err) {
-      console.error('Error loading file:', err);
-      setError('Invalid or corrupt seat file.');
+      console.error("Error loading file:", err);
+      setError("Invalid or corrupt seat file.");
     }
   };
 
@@ -50,7 +51,7 @@ const CustomerSeatCanvas: React.FC = () => {
   };
 
   const handleSeatAction = (action: string, seat: SeatData) => {
-    console.log('Action:', action, 'on seat:', seat);
+    console.log("Action:", action, "on seat:", seat);
     // Implement your buy functionality here
   };
 
@@ -60,7 +61,7 @@ const CustomerSeatCanvas: React.FC = () => {
       <div className="mb-6">
         <div
           className={`relative rounded-lg border-2 border-dashed ${
-            isDragging ? 'border-gray-400 bg-gray-50' : 'border-gray-300'
+            isDragging ? "border-gray-400 bg-gray-50" : "border-gray-300"
           } p-6 transition-colors`}
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
@@ -78,7 +79,7 @@ const CustomerSeatCanvas: React.FC = () => {
                 <span className="font-medium text-gray-900">{fileName}</span>
               ) : (
                 <>
-                  Drag and drop your seat file here, or{' '}
+                  Drag and drop your seat file here, or{" "}
                   <span className="text-gray-900 underline">browse</span>
                 </>
               )}
@@ -100,30 +101,30 @@ const CustomerSeatCanvas: React.FC = () => {
           style={{
             width: 800,
             height: 600,
-            backgroundColor: '#f8fafc',
+            backgroundColor: "#f8fafc",
             showSeatNumbers: true,
             seatNumberStyle: {
               fontSize: 14,
-              fill: '#222',
-              fontWeight: 'bold',
+              fill: "#222",
+              fontWeight: "bold",
             },
             seatStyle: {
-              fill: 'transparent',
-              stroke: 'black',
+              fill: "transparent",
+              stroke: "black",
               strokeWidth: 1,
               radius: 10,
             },
           }}
           labels={{
-            buyButton: 'Buy Seat',
-            cancelButton: 'Cancel',
-            seatNumber: 'Seat Number',
-            category: 'Category',
-            price: 'Price',
-            status: 'Status',
+            buyButton: "Buy Seat",
+            cancelButton: "Cancel",
+            seatNumber: "Seat Number",
+            category: "Category",
+            price: "Price",
+            status: "Status",
           }}
           onSeatAction={handleSeatAction}
-          onChange={(json) => console.log('Layout changed:', json)}
+          onChange={(json) => console.log("Layout changed:", json)}
         />
       ) : (
         <div className="rounded-lg border bg-white p-4 shadow">
