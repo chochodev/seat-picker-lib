@@ -5,9 +5,8 @@ import {
   Navigate,
 } from 'react-router-dom';
 import SeatPicker from '@/components';
-import CustomerSeatCanvas from './pages/CustomerSeatCanvas';
+import CustomerSeatCanvas from './CustomerSeatCanvas';
 import { CanvasObject } from './types/data.types';
-import DemoPage from './pages/demo';
 export default function Home() {
   const handleChange = (json: CanvasObject) => {
     // console.log('onChange', json);
@@ -34,7 +33,6 @@ export default function Home() {
           }
         />
         <Route path="/seats" element={<CustomerSeatCanvas />} />
-        <Route path="/demo" element={<DemoPage />} />
       </Routes>
     </Router>
   );
