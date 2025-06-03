@@ -40,7 +40,7 @@
   "bugs": {
     "url": "https://github.com/chochodev/seat-picker-lib/issues"
   },
-  "homepage": "https://github.com/chochodev/seat-picker-lib#readme",
+  "homepage": "https://seat-picker-docs.vercel.app",
   "scripts": {
     "dev": "vite",
     "build": "tsup src/index.ts --format esm,cjs --dts --external react",
